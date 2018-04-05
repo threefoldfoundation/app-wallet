@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button="bar-button" (click)="close()" class="back-button show-back-button back-button-md">
+        <ion-icon name="arrow-back" class="back-button-icon-md"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'wallet' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <ion-tabs tabsPlacement="bottom" [selectedIndex]="1">
+    <ion-tab *ngFor="let tab of tabs" [root]="tab.component" [tabTitle]="tab.title | translate"></ion-tab>
+  </ion-tabs>
+</ion-content>

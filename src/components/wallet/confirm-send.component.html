@@ -1,0 +1,16 @@
+<div *ngIf="transaction">
+  <p>{{ 'to_address_x' | translate : { address: transaction.to_address } }}</p>
+  <p>{{ 'amount_x' | translate : { amount: getAmount(transaction) | amount } }}</p>
+  <p>{{ 'transaction_fee_x' | translate : { fee : transaction.minerfees | amount } }}</p>
+  <p>{{ 'transaction_total_x' | translate : { amount : getTotalAmount(transaction) | amount } }}</p>
+</div>
+<api-request-status [status]="pendingStatus"></api-request-status>
+<api-request-status [status]="createStatus"></api-request-status>
+<ion-row justify-content-end>
+  <form (ngSubmit)="submit()">
+    <button ion-button color="primary" full
+            [disabled]="pendingStatus.loading || createStatus.loading">
+      {{ 'confirm_transaction' | translate }}
+    </button>
+  </form>
+</ion-row>

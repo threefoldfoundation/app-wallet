@@ -1,0 +1,14 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">{{ 'cancel' | translate }}</button>
+    </ion-buttons>
+    <ion-title>{{ 'confirm_transaction' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <confirm-send [transaction]="pendingTransaction$ | async"
+                [createStatus]="createTransactionStatus$ | async"
+                [pendingStatus]="pendingTransactionStatus$ | async"
+                (confirmTransaction)="onConfirm()"></confirm-send>
+</ion-content>
