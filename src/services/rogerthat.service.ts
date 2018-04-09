@@ -1,19 +1,19 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
-import { GetAddressPayload } from '../interfaces';
 import {
   CameraType,
   CryptoAddress,
   CryptoSignature,
   CryptoTransaction,
   RogerthatCallbacks,
+  RogerthatError,
   SignatureData,
   SupportedAlgorithms,
-} from '../manual_typings/rogerthat';
-import { RogerthatError } from '../manual_typings/rogerthat-errors';
+} from 'rogerthat-plugin';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
+import { ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
+import { GetAddressPayload } from '../interfaces';
 import { IAppState } from '../state';
 import { I18nService } from './i18n.service';
 

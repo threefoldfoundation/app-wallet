@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { CryptoTransaction, SupportedAlgorithms } from 'rogerthat-plugin';
 import {
   ApiRequestStatus,
   CreateSignatureData,
@@ -7,7 +8,6 @@ import {
   RivineBlockInternal,
   RivineCreateTransactionResult,
 } from '../interfaces';
-import { CryptoTransaction, SupportedAlgorithms } from '../manual_typings/rogerthat';
 
 interface IWalletActionTypes {
   GET_TRANSACTIONS: 'Get transactions';

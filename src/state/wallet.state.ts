@@ -1,4 +1,5 @@
 import { createSelector } from '@ngrx/store';
+import { CryptoTransaction } from 'rogerthat-plugin';
 import {
   apiRequestInitial,
   ApiRequestStatus,
@@ -7,7 +8,6 @@ import {
   RivineBlockInternal,
   RivineCreateTransactionResult,
 } from '../interfaces';
-import { CryptoTransaction } from '../manual_typings/rogerthat';
 import { IAppState } from './app.state';
 
 export interface IWalletState {

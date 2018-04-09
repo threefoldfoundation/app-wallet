@@ -1,7 +1,6 @@
 import { createSelector } from '@ngrx/store';
+import { CryptoAddress, QrCodeScannedContent, RogerthatError } from 'rogerthat-plugin';
 import { apiRequestInitial, ApiRequestStatus, ServiceData, UserData } from '../interfaces';
-import { CryptoAddress, QrCodeScannedContent } from '../manual_typings/rogerthat';
-import { RogerthatError } from '../manual_typings/rogerthat-errors';
 import { IAppState } from './app.state';
 
 export interface IRogerthatState<UserDataType = any, ServiceDataType = any> {

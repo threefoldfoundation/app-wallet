@@ -2,14 +2,13 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild } from
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
+import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import { first } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction, GetTransactionsAction } from '../../actions';
 import { ApiRequestStatus, CURRENCY_SYMBOL, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM } from '../../interfaces';
-import { CryptoAddress } from '../../manual_typings/rogerthat';
-import { RogerthatError } from '../../manual_typings/rogerthat-errors';
 import { ErrorService } from '../../services';
 import {
   getAddress,

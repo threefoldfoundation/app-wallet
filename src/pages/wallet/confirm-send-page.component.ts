@@ -3,6 +3,7 @@ import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, NavParams, ViewController } from 'ionic-angular';
+import { CryptoTransaction } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { first, switchMap } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
@@ -14,7 +15,6 @@ import {
   RIVINE_ALGORITHM,
   RivineCreateTransactionResult,
 } from '../../interfaces';
-import { CryptoTransaction } from '../../manual_typings/rogerthat';
 import {
   createTransactionStatus,
   getCreatedTransaction,

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { InAppBrowser } from '@ionic-native/in-app-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
-import { RogerthatError } from '../manual_typings/rogerthat-errors';
+import { RogerthatError } from 'rogerthat-plugin';
 
 @Injectable()
 export class ErrorService {

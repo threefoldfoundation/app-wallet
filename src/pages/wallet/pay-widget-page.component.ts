@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulatio
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { ModalController, NavParams } from 'ionic-angular';
+import { CreateTransactionBaseResult, PayWidgetData, RogerthatError } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction } from '../../actions';
@@ -13,8 +14,6 @@ import {
   RIVINE_ALGORITHM,
   RivineCreateTransactionResult,
 } from '../../interfaces';
-import { CreateTransactionBaseResult, PayWidgetData } from '../../manual_typings/rogerthat';
-import { RogerthatError } from '../../manual_typings/rogerthat-errors';
 import { getAddress, getAddressStatus, IAppState } from '../../state';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 

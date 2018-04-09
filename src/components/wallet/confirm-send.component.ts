@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { CryptoTransaction, CryptoTransactionData } from 'rogerthat-plugin';
 import { ApiRequestStatus } from '../../interfaces';
-import { CryptoTransaction, CryptoTransactionData } from '../../manual_typings/rogerthat';
 import { getTransactionAmount } from '../../util/wallet';
 
 @Component({

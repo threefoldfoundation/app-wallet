@@ -1,13 +1,13 @@
 import { Action } from '@ngrx/store';
-import { ApiRequestStatus, GetAddressPayload, ServiceData, UserData } from '../interfaces';
 import {
   CameraType,
   CryptoAddress,
   CryptoTransaction,
   QrCodeScannedContent,
+  RogerthatError,
   SupportedAlgorithms,
-} from '../manual_typings/rogerthat';
-import { RogerthatError } from '../manual_typings/rogerthat-errors';
+} from 'rogerthat-plugin';
+import { ApiRequestStatus, GetAddressPayload, ServiceData, UserData } from '../interfaces';
 
 interface IRogerthatActionTypes {
   API_CALL: '[rogerthat] Api call';

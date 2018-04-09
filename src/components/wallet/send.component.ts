@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { CreateSignatureData } from '../../interfaces/wallet';
-import { CryptoAddress } from '../../manual_typings/rogerthat';
+import { CryptoAddress } from 'rogerthat-plugin';
+import { CreateSignatureData } from '../../interfaces';
 
 @Component({
   selector: 'send',

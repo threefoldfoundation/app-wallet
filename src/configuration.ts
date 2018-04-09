@@ -1,4 +1,4 @@
-import { PaymentProviderId } from './manual_typings/rogerthat';
+import { PaymentProviderId } from 'rogerthat-plugin';
 
 export interface WalletConfiguration {
   explorer_urls: string[];

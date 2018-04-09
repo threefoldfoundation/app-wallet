@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestro
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
+import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
@@ -14,7 +15,6 @@ import {
   RIVINE_ALGORITHM,
   RivineCreateTransactionResult,
 } from '../../interfaces';
-import { CryptoAddress, QrCodeScannedContent } from '../../manual_typings/rogerthat';
 import { getAddress, getQrCodeContent, IAppState } from '../../state';
 import { parseQuery } from '../../util/rpc';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';

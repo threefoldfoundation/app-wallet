@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { CryptoTransaction, CryptoTransactionData } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { TimerObservable } from 'rxjs/observable/TimerObservable';
@@ -18,7 +19,6 @@ import {
   RivineTransaction,
   TranslatedError,
 } from '../interfaces';
-import { CryptoTransaction, CryptoTransactionData } from '../manual_typings/rogerthat';
 import { getTransactionAmount } from '../util/wallet';
 
 @Injectable()
