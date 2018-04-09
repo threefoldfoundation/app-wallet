@@ -7,7 +7,8 @@
   "scripts": {
     "clean": "ionic-app-scripts clean",
     "build:prod": "ionic-app-scripts build --prod --nobrowser --enableLint false && node tools/finish-production-build.js",
-    "build:zip": "npm run build:prod && npm run build:zip-only",
+    "build:zip": "node tools/set-config.js",
+    "postbuild:zip": "npm run build:prod && npm run build:zip-only",
     "build:zip-only": "rm -f wallet.zip && mv www/index.html www/cordova.html && cd www && zip -r ../wallet.zip . && cd .. && mv www/cordova.html www/index.html",
     "build:embedded-app": "npm run build:prod && rm -f wallet.zip && cd www && zip -r ../wallet.zip .",
     "lint": "ionic-app-scripts lint",

@@ -1,5 +1,4 @@
 const argv = require('minimist')(process.argv.slice(2));
-console.log('argv', argv);
 const fs = require('fs');
 const configPath = 'src/configuration.json';
 if (!argv.configuration_file && !argv.configuration) {
