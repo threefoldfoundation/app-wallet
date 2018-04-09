@@ -28,7 +28,12 @@ export function transformErrorResponse<T = any>(response: HttpErrorResponse | Tr
     };
   }
   if (typeof response.error === 'object' && !(response.error instanceof ProgressEvent)) {
-    apiError = response.error;
+    const err = response.error && response.error.message;
+    apiError = {
+      status_code: response.status,
+      error: err || 'unknown',
+      data: response.error,
+    };
   } else {
     // Most likely a non-json response
     apiError = {

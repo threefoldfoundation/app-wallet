@@ -19,7 +19,7 @@ import {
   RivineTransaction,
   TranslatedError,
 } from '../interfaces';
-import { getTransactionAmount } from '../util/wallet';
+import { getTransactionAmount, isUnrecognizedHashError } from '../util/wallet';
 
 @Injectable()
 export class WalletService {
@@ -178,6 +178,12 @@ export class WalletService {
       timeout(5000),
       retryWhen(attempts => {
         return attempts.pipe(mergeMap(error => {
+          error.error = {'message': 'unrecognized hash used as input to /explorer/has'};
+          if (error instanceof HttpErrorResponse && typeof error.error === 'object'
+            && isUnrecognizedHashError(error.error.message)) {
+            // Don't retry in case the hash wasn't recognized
+            return ErrorObservable.create(error);
+          }
           retries++;
           const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
             || error instanceof TimeoutError;

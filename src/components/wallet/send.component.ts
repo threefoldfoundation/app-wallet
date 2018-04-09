@@ -9,6 +9,7 @@ import { CreateSignatureData } from '../../interfaces';
   templateUrl: 'send.component.html',
 })
 export class SendComponent {
+  @Input() hasTransactions: boolean;
   @Input() address: CryptoAddress;
   @Input() addressLength: number;
 

@@ -18,6 +18,7 @@ import {
   getTransactionsStatus,
   IAppState,
 } from '../../state';
+import { isUnrecognizedHashError } from '../../util/wallet';
 import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 
 @Component({
@@ -69,9 +70,9 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
       }
     });
     this._transactionStatusSub = this.transactionsStatus$.subscribe(s => {
-      if (!s.success && !s.loading && s.error !== null) {
+      if (!s.success && !s.loading && s.error !== null && !isUnrecognizedHashError(s.error.error)) {
         this._showErrorDialog(s.error!.error);
-      } else if (!s.loading && s.success) {
+      } else if (!s.loading) {
         this.refresher.complete();
         this._dismissErrorDialog();
       }

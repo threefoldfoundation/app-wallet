@@ -19,6 +19,7 @@
   "fee_x": "{{ fee }} fee",
   "inputs": "Inputs",
   "no": "No",
+  "no_spendable_tokens": "You don't have any tokens that you can send.",
   "ok": "Ok",
   "or_enter_the_information_below": "Or enter the information below",
   "outputs": "Outputs",

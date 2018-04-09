@@ -1,23 +1,28 @@
-<button ion-button item-start (click)="scanQr.emit()">{{ 'scan_qr_code' | translate }}</button>
-<p item-start>{{ 'or_enter_the_information_below' | translate }}</p>
-<form #form="ngForm" (ngSubmit)="submitForm(form)">
-  <ion-list>
-    <ion-item>
-      <ion-label color="primary" floating>{{ 'address' | translate }}</ion-label>
-      <ion-textarea type="text" name="to_address" #toAddress="ngModel" [(ngModel)]="data.to_address" rows="3"
-                    required [minlength]="addressLength" [maxlength]="addressLength"></ion-textarea>
-    </ion-item>
-    <ion-item *ngIf="toAddress.errors && toAddress.dirty">
-      <p *ngIf="toAddress.errors.minlength || toAddress.errors.maxlength || toAddress.errors.required"
-         class="color-danger">
-        {{ 'address_must_be_x_characters' | translate : { amount: addressLength, current:
-        toAddress.errors.minlength?.actualLength || toAddress.errors.maxlength?.actualLength || 0 } }}</p>
-    </ion-item>
-    <ion-item>
-      <ion-label color="primary" floating>{{ 'amount' | translate }}</ion-label>
-      <ion-input type="number" name="amount" [(ngModel)]="data.amount" required [min]="0.01"
-                 [step]="0.01"></ion-input>
-    </ion-item>
-  </ion-list>
-  <button ion-button>{{ 'send' | translate }}</button>
-</form>
+<p *ngIf="!hasTransactions; else hasTransactionsTmpl">
+  {{ 'no_spendable_tokens' | translate }}
+</p>
+<ng-template #hasTransactionsTmpl>
+  <button ion-button item-start (click)="scanQr.emit()">{{ 'scan_qr_code' | translate }}</button>
+  <p item-start>{{ 'or_enter_the_information_below' | translate }}</p>
+  <form #form="ngForm" (ngSubmit)="submitForm(form)">
+    <ion-list>
+      <ion-item>
+        <ion-label color="primary" floating>{{ 'address' | translate }}</ion-label>
+        <ion-textarea type="text" name="to_address" #toAddress="ngModel" [(ngModel)]="data.to_address" rows="3"
+                      required [minlength]="addressLength" [maxlength]="addressLength"></ion-textarea>
+      </ion-item>
+      <ion-item *ngIf="toAddress.errors && toAddress.dirty">
+        <p *ngIf="toAddress.errors.minlength || toAddress.errors.maxlength || toAddress.errors.required"
+           class="color-danger">
+          {{ 'address_must_be_x_characters' | translate : { amount: addressLength, current:
+          toAddress.errors.minlength?.actualLength || toAddress.errors.maxlength?.actualLength || 0 } }}</p>
+      </ion-item>
+      <ion-item>
+        <ion-label color="primary" floating>{{ 'amount' | translate }}</ion-label>
+        <ion-input type="number" name="amount" [(ngModel)]="data.amount" required [min]="0.01"
+                   [step]="0.01"></ion-input>
+      </ion-item>
+    </ion-list>
+    <button ion-button>{{ 'send' | translate }}</button>
+  </form>
+</ng-template>

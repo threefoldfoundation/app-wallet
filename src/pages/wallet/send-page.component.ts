@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
 import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction, ScanQrCodeAction } from '../../actions';
 import {
@@ -15,8 +15,9 @@ import {
   RIVINE_ALGORITHM,
   RivineCreateTransactionResult,
 } from '../../interfaces';
-import { getAddress, getQrCodeContent, IAppState } from '../../state';
+import { getAddress, getQrCodeContent, getTransactionsStatus, IAppState } from '../../state';
 import { parseQuery } from '../../util/rpc';
+import { isUnrecognizedHashError } from '../../util/wallet';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 const PRECISION = 5;
@@ -31,7 +32,8 @@ const DEFAULT_FORM_DATA = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ion-content>
-      <send [data]="data"
+      <send [hasTransactions]="hasTransactions$ | async"
+            [data]="data"
             [address]="address$ | async"
             [addressLength]="addressLength"
             (scanQr)="onScanQr()"
@@ -39,6 +41,7 @@ const DEFAULT_FORM_DATA = {
     </ion-content>`,
 })
 export class SendPageComponent implements OnInit, OnDestroy {
+  hasTransactions$: Observable<boolean>;
   address$: Observable<CryptoAddress>;
   addressLength = ADDRESS_LENGTH;
   data: CreateSignatureData = DEFAULT_FORM_DATA; // cant get it to work with a subject
@@ -54,6 +57,9 @@ export class SendPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.hasTransactions$ = this.store.pipe(
+      select(getTransactionsStatus),
+      map(s => s.error === null || !isUnrecognizedHashError(s.error.error)));
     this.store.dispatch(new GetAddresssAction({
       algorithm: RIVINE_ALGORITHM,
       index: 0,

@@ -17,7 +17,8 @@ Run `npm run build:zip`. A `wallet.zip` file will be generated in this folder.
 
 To test it, either upload it as a branding on your rogerthat server or add this to index.html above main.js to test it in the browser:
 
-```html<script>
+```html
+<script>
   if (typeof rogerthat === 'undefined') {
     function nothing() {
     }
@@ -41,6 +42,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
       user: {
         language: 'en',
         data: {},
+      },
       system: {
         appId: 'example-app-id',
         appVersion: '2.1.9999'
@@ -58,8 +60,8 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       }
     };
-    sha256 = nothing,
-      setTimeout(() => rogerthat.callbacks._ready(), 250);
+    sha256 = nothing;
+    setTimeout(() => rogerthat.callbacks._ready(), 250);
   }
 </script>
 ```
