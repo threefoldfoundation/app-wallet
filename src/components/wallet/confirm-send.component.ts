@@ -15,7 +15,6 @@ export class ConfirmSendComponent {
   @Output() confirmTransaction = new EventEmitter();
 
   getAmount(transaction: CryptoTransaction): number {
-    console.log(transaction);
     return transaction.data
       .reduce((total: number, data: CryptoTransactionData) => total + getTransactionAmount(transaction.to_address, [], data.outputs), 0);
   }

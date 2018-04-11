@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
@@ -52,8 +52,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
               private modalCtrl: ModalController,
               private alertCtrl: AlertController,
               private translate: TranslateService,
-              private cdRef: ChangeDetectorRef,
-              private ngZone: NgZone) {
+              private cdRef: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -105,27 +104,24 @@ export class SendPageComponent implements OnInit, OnDestroy {
   }
 
   onCreateSignatureData(data: CreateSignatureData) {
-    // for some fucking reason this does not run in ngZone leading to UI not updating
-    this.ngZone.run(() => {
-      const modal = this.modalCtrl.create(ConfirmSendPageComponent, {
-        transactionData: {
-          ...data,
-          amount: Math.round(data.amount * Math.pow(10, PRECISION)),
-        },
-      });
-      modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
-        if (transaction) {
-          const config = {
-            title: this.translate.instant('transaction_complete'),
-            message: this.translate.instant('transaction_complete_message'),
-            buttons: [{text: this.translate.instant('ok')}],
-          };
-          this.alertCtrl.create(config).present();
-          this.setData(DEFAULT_FORM_DATA);
-        }
-      });
-      modal.present();
+    const modal = this.modalCtrl.create(ConfirmSendPageComponent, {
+      transactionData: {
+        ...data,
+        amount: Math.round(data.amount * Math.pow(10, PRECISION)),
+      },
     });
+    modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
+      if (transaction) {
+        const config = {
+          title: this.translate.instant('transaction_complete'),
+          message: this.translate.instant('transaction_complete_message'),
+          buttons: [{text: this.translate.instant('ok')}],
+        };
+        this.alertCtrl.create(config).present();
+        this.setData(DEFAULT_FORM_DATA);
+      }
+    });
+    modal.present();
   }
 
   setData(data: CreateSignatureData) {

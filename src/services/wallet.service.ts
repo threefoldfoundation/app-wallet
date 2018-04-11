@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import { of } from 'rxjs/observable/of';
 import { TimerObservable } from 'rxjs/observable/TimerObservable';
 import { map, mergeMap, retryWhen, timeout } from 'rxjs/operators';
 import { TimeoutError } from 'rxjs/util/TimeoutError';
@@ -10,16 +11,14 @@ import { configuration } from '../configuration';
 import {
   COIN_TO_HASTINGS,
   CreateSignatureData,
-  ParsedTransaction,
   RivineBlock,
   RivineBlockInternal,
   RivineCreateTransaction,
   RivineCreateTransactionResult,
   RivineHashInfo,
-  RivineTransaction,
   TranslatedError,
 } from '../interfaces';
-import { getTransactionAmount, isUnrecognizedHashError } from '../util/wallet';
+import { convertPendingTransaction, convertTransaction, getOutputIds, isUnrecognizedHashError } from '../util/wallet';
 
 @Injectable()
 export class WalletService {
@@ -27,6 +26,7 @@ export class WalletService {
 
   constructor(private http: HttpClient) {
     const resetDelay = 5 * 60 * 1000;
+    this.getPendingTransactions('012d90059129629d14683ad9b341eab8e766caa6dbd3e8a2a703d1438483960735fc42cd793b6d').subscribe(s => console.log(s));
     TimerObservable.create(resetDelay, resetDelay).subscribe(a => {
       this.unavailableExplorers = [];
     });
@@ -41,7 +41,8 @@ export class WalletService {
   }
 
   getTransactions(address: string) {
-    return this.getHashInfo(address).pipe(map(info => info.transactions.map(t => this._convertTransaction(t, address))
+    // TODO remove debugging stuff
+    return this.getHashInfo(address).pipe(map(info => [info.transactions[0]].map(t => convertTransaction(t, address))
       .sort((t1, t2) => t2.height - t1.height)));
   }
 
@@ -49,10 +50,43 @@ export class WalletService {
     return this._get<RivineHashInfo>(`/explorer/hashes/${hash}`);
   }
 
+  getTransactionPool() {
+    // this._get<RivineTransactionPool>('/transactionpool/transactions')
+    return of({
+      'transactions': [{
+        'version': 0,
+        'data': {
+          'coininputs': [{
+            'parentid': 'c41df6a999f2b44605b0626d046b400e8b0e8e19b8f593737056ce7778454504',
+            'unlocker': {
+              'type': 1,
+              'condition': {'publickey': 'ed25519:694baf93e1a83715f0ff8d35df28fa8a44898bb08a75eb18a72ffc20597f64d5'},
+              'fulfillment': {'signature': '8452d2bec129dc405ff9c809b58598a085b76e2457332356b0e9ee72cd22f2a3aea7619bff3803f3208c54f9e4e05fb98f599fefc0708d5a728a71a6e2ea6505'},
+            },
+          }],
+          'coinoutputs': [{
+            'value': '100000000',
+            'unlockhash': '01e2dc01a686fc0ca25612871a6515f2e3b804aa63244bf19449ecb3c9aaaf36f0cc6839b0af60',
+          }, {
+            'value': '800000000',
+            'unlockhash': '012d90059129629d14683ad9b341eab8e766caa6dbd3e8a2a703d1438483960735fc42cd793b6d',
+          }],
+          'minerfees': ['100000000'],
+        },
+      }],
+    });
+  }
+
+  getPendingTransactions(address: string) {
+    return this.getTransactionPool().pipe(
+      map(pool => (pool.transactions || []).map(t => convertPendingTransaction(t, address))),
+    );
+  }
+
   createSignatureData(data: CreateSignatureData): Observable<CryptoTransaction> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
-      const outputIds = this._getOutputIds(hashInfo.transactions, data.from_address);
+      const outputIds = getOutputIds(hashInfo.transactions, data.from_address);
       const transactionData: CryptoTransactionData[] = [];
       let feeSubtracted = false;
       let hasSufficientFunds = false;
@@ -128,45 +162,6 @@ export class WalletService {
     return this._post<RivineCreateTransactionResult>(`/transactionpool/transactions`, transaction);
   }
 
-  private _getOutputIds(transactions: RivineTransaction[], unlockhash: string) {
-    const allCoinOutputs: { id: string, amount: string }[] = [];
-    const spentOutputs: { output_id: string, amount: string }[] = [];
-    for (const t of transactions) {
-      const coinOutputIds: string[] = t.coinoutputids || [];
-      const coinOutputs = t.rawtransaction.data.coinoutputs || [];
-      for (let i = 0; i < coinOutputIds.length; i++) {
-        const outputId = coinOutputIds[i];
-        const coinOutput = coinOutputs[i];
-        if (coinOutput.unlockhash === unlockhash) {
-          allCoinOutputs.push({id: outputId, amount: coinOutput.value});
-          for (const transaction of transactions) {
-            for (const input of transaction.rawtransaction.data.coininputs || []) {
-              if (input.parentid === outputId) {
-                spentOutputs.push({output_id: outputId, amount: coinOutput.value});
-              }
-            }
-          }
-        }
-      }
-    }
-    return allCoinOutputs.filter(output => !spentOutputs.some(o => o.output_id === output.id));
-  }
-
-  private _convertTransaction(transaction: RivineTransaction, address: string): ParsedTransaction {
-    transaction.coininputoutputs = transaction.coininputoutputs || [];
-    transaction.rawtransaction.data.coinoutputs = transaction.rawtransaction.data.coinoutputs || [];
-    const amount = getTransactionAmount(address, transaction.coininputoutputs, transaction.rawtransaction.data.coinoutputs);
-    return {
-      id: transaction.id,
-      inputs: transaction.coininputoutputs,
-      outputs: transaction.rawtransaction.data.coinoutputs,
-      height: transaction.height,
-      receiving: amount > 0,
-      amount,
-      minerfee: (transaction.rawtransaction.data.minerfees || []).reduce((total: number, fee: string) => total + parseInt(fee), 0),
-    };
-  }
-
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
@@ -178,7 +173,6 @@ export class WalletService {
       timeout(5000),
       retryWhen(attempts => {
         return attempts.pipe(mergeMap(error => {
-          error.error = {'message': 'unrecognized hash used as input to /explorer/has'};
           if (error instanceof HttpErrorResponse && typeof error.error === 'object'
             && isUnrecognizedHashError(error.error.message)) {
             // Don't retry in case the hash wasn't recognized

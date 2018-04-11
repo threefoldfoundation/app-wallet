@@ -26,6 +26,14 @@ export interface ParsedTransaction {
   receiving: boolean;
 }
 
+export interface PendingTransaction {
+  inputs: RivineInput[];
+  outputs: RivineOutput[];
+  amount: number;
+  minerfee: number;
+  receiving: boolean;
+}
+
 export interface RivineCreateTransactionResult {
   transactionid: string;
 }
@@ -124,6 +132,10 @@ export interface RivineHashInfo {
   hashtype: 'unlockhash';
   transaction: RivineTransaction;
   transactions: RivineTransaction[];
+}
+
+export interface RivineTransactionPool {
+  transactions: null | RivineRawTransaction[];
 }
 
 export const ADDRESS_LENGTH = 78;
