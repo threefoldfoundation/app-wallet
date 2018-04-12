@@ -65,3 +65,22 @@ To test it, either upload it as a branding on your rogerthat server or add this 
   }
 </script>
 ```
+
+
+In case the testnet explorer doesn't work, start your own with these commands:
+
+Start the chain
+``` bash
+go get -u github.com/threefoldfoundation/tfchain/cmd/...
+tfchaind --network testnet -M gctwbe --agent ""
+```
+
+Proxy to allow non-localhost addresses
+
+```bash
+git clone https://github.com/threefoldfoundation/tfchain
+cd tfchain
+caddy -conf caddy/Caddyfile.local
+```
+
+if prompted for a password enter `test123`
