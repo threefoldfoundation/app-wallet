@@ -13,7 +13,7 @@ import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { filter, map } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { GetAddresssAction, ScanQrCodeAction } from '../../actions';
+import { GetAddresssAction, GetTransactionsAction, ScanQrCodeAction } from '../../actions';
 import {
   ADDRESS_LENGTH,
   CreateSignatureData,
@@ -125,7 +125,11 @@ export class SendPageComponent implements OnInit, OnDestroy {
           message: this.translate.instant('transaction_complete_message'),
           buttons: [{text: this.translate.instant('ok')}],
         };
-        this.alertCtrl.create(config).present();
+        const alert = this.alertCtrl.create(config);
+        alert.present();
+        alert.onDidDismiss(() => {
+          this.store.dispatch(new GetTransactionsAction(data.from_address));
+        });
         this.setData(DEFAULT_FORM_DATA);
       }
     });

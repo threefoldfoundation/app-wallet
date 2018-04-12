@@ -3,6 +3,7 @@ import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { NavParams, ToastController, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
+import { of } from 'rxjs/observable/of';
 import { filter, map } from 'rxjs/operators';
 import { GetBlockAction, GetLatestBlockAction } from '../../actions';
 import {
@@ -44,20 +45,22 @@ export class TransactionDetailPageComponent implements OnInit {
 
   ngOnInit() {
     this.transaction = this.params.get('transaction');
-    this.store.dispatch(new GetLatestBlockAction());
-    if (!isPendingTransaction(this.transaction)) {
-      this.store.dispatch(new GetBlockAction(this.transaction.height));
-    }
     this.latestBlock$ = <Observable<RivineBlockInternal>>this.store.pipe(
       select(getLatestBlock),
       filter(b => b !== null),
     );
+    if (isPendingTransaction(this.transaction)) {
+      this.confirmations$ = of(0);
+    } else {
+      this.store.dispatch(new GetLatestBlockAction());
+      this.store.dispatch(new GetBlockAction(this.transaction.height));
+      this.confirmations$ = this.latestBlock$.pipe(
+        map(block => isPendingTransaction(this.transaction) ? 0 : block.height - this.transaction.height),
+      );
+    }
     this.transactionBlock$ = <Observable<RivineBlock>>this.store.pipe(
       select(getBlock),
       filter(b => b !== null),
-    );
-    this.confirmations$ = this.latestBlock$.pipe(
-      map(block => block.height - (isPendingTransaction(this.transaction) ? 0 : this.transaction.height)),
     );
     this.timestamp$ = this.transactionBlock$.pipe(
       map(block => new Date(block.block.rawblock.timestamp * 1000)),
