@@ -4,6 +4,7 @@ import {
   apiRequestInitial,
   ApiRequestStatus,
   ParsedTransaction,
+  PendingTransaction,
   RivineBlock,
   RivineBlockInternal,
   RivineCreateTransactionResult,
@@ -12,6 +13,8 @@ import { IAppState } from './app.state';
 
 export interface IWalletState {
   transactions: ParsedTransaction[];
+  pendingTransactions: PendingTransaction[];
+  pendingTransactionsStatus: ApiRequestStatus;
   createdTransaction: RivineCreateTransactionResult | null;
   transactionsStatus: ApiRequestStatus;
   pendingTransaction: CryptoTransaction | null;
@@ -27,6 +30,8 @@ export const getWalletState = (state: IAppState) => state.wallet;
 
 export const initialWalletState: IWalletState = {
   transactions: [],
+  pendingTransactions: [],
+  pendingTransactionsStatus: apiRequestInitial,
   createdTransaction: null,
   transactionsStatus: apiRequestInitial,
   pendingTransaction: null,
@@ -39,6 +44,7 @@ export const initialWalletState: IWalletState = {
 };
 
 export const getTransactions = createSelector(getWalletState, s => s.transactions);
+export const getPendingTransactions = createSelector(getWalletState, s => s.pendingTransactions);
 export const getTotalAmount = createSelector(getTransactions, transactions => {
   return transactions.reduce((total: number, transaction: ParsedTransaction) => total + transaction.amount, 0);
 });

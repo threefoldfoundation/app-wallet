@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
@@ -7,7 +7,13 @@ import { CryptoTransaction } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { first, switchMap } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { CreateSignatureDataAction, CreateTransactionDataAction, WalletActionTypes } from '../../actions';
+import {
+  CreateSignatureDataAction,
+  CreateTransactionDataAction,
+  GetPendingTransactionsAction,
+  GetPendingTransactionsCompleteAction,
+  WalletActionTypes,
+} from '../../actions';
 import {
   ApiRequestStatus,
   CreateSignatureData,
@@ -20,11 +26,14 @@ import {
   getCreatedTransaction,
   getPendingTransaction,
   getPendingTransactionStatus,
+  getTransactions,
   IAppState,
 } from '../../state';
+import { getOutputIds } from '../../util/wallet';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: 'confirm-send-page.component.html',
 })
 export class ConfirmSendPageComponent implements OnInit, OnDestroy {
@@ -35,6 +44,8 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   transaction$: Observable<RivineCreateTransactionResult | null>;
 
   private _transactionCompleteSub: Subscription;
+  private _transactionsSubscription: Subscription;
+  private _pendingTransactionSubscription: Subscription | null = null;
 
   constructor(private store: Store<IAppState>,
               private viewCtrl: ViewController,
@@ -50,7 +61,17 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.data = this.params.get('transactionData');
-    this.store.dispatch(new CreateSignatureDataAction(this.data));
+    // Ensure latest data by fetching it again
+    this._transactionsSubscription = this.store.pipe(select(getTransactions)).subscribe(transactions => {
+      const outputIds = getOutputIds(transactions, this.data.from_address).all.map(o => o.id);
+      this._pendingTransactionSubscription = this.actions$.pipe(
+        ofType<GetPendingTransactionsCompleteAction>(WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE),
+        first(),
+      ).subscribe(action => {
+        this.store.dispatch(new CreateSignatureDataAction(this.data, action.payload));
+      });
+      this.store.dispatch(new GetPendingTransactionsAction(this.data.from_address, outputIds));
+    });
     this.pendingTransaction$ = this.store.pipe(select(getPendingTransaction));
     this.pendingTransactionStatus$ = this.store.pipe(select(getPendingTransactionStatus));
     this.createTransactionStatus$ = this.store.pipe(select(createTransactionStatus));
@@ -64,7 +85,11 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this._transactionsSubscription.unsubscribe();
     this._transactionCompleteSub.unsubscribe();
+    if (this._pendingTransactionSubscription) {
+      this._pendingTransactionSubscription.unsubscribe();
+    }
   }
 
   onConfirm() {

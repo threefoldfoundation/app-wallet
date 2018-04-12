@@ -19,8 +19,8 @@ import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 @Component({
   selector: 'pay-widget-page-component',
-  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: 'pay-widget-page.component.html',
 })
 export class PayWidgetPageComponent implements OnInit, OnDestroy {

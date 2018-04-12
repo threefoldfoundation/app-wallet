@@ -1,4 +1,5 @@
 import {
+  OutputMapping,
   ParsedTransaction,
   PendingTransaction,
   RivineOutput,
@@ -30,34 +31,37 @@ export function isUnrecognizedHashError(err: string | null | undefined) {
 export function convertTransaction(transaction: RivineTransaction, address: string): ParsedTransaction {
   transaction.coininputoutputs = transaction.coininputoutputs || [];
   transaction.rawtransaction.data.coinoutputs = transaction.rawtransaction.data.coinoutputs || [];
-  // todo amount will be incorrect for incoming transactions
   const amount = getTransactionAmount(address, transaction.coininputoutputs, transaction.rawtransaction.data.coinoutputs);
   return {
-    id: transaction.id,
-    inputs: transaction.coininputoutputs,
+    ...transaction,
     outputs: transaction.rawtransaction.data.coinoutputs,
-    height: transaction.height,
     receiving: amount > 0,
     amount,
     minerfee: getMinerFee(transaction.rawtransaction.data.minerfees),
   };
 }
 
-export function convertPendingTransaction(transaction: RivineRawTransaction, address: string): PendingTransaction {
+export function convertPendingTransaction(transaction: RivineRawTransaction, address: string, outputIds: string[]): PendingTransaction {
   transaction.data.coinoutputs = transaction.data.coinoutputs || [];
   transaction.data.coininputs = transaction.data.coininputs || [];
-  const amount = getTransactionAmount(address, transaction.data.coinoutputs, transaction.data.coinoutputs);
+  const receiving = !transaction.data.coininputs.some(input => outputIds.indexOf(input.parentid) !== -1);
+  let amount = 0;
+  if (receiving) {
+    amount = transaction.data.coinoutputs.filter(o => o.unlockhash === address).reduce(outputReducer, 0);
+  } else {
+    amount = -transaction.data.coinoutputs.filter(o => o.unlockhash !== address).reduce(outputReducer, 0);
+  }
   return {
+    ...transaction,
     amount,
     minerfee: getMinerFee(transaction.data.minerfees),
-    inputs: transaction.data.coininputs,
     outputs: transaction.data.coinoutputs,
-    receiving: amount > 0,
-  }
+    receiving,
+  };
 }
 
-export function getOutputIds(transactions: RivineTransaction[], unlockhash: string): { id: string, amount: string }[] {
-  const allCoinOutputs: { id: string, amount: string }[] = [];
+export function getOutputIds(transactions: RivineTransaction[], unlockhash: string) {
+  const allCoinOutputs: OutputMapping[] = [];
   const spentOutputs: { output_id: string, amount: string }[] = [];
   for (const t of transactions) {
     const coinOutputIds: string[] = t.coinoutputids || [];
@@ -77,7 +81,10 @@ export function getOutputIds(transactions: RivineTransaction[], unlockhash: stri
       }
     }
   }
-  return allCoinOutputs.filter(output => !spentOutputs.some(o => o.output_id === output.id));
+  return {
+    all: allCoinOutputs,
+    available: allCoinOutputs.filter(output => !spentOutputs.some(o => o.output_id === output.id)),
+  };
 }
 
 export function isPendingTransaction(trans: PendingTransaction | ParsedTransaction): trans is PendingTransaction {

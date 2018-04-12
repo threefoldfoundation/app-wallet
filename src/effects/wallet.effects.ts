@@ -12,21 +12,28 @@ import {
   WalletActions,
 } from '../actions';
 import { WalletService } from '../services';
-import { IAppState } from '../state/app.state';
+import { IAppState } from '../state';
 import { handleError } from '../util/rpc';
 
 @Injectable()
 export class WalletEffects {
-  @Effect() getTransactions = this.actions$.pipe(
+  @Effect() getTransactions$ = this.actions$.pipe(
     ofType<actions.GetTransactionsAction>(actions.WalletActionTypes.GET_TRANSACTIONS),
     switchMap(action => this.walletService.getTransactions(action.address).pipe(
       map(transactions => new actions.GetTransactionsCompleteAction(transactions)),
       catchError(err => handleError(actions.GetTransactionsFailedAction, err))),
     ));
 
+  @Effect() getPendingTransactions$ = this.actions$.pipe(
+    ofType<actions.GetPendingTransactionsAction>(actions.WalletActionTypes.GET_PENDING_TRANSACTIONS),
+    switchMap(action => this.walletService.getPendingTransactions(action.address, action.outputIds).pipe(
+      map(transactions => new actions.GetPendingTransactionsCompleteAction(transactions)),
+      catchError(err => handleError(actions.GetPendingTransactionsFailedAction, err))),
+    ));
+
   @Effect() createSignatureData$ = this.actions$.pipe(
     ofType<actions.CreateSignatureDataAction>(actions.WalletActionTypes.CREATE_SIGNATURE_DATA),
-    switchMap(action => this.walletService.createSignatureData(action.payload).pipe(
+    switchMap(action => this.walletService.createSignatureData(action.payload, action.pendingTransactions).pipe(
       map(result => new actions.CreateSignatureDataCompleteAction(result)),
       catchError(err => handleError(actions.CreateSignatureDataFailedAction, err))),
     ));

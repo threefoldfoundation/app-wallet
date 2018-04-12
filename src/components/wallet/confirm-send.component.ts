@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData } from 'rogerthat-plugin';
 import { ApiRequestStatus } from '../../interfaces';
 import { getTransactionAmount } from '../../util/wallet';
@@ -6,6 +6,7 @@ import { getTransactionAmount } from '../../util/wallet';
 @Component({
   selector: 'confirm-send',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: 'confirm-send.component.html',
 })
 export class ConfirmSendComponent {

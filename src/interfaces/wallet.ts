@@ -15,25 +15,6 @@ export interface GetAddressPayload {
   message: string;
 }
 
-// Only used by UI
-export interface ParsedTransaction {
-  id: string;
-  height: number;
-  inputs: RivineOutput[];
-  outputs: RivineOutput[];
-  amount: number;
-  minerfee: number;
-  receiving: boolean;
-}
-
-export interface PendingTransaction {
-  inputs: RivineInput[];
-  outputs: RivineOutput[];
-  amount: number;
-  minerfee: number;
-  receiving: boolean;
-}
-
 export interface RivineCreateTransactionResult {
   transactionid: string;
 }
@@ -136,6 +117,26 @@ export interface RivineHashInfo {
 
 export interface RivineTransactionPool {
   transactions: null | RivineRawTransaction[];
+}
+
+export interface OutputMapping {
+  id: string;
+  amount: string;
+}
+
+// Only used by UI
+export interface ParsedTransaction extends RivineTransaction {
+  outputs: RivineOutput[];
+  amount: number;
+  minerfee: number;
+  receiving: boolean;
+}
+
+export interface PendingTransaction extends RivineRawTransaction {
+  outputs: RivineOutput[];
+  amount: number;
+  minerfee: number;
+  receiving: boolean;
 }
 
 export const ADDRESS_LENGTH = 78;

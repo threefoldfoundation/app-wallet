@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Platform } from 'ionic-angular';
 import { ReceivePageComponent } from './receive-page.component';
 import { SendPageComponent } from './send-page.component';
@@ -11,6 +11,7 @@ export interface TabPage {
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: 'wallet-page.component.html',
 })
 export class WalletPageComponent implements OnInit {

@@ -4,6 +4,7 @@ import {
   ApiRequestStatus,
   CreateSignatureData,
   ParsedTransaction,
+  PendingTransaction,
   RivineBlock,
   RivineBlockInternal,
   RivineCreateTransactionResult,
@@ -13,6 +14,9 @@ interface IWalletActionTypes {
   GET_TRANSACTIONS: 'Get transactions';
   GET_TRANSACTIONS_COMPLETE: 'Get transactions complete';
   GET_TRANSACTIONS_FAILED: 'Get transactions failed';
+  GET_PENDING_TRANSACTIONS: 'Get pending transactions';
+  GET_PENDING_TRANSACTIONS_COMPLETE: 'Get pending transactions complete';
+  GET_PENDING_TRANSACTIONS_FAILED: 'Get pending transactions failed';
   CREATE_SIGNATURE_DATA: 'Create signature data';
   CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete';
   CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed';
@@ -31,6 +35,9 @@ export const WalletActionTypes: IWalletActionTypes = {
   GET_TRANSACTIONS: 'Get transactions',
   GET_TRANSACTIONS_COMPLETE: 'Get transactions complete',
   GET_TRANSACTIONS_FAILED: 'Get transactions failed',
+  GET_PENDING_TRANSACTIONS: 'Get pending transactions',
+  GET_PENDING_TRANSACTIONS_COMPLETE: 'Get pending transactions complete',
+  GET_PENDING_TRANSACTIONS_FAILED: 'Get pending transactions failed',
   CREATE_SIGNATURE_DATA: 'Create signature data',
   CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete',
   CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed',
@@ -66,10 +73,31 @@ export class GetTransactionsFailedAction implements Action {
   }
 }
 
+export class GetPendingTransactionsAction implements Action {
+  type = WalletActionTypes.GET_PENDING_TRANSACTIONS;
+
+  constructor(public address: string, public outputIds: string[]) {
+  }
+}
+
+export class GetPendingTransactionsCompleteAction implements Action {
+  type = WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE;
+
+  constructor(public payload: PendingTransaction[]) {
+  }
+}
+
+export class GetPendingTransactionsFailedAction implements Action {
+  type = WalletActionTypes.GET_PENDING_TRANSACTIONS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export class CreateSignatureDataAction implements Action {
   type = WalletActionTypes.CREATE_SIGNATURE_DATA;
 
-  constructor(public payload: CreateSignatureData) {
+  constructor(public payload: CreateSignatureData, public pendingTransactions: PendingTransaction[]) {
   }
 }
 
@@ -152,6 +180,9 @@ export type WalletActions
   = GetTransactionsAction
   | GetTransactionsCompleteAction
   | GetTransactionsFailedAction
+  | GetPendingTransactionsAction
+  | GetPendingTransactionsCompleteAction
+  | GetPendingTransactionsFailedAction
   | CreateSignatureDataAction
   | CreateSignatureDataCompleteAction
   | CreateSignatureDataFailedAction

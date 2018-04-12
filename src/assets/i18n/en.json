@@ -23,7 +23,9 @@
   "ok": "Ok",
   "or_enter_the_information_below": "Or enter the information below",
   "outputs": "Outputs",
+  "parent_id_x": "Parent id: {{ parentid }}",
   "pay": "Pay",
+  "pending_transaction": "Pending transaction",
   "please_enter_your_pin": "Please enter your pin",
   "receive": "Receive",
   "receive_address_info": "Click to copy the address, and share it with the sender.",
@@ -40,11 +42,11 @@
   "transaction_fee_x": "Transaction fee: {{ fee }}",
   "transaction_id_x": "Transaction id: {{ id }}",
   "transaction_total_x": "Transaction total: {{ amount }}",
-  "x_confirmations": "{{ confirmations }} confirmations",
   "transactions": "Transactions",
   "unknown_qr_code_scanned": "Unknown QR code scanned",
   "update_app": "Update app",
   "update_required": "Update required",
   "wallet": "Wallet",
+  "x_confirmations": "{{ confirmations }} confirmations",
   "yes": "Yes"
 }

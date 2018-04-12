@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { CryptoAddress } from 'rogerthat-plugin';
 import { CreateSignatureData } from '../../interfaces';
@@ -6,6 +6,7 @@ import { CreateSignatureData } from '../../interfaces';
 @Component({
   selector: 'send',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: 'send.component.html',
 })
 export class SendComponent {

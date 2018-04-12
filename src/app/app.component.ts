@@ -14,8 +14,8 @@ interface RootPage {
 }
 
 @Component({
-  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: '<ion-nav [root]="root.page" [rootParams]="root.params" *ngIf="platformReady"></ion-nav>',
 })
 export class AppComponent implements OnInit {
