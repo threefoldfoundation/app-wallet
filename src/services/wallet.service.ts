@@ -88,7 +88,7 @@ export class WalletService {
           },
         };
         let amount = parseInt(outputId.amount);
-        if (!feeSubtracted) {
+        if (!feeSubtracted && (amount >= minerfees)) {
           amount -= minerfees;
           feeSubtracted = true;
         }
