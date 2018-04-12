@@ -10,16 +10,16 @@ import { configuration } from '../configuration';
 import {
   COIN_TO_HASTINGS,
   CreateSignatureData,
-  ParsedTransaction,
+  PendingTransaction,
   RivineBlock,
   RivineBlockInternal,
   RivineCreateTransaction,
   RivineCreateTransactionResult,
   RivineHashInfo,
-  RivineTransaction,
+  RivineTransactionPool,
   TranslatedError,
 } from '../interfaces';
-import { getTransactionAmount, isUnrecognizedHashError } from '../util/wallet';
+import { convertPendingTransaction, convertTransaction, getOutputIds, isUnrecognizedHashError } from '../util/wallet';
 
 @Injectable()
 export class WalletService {
@@ -41,7 +41,7 @@ export class WalletService {
   }
 
   getTransactions(address: string) {
-    return this.getHashInfo(address).pipe(map(info => info.transactions.map(t => this._convertTransaction(t, address))
+    return this.getHashInfo(address).pipe(map(info => info.transactions.map(t => convertTransaction(t, address))
       .sort((t1, t2) => t2.height - t1.height)));
   }
 
@@ -49,10 +49,26 @@ export class WalletService {
     return this._get<RivineHashInfo>(`/explorer/hashes/${hash}`);
   }
 
-  createSignatureData(data: CreateSignatureData): Observable<CryptoTransaction> {
+  getTransactionPool() {
+    return this._get<RivineTransactionPool>('/transactionpool/transactions');
+  }
+
+  getPendingTransactions(address: string, outputIds: string[]) {
+    return this.getTransactionPool().pipe(
+      map(pool => (pool.transactions || [])
+        .filter(t => t.data.coinoutputs && t.data.coinoutputs.some(output => output.unlockhash === address))
+        .map(t => convertPendingTransaction(t, address, outputIds))),
+    );
+  }
+
+  createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[]): Observable<CryptoTransaction> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
-      const outputIds = this._getOutputIds(hashInfo.transactions, data.from_address);
+      let outputIds = getOutputIds(hashInfo.transactions, data.from_address).available;
+      const pendingOutputIds = pendingTransactions
+        .map(t => t.data.coininputs || [])
+        .reduce((total, inputs) => [...total, ...inputs.map(input => input.parentid)], []);
+      outputIds = outputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
       const transactionData: CryptoTransactionData[] = [];
       let feeSubtracted = false;
       let hasSufficientFunds = false;
@@ -72,7 +88,7 @@ export class WalletService {
           },
         };
         let amount = parseInt(outputId.amount);
-        if (!feeSubtracted) {
+        if (!feeSubtracted && (amount >= minerfees)) {
           amount -= minerfees;
           feeSubtracted = true;
         }
@@ -81,7 +97,9 @@ export class WalletService {
           d.outputs.push({value: amount.toString(), unlockhash: data.to_address});
           amountLeft -= amount;
         } else {
-          d.outputs.push({value: amountLeft.toString(), unlockhash: data.to_address});
+          if (amountLeft > 0) {
+            d.outputs.push({value: amountLeft.toString(), unlockhash: data.to_address});
+          }
           const restAmount = amount - amountLeft;
           if (restAmount > 0) {
             d.outputs.push({value: restAmount.toString(), unlockhash: data.from_address});
@@ -128,45 +146,6 @@ export class WalletService {
     return this._post<RivineCreateTransactionResult>(`/transactionpool/transactions`, transaction);
   }
 
-  private _getOutputIds(transactions: RivineTransaction[], unlockhash: string) {
-    const allCoinOutputs: { id: string, amount: string }[] = [];
-    const spentOutputs: { output_id: string, amount: string }[] = [];
-    for (const t of transactions) {
-      const coinOutputIds: string[] = t.coinoutputids || [];
-      const coinOutputs = t.rawtransaction.data.coinoutputs || [];
-      for (let i = 0; i < coinOutputIds.length; i++) {
-        const outputId = coinOutputIds[i];
-        const coinOutput = coinOutputs[i];
-        if (coinOutput.unlockhash === unlockhash) {
-          allCoinOutputs.push({id: outputId, amount: coinOutput.value});
-          for (const transaction of transactions) {
-            for (const input of transaction.rawtransaction.data.coininputs || []) {
-              if (input.parentid === outputId) {
-                spentOutputs.push({output_id: outputId, amount: coinOutput.value});
-              }
-            }
-          }
-        }
-      }
-    }
-    return allCoinOutputs.filter(output => !spentOutputs.some(o => o.output_id === output.id));
-  }
-
-  private _convertTransaction(transaction: RivineTransaction, address: string): ParsedTransaction {
-    transaction.coininputoutputs = transaction.coininputoutputs || [];
-    transaction.rawtransaction.data.coinoutputs = transaction.rawtransaction.data.coinoutputs || [];
-    const amount = getTransactionAmount(address, transaction.coininputoutputs, transaction.rawtransaction.data.coinoutputs);
-    return {
-      id: transaction.id,
-      inputs: transaction.coininputoutputs,
-      outputs: transaction.rawtransaction.data.coinoutputs,
-      height: transaction.height,
-      receiving: amount > 0,
-      amount,
-      minerfee: (transaction.rawtransaction.data.minerfees || []).reduce((total: number, fee: string) => total + parseInt(fee), 0),
-    };
-  }
-
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
@@ -178,7 +157,6 @@ export class WalletService {
       timeout(5000),
       retryWhen(attempts => {
         return attempts.pipe(mergeMap(error => {
-          error.error = {'message': 'unrecognized hash used as input to /explorer/has'};
           if (error instanceof HttpErrorResponse && typeof error.error === 'object'
             && isUnrecognizedHashError(error.error.message)) {
             // Don't retry in case the hash wasn't recognized

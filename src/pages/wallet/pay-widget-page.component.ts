@@ -19,8 +19,8 @@ import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 @Component({
   selector: 'pay-widget-page-component',
-  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: 'pay-widget-page.component.html',
 })
 export class PayWidgetPageComponent implements OnInit, OnDestroy {
@@ -35,8 +35,8 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const payContext: PayWidgetData = this.navParams.get('payContext');
-    const threefoldMethod = payContext.methods.find(m => m.provider_id === PROVIDER_ID);
-    if (!threefoldMethod) {
+    const providerMethod = payContext.methods.find(m => m.provider_id === PROVIDER_ID);
+    if (!providerMethod) {
       this.exitWithError({
         code: 'provider_not_supported',
         message: `Provider ${payContext.methods[0].provider_id} is not supported`,
@@ -52,8 +52,8 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
     this._addressSubscription = this.store.pipe(select(getAddress)).subscribe(address => {
       if (address) {
         const data: CreateSignatureData = {
-          amount: threefoldMethod.amount,
-          precision: threefoldMethod.precision,
+          amount: providerMethod.amount,
+          precision: providerMethod.precision,
           to_address: payContext.target,  // target is our destination address
           from_address: address.address,
         };

@@ -20,6 +20,22 @@ export function walletReducer(state: IWalletState = initialWalletState, action: 
         ...state,
         transactionsStatus: action.payload,
       };
+    case WalletActionTypes.GET_PENDING_TRANSACTIONS:
+      return {
+        ...state,
+        pendingTransactionsStatus: apiRequestLoading,
+      };
+    case WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE:
+      return {
+        ...state,
+        pendingTransactions: action.payload,
+        pendingTransactionsStatus: apiRequestSuccess,
+      };
+    case WalletActionTypes.GET_PENDING_TRANSACTIONS_FAILED:
+      return {
+        ...state,
+        pendingTransactionsStatus: action.payload,
+      };
     case WalletActionTypes.CREATE_SIGNATURE_DATA:
       return {
         ...state,

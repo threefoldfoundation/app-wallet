@@ -4,8 +4,8 @@ import { ErrorService } from '../services';
 
 @Component({
   selector: 'api-request-status',
-  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: `
     <ion-row justify-content-center *ngIf="status.loading">
       <ion-spinner [style.width]="size" [style.height]="size"></ion-spinner>

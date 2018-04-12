@@ -1,28 +1,37 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
-import { first } from 'rxjs/operators';
+import { first, tap } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { GetAddresssAction, GetTransactionsAction } from '../../actions';
-import { ApiRequestStatus, CURRENCY_SYMBOL, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM } from '../../interfaces';
+import { GetAddresssAction, GetPendingTransactionsAction, GetTransactionsAction } from '../../actions';
+import {
+  ApiRequestStatus,
+  CURRENCY_SYMBOL,
+  KEY_NAME,
+  ParsedTransaction,
+  PendingTransaction,
+  RIVINE_ALGORITHM,
+} from '../../interfaces';
 import { ErrorService } from '../../services';
 import {
   getAddress,
   getAddressStatus,
+  getPendingTransactions,
   getTotalAmount,
   getTransactions,
   getTransactionsStatus,
   IAppState,
 } from '../../state';
-import { isUnrecognizedHashError } from '../../util/wallet';
+import { getOutputIds, isUnrecognizedHashError } from '../../util/wallet';
 import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.Emulated,
   templateUrl: 'transactions-list-page.component.html',
   styles: [`.send-receive-text {
     text-transform: uppercase;
@@ -36,7 +45,9 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   address$: Observable<CryptoAddress | null>;
   addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   transactions$: Observable<ParsedTransaction[]>;
+  pendingTransactions$: Observable<PendingTransaction[]>;
   transactionsStatus$: Observable<ApiRequestStatus>;
+  address: CryptoAddress;
 
   private _addressStatusSub: Subscription;
   private _transactionStatusSub: Subscription;
@@ -59,7 +70,16 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     }));
     this.address$ = this.store.pipe(select(getAddress));
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
-    this.transactions$ = this.store.pipe(select(getTransactions));
+    this.transactions$ = this.store.pipe(
+      select(getTransactions),
+      tap(transactions => {
+        if (!transactions.length) {
+          return;
+        }
+        const outputIds = getOutputIds(transactions, this.address.address).all.map(o => o.id);
+        this.store.dispatch(new GetPendingTransactionsAction(this.address.address, outputIds));
+      }));
+    this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
     this.totalAmount$ = this.store.pipe(select(getTotalAmount));
     this._addressStatusSub = this.addressStatus$.subscribe(s => {
@@ -94,6 +114,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   getTransactions() {
     this.address$.pipe(first()).subscribe((address: CryptoAddress | null) => {
       if (address) {
+        this.address = address;
         this.store.dispatch(new GetTransactionsAction(address.address));
       }
     });

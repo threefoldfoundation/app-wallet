@@ -4,6 +4,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
+import { configuration } from '../configuration';
 import { PaymentQRCodeType } from '../interfaces';
 import { PayWidgetPageComponent, WalletPageComponent } from '../pages/wallet';
 import { ErrorService, RogerthatService } from '../services';
@@ -14,8 +15,8 @@ interface RootPage {
 }
 
 @Component({
-  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: '<ion-nav [root]="root.page" [rootParams]="root.params" *ngIf="platformReady"></ion-nav>',
 })
 export class AppComponent implements OnInit {
@@ -73,8 +74,11 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Useful for debugging
-    // this.actions$.subscribe(action => console.log(action));
-    this.actions$.subscribe(action => console.log(JSON.stringify(action)));
+    if (!configuration.production) {
+      this.actions$.subscribe(action => console.log(action));
+    } else {
+      this.actions$.subscribe(action => console.log(JSON.stringify(action)));
+    }
   }
 
   private processContext(data: any): RootPage | null {

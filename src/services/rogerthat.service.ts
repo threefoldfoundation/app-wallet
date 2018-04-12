@@ -49,16 +49,21 @@ export class RogerthatService {
   }
 
   getContext(): Observable<any> {
+    const zone = this.ngZone;
     return Observable.create((emitter: Subject<any>) => {
       rogerthat.context(success, error);
 
       function success(context: any) {
-        emitter.next(context);
-        emitter.complete();
+        zone.run(() => {
+          emitter.next(context);
+          emitter.complete();
+        });
       }
 
       function error(err: RogerthatError) {
-        emitter.error(err);
+        zone.run(() => {
+          emitter.error(err);
+        });
       }
     });
   }

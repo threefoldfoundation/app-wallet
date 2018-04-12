@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewEncapsulation,
+} from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
@@ -6,7 +13,7 @@ import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { filter, map } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { GetAddresssAction, ScanQrCodeAction } from '../../actions';
+import { GetAddresssAction, GetTransactionsAction, ScanQrCodeAction } from '../../actions';
 import {
   ADDRESS_LENGTH,
   CreateSignatureData,
@@ -30,6 +37,7 @@ const DEFAULT_FORM_DATA = {
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: `
     <ion-content>
       <send [hasTransactions]="hasTransactions$ | async"
@@ -52,8 +60,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
               private modalCtrl: ModalController,
               private alertCtrl: AlertController,
               private translate: TranslateService,
-              private cdRef: ChangeDetectorRef,
-              private ngZone: NgZone) {
+              private cdRef: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -105,27 +112,28 @@ export class SendPageComponent implements OnInit, OnDestroy {
   }
 
   onCreateSignatureData(data: CreateSignatureData) {
-    // for some fucking reason this does not run in ngZone leading to UI not updating
-    this.ngZone.run(() => {
-      const modal = this.modalCtrl.create(ConfirmSendPageComponent, {
-        transactionData: {
-          ...data,
-          amount: Math.round(data.amount * Math.pow(10, PRECISION)),
-        },
-      });
-      modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
-        if (transaction) {
-          const config = {
-            title: this.translate.instant('transaction_complete'),
-            message: this.translate.instant('transaction_complete_message'),
-            buttons: [{text: this.translate.instant('ok')}],
-          };
-          this.alertCtrl.create(config).present();
-          this.setData(DEFAULT_FORM_DATA);
-        }
-      });
-      modal.present();
+    const modal = this.modalCtrl.create(ConfirmSendPageComponent, {
+      transactionData: {
+        ...data,
+        amount: Math.round(data.amount * Math.pow(10, PRECISION)),
+      },
     });
+    modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
+      if (transaction) {
+        const config = {
+          title: this.translate.instant('transaction_complete'),
+          message: this.translate.instant('transaction_complete_message'),
+          buttons: [{text: this.translate.instant('ok')}],
+        };
+        const alert = this.alertCtrl.create(config);
+        alert.present();
+        alert.onDidDismiss(() => {
+          this.store.dispatch(new GetTransactionsAction(data.from_address));
+        });
+        this.setData(DEFAULT_FORM_DATA);
+      }
+    });
+    modal.present();
   }
 
   setData(data: CreateSignatureData) {
