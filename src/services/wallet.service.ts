@@ -104,8 +104,10 @@ export class WalletService {
           if (restAmount > 0) {
             d.outputs.push({value: restAmount.toString(), unlockhash: data.from_address});
           }
-          hasSufficientFunds = true;
-          break;
+          if (feeSubtracted) {
+            hasSufficientFunds = true;
+            break;
+          }
         }
       }
       if (!hasSufficientFunds) {
