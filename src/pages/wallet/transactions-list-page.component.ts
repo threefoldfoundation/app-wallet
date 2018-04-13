@@ -8,25 +8,20 @@ import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import { first, tap } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction, GetPendingTransactionsAction, GetTransactionsAction } from '../../actions';
-import {
-  ApiRequestStatus,
-  CURRENCY_SYMBOL,
-  KEY_NAME,
-  ParsedTransaction,
-  PendingTransaction,
-  RIVINE_ALGORITHM,
-} from '../../interfaces';
+import { ApiRequestStatus, KEY_NAME, ParsedTransaction, PendingTransaction, RIVINE_ALGORITHM, } from '../../interfaces';
 import { ErrorService } from '../../services';
 import {
   getAddress,
   getAddressStatus,
   getPendingTransactions,
   getTotalAmount,
+  getTotalLockedAmount,
   getTransactions,
   getTransactionsStatus,
   IAppState,
 } from '../../state';
-import { getOutputIds, isUnrecognizedHashError } from '../../util/wallet';
+import { getOutputIds, isPendingTransaction, isUnrecognizedHashError } from '../../util';
+import { PendingTransactionDetailPageComponent } from './pending-transaction-detail-page.component';
 import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 
 @Component({
@@ -40,8 +35,8 @@ import { TransactionDetailPageComponent } from './transaction-detail-page.compon
 })
 export class TransactionsListPageComponent implements OnInit, OnDestroy {
   @ViewChild(Refresher) refresher: Refresher;
-  symbol = CURRENCY_SYMBOL;
   totalAmount$: Observable<number>;
+  totalLocked$: Observable<number>;
   address$: Observable<CryptoAddress | null>;
   addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   transactions$: Observable<ParsedTransaction[]>;
@@ -82,16 +77,17 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
     this.totalAmount$ = this.store.pipe(select(getTotalAmount));
+    this.totalLocked$ = this.store.pipe(select(getTotalLockedAmount));
     this._addressStatusSub = this.addressStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null) {
-        return this._showErrorDialog(s.error.error!);
+        return this._showErrorDialog(s.error.error);
       } else if (s.success) {
         this.getTransactions();
       }
     });
     this._transactionStatusSub = this.transactionsStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null && !isUnrecognizedHashError(s.error.error)) {
-        this._showErrorDialog(s.error!.error);
+        this._showErrorDialog(s.error.error);
       } else if (!s.loading) {
         this.refresher.complete();
         this._dismissErrorDialog();
@@ -124,8 +120,9 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     return transaction.receiving ? 'default' : 'danger';
   }
 
-  showDetails(transaction: ParsedTransaction) {
-    this.modalController.create(TransactionDetailPageComponent, {transaction}).present();
+  showDetails(transaction: ParsedTransaction | PendingTransaction) {
+    const page = isPendingTransaction(transaction) ? PendingTransactionDetailPageComponent : TransactionDetailPageComponent;
+    this.modalController.create(page, { transaction }).present();
   }
 
   getColorClass(transaction: ParsedTransaction) {

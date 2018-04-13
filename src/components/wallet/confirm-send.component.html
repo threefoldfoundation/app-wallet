@@ -8,8 +8,7 @@
 <api-request-status [status]="createStatus"></api-request-status>
 <ion-row justify-content-end>
   <form (ngSubmit)="submit()">
-    <button ion-button color="primary" full
-            [disabled]="pendingStatus.loading || createStatus.loading">
+    <button ion-button color="primary" full [disabled]="pendingStatus.loading || createStatus.loading">
       {{ 'confirm_transaction' | translate }}
     </button>
   </form>

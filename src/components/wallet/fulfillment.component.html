@@ -1,0 +1,12 @@
+<ng-container *ngIf="fulfillment.type === InputType.SINGLE_SIGNATURE">
+  <p>{{ 'public_key_x' | translate : { publickey: fulfillment.data.publickey } }}</p>
+  <p>{{ 'signature_x' | translate : { signature: fulfillment.data.signature } }}</p>
+</ng-container>
+<ng-container *ngIf="fulfillment.type === InputType.ATOMIC_SWAP">
+  <p>{{ 'public_key_x' | translate : { publickey: fulfillment.data.publickey } }}</p>
+  <p>{{ 'signature_x' | translate : { signature: fulfillment.data.signature } }}</p>
+  <p>{{ 'secret_x' | translate : { secret: fulfillment.data.secret} }}</p>
+</ng-container>
+<ng-container *ngIf="fulfillment.type === InputType.SORTED_SET">
+  <fulfillment [fulfillment]="fulfillment.data.fulfillments"></fulfillment>
+</ng-container>

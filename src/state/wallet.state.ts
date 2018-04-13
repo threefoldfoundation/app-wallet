@@ -3,26 +3,27 @@ import { CryptoTransaction } from 'rogerthat-plugin';
 import {
   apiRequestInitial,
   ApiRequestStatus,
+  CreateTransactionResult,
+  ExplorerBlock,
+  ExplorerBlockGET,
   ParsedTransaction,
   PendingTransaction,
-  RivineBlock,
-  RivineBlockInternal,
-  RivineCreateTransactionResult,
 } from '../interfaces';
+import { getLocked } from '../util';
 import { IAppState } from './app.state';
 
 export interface IWalletState {
   transactions: ParsedTransaction[];
   pendingTransactions: PendingTransaction[];
   pendingTransactionsStatus: ApiRequestStatus;
-  createdTransaction: RivineCreateTransactionResult | null;
+  createdTransaction: CreateTransactionResult | null;
   transactionsStatus: ApiRequestStatus;
   pendingTransaction: CryptoTransaction | null;
   pendingTransactionStatus: ApiRequestStatus;
   createTransactionStatus: ApiRequestStatus;
-  latestBlock: RivineBlockInternal | null;
+  latestBlock: ExplorerBlock | null;
   latestBlockStatus: ApiRequestStatus;
-  block: RivineBlock | null;
+  block: ExplorerBlockGET | null;
   blockStatus: ApiRequestStatus;
 }
 
@@ -48,6 +49,9 @@ export const getPendingTransactions = createSelector(getWalletState, s => s.pend
 export const getTotalAmount = createSelector(getTransactions, transactions => {
   return transactions.reduce((total: number, transaction: ParsedTransaction) => total + transaction.amount, 0);
 });
+export const getTotalLockedAmount = createSelector(getTransactions, transactions => transactions.reduce((total, transaction) => {
+  return total + getLocked(transaction.rawtransaction).reduce((rawTotal, locked) => rawTotal + parseInt(locked.value), 0);
+}, 0));
 export const getTransactionsStatus = createSelector(getWalletState, s => s.transactionsStatus);
 export const getPendingTransaction = createSelector(getWalletState, s => s.pendingTransaction);
 export const getCreatedTransaction = createSelector(getWalletState, s => s.createdTransaction);

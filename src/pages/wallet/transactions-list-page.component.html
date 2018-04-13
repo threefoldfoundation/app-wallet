@@ -2,6 +2,9 @@
   <ion-row justify-content-center>
     <h2>{{ totalAmount$ | async | amount }}</h2>
   </ion-row>
+  <ion-row *ngIf="totalLocked$ | async as locked" justify-content-center>
+    <h3>{{ 'locked_tokens_x' | translate: { amount: locked | amount } }}</h3>
+  </ion-row>
   <ion-refresher #refresher (ionRefresh)="getTransactions()" (ionPull)="{}">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>

@@ -1,0 +1,8 @@
+<h4>{{ 'parent_id_x' | translate : { parentid: coinInput.parentid } }}</h4>
+<ng-container *ngIf="isv0Input(coinInput); else v1Input">
+  <p>{{ 'public_key_x' | translate : { publickey: coinInput.unlocker.condition.publickey } }}</p>
+  <p>{{ 'signature_x' | translate : { signature: coinInput.unlocker.fulfillment.signature } }}</p>
+</ng-container>
+<ng-template #v1Input>
+  <fulfillment [fulfillment]="coinInput.fulfillment"></fulfillment>
+</ng-template>

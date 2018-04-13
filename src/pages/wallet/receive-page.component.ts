@@ -7,6 +7,7 @@ import { Observable } from 'rxjs/Observable';
 import { filter, map, startWith, withLatestFrom } from 'rxjs/operators';
 import { CURRENCY_SYMBOL } from '../../interfaces';
 import { getAddress, IAppState } from '../../state';
+import { filterNull } from '../../util';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,8 +32,8 @@ export class ReceivePageComponent implements OnInit {
   ngOnInit() {
     this.address$ = this.store.pipe(
       select(getAddress),
-      filter(a => a !== null),
-      map(address => address!.address),
+      filterNull(),
+      map(address => address.address),
     );
     this.qrContent$ = this.amountControl.valueChanges.pipe(
       startWith(''),

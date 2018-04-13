@@ -11,6 +11,6 @@ export class AmountPipe implements PipeTransform {
 
   transform(value: string | number, digits?: string) {
     const amount = (typeof value === 'number' ? value : parseInt(value)) / COIN_TO_HASTINGS;
-    return `${this.decimalPipe.transform(amount, digits || '1.0-5')} ${CURRENCY_SYMBOL}`;
+    return `${this.decimalPipe.transform(amount, digits || '1.0-2')} ${CURRENCY_SYMBOL}`;
   }
 }

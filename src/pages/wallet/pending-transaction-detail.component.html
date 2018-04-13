@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'transaction_details' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding class="selectable">
+  <h3>{{ (transaction.receiving ? 'received': 'sent') | translate }} {{ getAmount(transaction.amount) }}</h3>
+  <h4 *ngFor="let locked of getLocked(transaction)">
+    {{ 'x_currency_locked_until_y' | translate : {amount: locked.value | amount, date: locked.date | date: 'medium'} }}
+  </h4>
+  <h4>{{ 'inputs' | translate }}</h4>
+  <ion-list class="input-output-list">
+    <ion-item *ngFor="let input of transaction.data.coininputs">
+      <coin-input [coinInput]="input"></coin-input>
+    </ion-item>
+  </ion-list>
+  <h4>{{ 'outputs' | translate }}</h4>
+  <ion-list class="input-output-list">
+    <ion-item *ngFor="let output of transaction.data.coinoutputs">
+      <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
+    </ion-item>
+  </ion-list>
+  <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount : digits } }}</p>
+</ion-content>
