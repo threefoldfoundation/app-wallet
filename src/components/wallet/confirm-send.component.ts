@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData } from 'rogerthat-plugin';
 import { ApiRequestStatus } from '../../interfaces';
-import { getTransactionAmount } from '../../util/wallet';
+import { getv0TransactionAmount } from '../../util/wallet';
 
 @Component({
   selector: 'confirm-send',
@@ -17,7 +17,7 @@ export class ConfirmSendComponent {
 
   getAmount(transaction: CryptoTransaction): number {
     return transaction.data
-      .reduce((total: number, data: CryptoTransactionData) => total + getTransactionAmount(transaction.to_address, [], data.outputs), 0);
+      .reduce((total: number, data: CryptoTransactionData) => total + getv0TransactionAmount(transaction.to_address, [], data.outputs), 0);
   }
 
   getTotalAmount(transaction: CryptoTransaction): number {

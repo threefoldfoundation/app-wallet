@@ -3,120 +3,99 @@ import { CryptoTransaction, SupportedAlgorithms } from 'rogerthat-plugin';
 import {
   ApiRequestStatus,
   CreateSignatureData,
+  CreateTransactionResult,
+  ExplorerBlock,
+  ExplorerBlockGET,
   ParsedTransaction,
   PendingTransaction,
-  RivineBlock,
-  RivineBlockInternal,
-  RivineCreateTransactionResult,
 } from '../interfaces';
 
-interface IWalletActionTypes {
-  GET_TRANSACTIONS: 'Get transactions';
-  GET_TRANSACTIONS_COMPLETE: 'Get transactions complete';
-  GET_TRANSACTIONS_FAILED: 'Get transactions failed';
-  GET_PENDING_TRANSACTIONS: 'Get pending transactions';
-  GET_PENDING_TRANSACTIONS_COMPLETE: 'Get pending transactions complete';
-  GET_PENDING_TRANSACTIONS_FAILED: 'Get pending transactions failed';
-  CREATE_SIGNATURE_DATA: 'Create signature data';
-  CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete';
-  CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed';
-  CREATE_TRANSACTION: 'Create transaction';
-  CREATE_TRANSACTION_COMPLETE: 'Create transaction complete';
-  CREATE_TRANSACTION_FAILED: 'Create transaction failed';
-  GET_LATEST_BLOCK: 'Get latest block';
-  GET_LATEST_BLOCK_COMPLETE: 'Get latest block complete';
-  GET_LATEST_BLOCK_FAILED: 'Get latest block failed';
-  GET_BLOCK: 'Get block';
-  GET_BLOCK_COMPLETE: 'Get block complete';
-  GET_BLOCK_FAILED: 'Get block failed';
+export enum WalletActionTypes  {
+  GET_TRANSACTIONS = 'Get transactions',
+  GET_TRANSACTIONS_COMPLETE = 'Get transactions complete',
+  GET_TRANSACTIONS_FAILED = 'Get transactions failed',
+  GET_PENDING_TRANSACTIONS = 'Get pending transactions',
+  GET_PENDING_TRANSACTIONS_COMPLETE = 'Get pending transactions complete',
+  GET_PENDING_TRANSACTIONS_FAILED = 'Get pending transactions failed',
+  CREATE_SIGNATURE_DATA = 'Create signature data',
+  CREATE_SIGNATURE_DATA_COMPLETE = 'Create signature data complete',
+  CREATE_SIGNATURE_DATA_FAILED = 'Create signature data failed',
+  CREATE_TRANSACTION = 'Create transaction',
+  CREATE_TRANSACTION_COMPLETE = 'Create transaction complete',
+  CREATE_TRANSACTION_FAILED = 'Create transaction failed',
+  GET_LATEST_BLOCK = 'Get latest block',
+  GET_LATEST_BLOCK_COMPLETE = 'Get latest block complete',
+  GET_LATEST_BLOCK_FAILED = 'Get latest block failed',
+  GET_BLOCK = 'Get block',
+  GET_BLOCK_COMPLETE = 'Get block complete',
+  GET_BLOCK_FAILED = 'Get block failed',
 }
 
-export const WalletActionTypes: IWalletActionTypes = {
-  GET_TRANSACTIONS: 'Get transactions',
-  GET_TRANSACTIONS_COMPLETE: 'Get transactions complete',
-  GET_TRANSACTIONS_FAILED: 'Get transactions failed',
-  GET_PENDING_TRANSACTIONS: 'Get pending transactions',
-  GET_PENDING_TRANSACTIONS_COMPLETE: 'Get pending transactions complete',
-  GET_PENDING_TRANSACTIONS_FAILED: 'Get pending transactions failed',
-  CREATE_SIGNATURE_DATA: 'Create signature data',
-  CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete',
-  CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed',
-  CREATE_TRANSACTION: 'Create transaction',
-  CREATE_TRANSACTION_COMPLETE: 'Create transaction complete',
-  CREATE_TRANSACTION_FAILED: 'Create transaction failed',
-  GET_LATEST_BLOCK: 'Get latest block',
-  GET_LATEST_BLOCK_COMPLETE: 'Get latest block complete',
-  GET_LATEST_BLOCK_FAILED: 'Get latest block failed',
-  GET_BLOCK: 'Get block',
-  GET_BLOCK_COMPLETE: 'Get block complete',
-  GET_BLOCK_FAILED: 'Get block failed',
-};
-
 export class GetTransactionsAction implements Action {
-  type = WalletActionTypes.GET_TRANSACTIONS;
+  readonly type = WalletActionTypes.GET_TRANSACTIONS;
 
   constructor(public address: string) {
   }
 }
 
 export class GetTransactionsCompleteAction implements Action {
-  type = WalletActionTypes.GET_TRANSACTIONS_COMPLETE;
+  readonly type = WalletActionTypes.GET_TRANSACTIONS_COMPLETE;
 
   constructor(public payload: ParsedTransaction[]) {
   }
 }
 
 export class GetTransactionsFailedAction implements Action {
-  type = WalletActionTypes.GET_TRANSACTIONS_FAILED;
+  readonly type = WalletActionTypes.GET_TRANSACTIONS_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
 }
 
 export class GetPendingTransactionsAction implements Action {
-  type = WalletActionTypes.GET_PENDING_TRANSACTIONS;
+  readonly type = WalletActionTypes.GET_PENDING_TRANSACTIONS;
 
   constructor(public address: string, public outputIds: string[]) {
   }
 }
 
 export class GetPendingTransactionsCompleteAction implements Action {
-  type = WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE;
+  readonly type = WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE;
 
   constructor(public payload: PendingTransaction[]) {
   }
 }
 
 export class GetPendingTransactionsFailedAction implements Action {
-  type = WalletActionTypes.GET_PENDING_TRANSACTIONS_FAILED;
+  readonly type = WalletActionTypes.GET_PENDING_TRANSACTIONS_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
 }
 
 export class CreateSignatureDataAction implements Action {
-  type = WalletActionTypes.CREATE_SIGNATURE_DATA;
+  readonly type = WalletActionTypes.CREATE_SIGNATURE_DATA;
 
   constructor(public payload: CreateSignatureData, public pendingTransactions: PendingTransaction[]) {
   }
 }
 
 export class CreateSignatureDataCompleteAction implements Action {
-  type = WalletActionTypes.CREATE_SIGNATURE_DATA_COMPLETE;
+  readonly type = WalletActionTypes.CREATE_SIGNATURE_DATA_COMPLETE;
 
   constructor(public payload: CryptoTransaction) {
   }
 }
 
 export class CreateSignatureDataFailedAction implements Action {
-  type = WalletActionTypes.CREATE_SIGNATURE_DATA_FAILED;
+  readonly type = WalletActionTypes.CREATE_SIGNATURE_DATA_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
 }
 
 export class CreateTransactionAction implements Action {
-  type = WalletActionTypes.CREATE_TRANSACTION;
+  readonly type = WalletActionTypes.CREATE_TRANSACTION;
 
   constructor(public payload: CryptoTransaction, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
               public message: string) {
@@ -124,53 +103,53 @@ export class CreateTransactionAction implements Action {
 }
 
 export class CreateTransactionCompleteAction implements Action {
-  type = WalletActionTypes.CREATE_TRANSACTION_COMPLETE;
+  readonly type = WalletActionTypes.CREATE_TRANSACTION_COMPLETE;
 
-  constructor(public payload: RivineCreateTransactionResult) {
+  constructor(public payload: CreateTransactionResult) {
   }
 }
 
 export class CreateTransactionFailedAction implements Action {
-  type = WalletActionTypes.CREATE_TRANSACTION_FAILED;
+  readonly type = WalletActionTypes.CREATE_TRANSACTION_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
 }
 
 export class GetLatestBlockAction implements Action {
-  type = WalletActionTypes.GET_LATEST_BLOCK;
+  readonly type = WalletActionTypes.GET_LATEST_BLOCK;
 }
 
 export class GetLatestBlockCompleteAction implements Action {
-  type = WalletActionTypes.GET_LATEST_BLOCK_COMPLETE;
+  readonly type = WalletActionTypes.GET_LATEST_BLOCK_COMPLETE;
 
-  constructor(public payload: RivineBlockInternal) {
+  constructor(public payload: ExplorerBlock) {
   }
 }
 
 export class GetLatestBlockFailedAction implements Action {
-  type = WalletActionTypes.GET_LATEST_BLOCK_FAILED;
+  readonly type = WalletActionTypes.GET_LATEST_BLOCK_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
 }
 
 export class GetBlockAction implements Action {
-  type = WalletActionTypes.GET_BLOCK;
+  readonly type = WalletActionTypes.GET_BLOCK;
 
   constructor(public height: number) {
   }
 }
 
 export class GetBlockCompleteAction implements Action {
-  type = WalletActionTypes.GET_BLOCK_COMPLETE;
+  readonly type = WalletActionTypes.GET_BLOCK_COMPLETE;
 
-  constructor(public payload: RivineBlock) {
+  constructor(public payload: ExplorerBlockGET) {
   }
 }
 
 export class GetBlockFailedAction implements Action {
-  type = WalletActionTypes.GET_BLOCK_FAILED;
+  readonly type = WalletActionTypes.GET_BLOCK_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }

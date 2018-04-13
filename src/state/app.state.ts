@@ -8,7 +8,7 @@ export interface IAppState {
   rogerthat: IRogerthatState<UserData, ServiceData>;
 }
 
-export const reducers = {
+export const reducers: any = {
   wallet: walletReducer,
   rogerthat: rogerthatReducer,
 };

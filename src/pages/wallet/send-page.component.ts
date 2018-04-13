@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  ViewEncapsulation,
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
@@ -17,14 +10,13 @@ import { GetAddresssAction, GetTransactionsAction, ScanQrCodeAction } from '../.
 import {
   ADDRESS_LENGTH,
   CreateSignatureData,
+  CreateTransactionResult,
   CURRENCY_SYMBOL,
   KEY_NAME,
   RIVINE_ALGORITHM,
-  RivineCreateTransactionResult,
 } from '../../interfaces';
 import { getAddress, getQrCodeContent, getTransactionsStatus, IAppState } from '../../state';
-import { parseQuery } from '../../util/rpc';
-import { isUnrecognizedHashError } from '../../util/wallet';
+import { filterNull, isUnrecognizedHashError, parseQuery } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 const PRECISION = 5;
@@ -73,18 +65,19 @@ export class SendPageComponent implements OnInit, OnDestroy {
       keyName: KEY_NAME,
       message: this.translate.instant('please_enter_your_pin'),
     }));
-    this.address$ = <Observable<CryptoAddress>>this.store.pipe(select(getAddress), filter(a => a !== null));
+    this.address$ = this.store.pipe(select(getAddress), filterNull());
     this._qrCodeContentSubscription = this.store.pipe(
       select(getQrCodeContent),
-      filter(r => r !== null && r.status === 'resolved'),
+      filterNull(),
+      filter(r => r.status === 'resolved'),
     ).subscribe((result: QrCodeScannedContent) => {
       const parsedQr = this.parseQr(result.content);
       if (parsedQr.token === CURRENCY_SYMBOL && parsedQr.address) {
-        this.setData({...this.data, amount: parsedQr.amount, to_address: parsedQr.address});
+        this.setData({ ...this.data, amount: parsedQr.amount, to_address: parsedQr.address });
       } else {
         this.alertCtrl.create({
           message: this.translate.instant('unknown_qr_code_scanned'),
-          buttons: [{text: this.translate.instant('ok')}],
+          buttons: [{ text: this.translate.instant('ok') }],
         }).present();
       }
     });
@@ -108,7 +101,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
         address = part;
       }
     }
-    return {token, address, amount};
+    return { token, address, amount };
   }
 
   onCreateSignatureData(data: CreateSignatureData) {
@@ -118,12 +111,12 @@ export class SendPageComponent implements OnInit, OnDestroy {
         amount: Math.round(data.amount * Math.pow(10, PRECISION)),
       },
     });
-    modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
+    modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
       if (transaction) {
         const config = {
           title: this.translate.instant('transaction_complete'),
           message: this.translate.instant('transaction_complete_message'),
-          buttons: [{text: this.translate.instant('ok')}],
+          buttons: [{ text: this.translate.instant('ok') }],
         };
         const alert = this.alertCtrl.create(config);
         alert.present();

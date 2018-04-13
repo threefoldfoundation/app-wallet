@@ -6,14 +6,7 @@ import { CreateTransactionBaseResult, PayWidgetData, RogerthatError } from 'roge
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction } from '../../actions';
-import {
-  ApiRequestStatus,
-  CreateSignatureData,
-  KEY_NAME,
-  PROVIDER_ID,
-  RIVINE_ALGORITHM,
-  RivineCreateTransactionResult,
-} from '../../interfaces';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, KEY_NAME, PROVIDER_ID, RIVINE_ALGORITHM, } from '../../interfaces';
 import { getAddress, getAddressStatus, IAppState } from '../../state';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
@@ -69,7 +62,7 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
 
   showConfirmDialog(transactionData: CreateSignatureData) {
     const modal = this.modalCtrl.create(ConfirmSendPageComponent, {transactionData});
-    modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
+    modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
       if (transaction) {
         const result: CreateTransactionBaseResult = {
           success: true,

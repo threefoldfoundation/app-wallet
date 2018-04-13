@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { CryptoTransaction, CryptoTransactionData } from 'rogerthat-plugin';
+import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { TimerObservable } from 'rxjs/observable/TimerObservable';
@@ -9,17 +9,18 @@ import { TimeoutError } from 'rxjs/util/TimeoutError';
 import { configuration } from '../configuration';
 import {
   COIN_TO_HASTINGS,
+  CoinInput,
   CreateSignatureData,
+  CreateTransaction,
+  CreateTransactionResult,
+  ExplorerBlock,
+  ExplorerBlockGET,
+  ExplorerHashGET,
   PendingTransaction,
-  RivineBlock,
-  RivineBlockInternal,
-  RivineCreateTransaction,
-  RivineCreateTransactionResult,
-  RivineHashInfo,
-  RivineTransactionPool,
+  TransactionPool,
   TranslatedError,
 } from '../interfaces';
-import { convertPendingTransaction, convertTransaction, getOutputIds, isUnrecognizedHashError } from '../util/wallet';
+import { convertPendingTransaction, convertTransaction, filterTransactionsByAddress, getOutputIds, isUnrecognizedHashError } from '../util';
 
 @Injectable()
 export class WalletService {
@@ -33,11 +34,11 @@ export class WalletService {
   }
 
   getLatestBlock() {
-    return this._get<RivineBlockInternal>('/explorer');
+    return this._get<ExplorerBlock>('/explorer');
   }
 
   getBlock(height: number) {
-    return this._get<RivineBlock>(`/explorer/blocks/${height}`);
+    return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
   }
 
   getTransactions(address: string) {
@@ -46,17 +47,16 @@ export class WalletService {
   }
 
   getHashInfo(hash: string) {
-    return this._get<RivineHashInfo>(`/explorer/hashes/${hash}`);
+    return this._get<ExplorerHashGET>(`/explorer/hashes/${hash}`);
   }
 
   getTransactionPool() {
-    return this._get<RivineTransactionPool>('/transactionpool/transactions');
+    return this._get<TransactionPool>('/transactionpool/transactions');
   }
 
-  getPendingTransactions(address: string, outputIds: string[]) {
+  getPendingTransactions(address: string, outputIds: string[]): Observable<PendingTransaction[]> {
     return this.getTransactionPool().pipe(
-      map(pool => (pool.transactions || [])
-        .filter(t => t.data.coinoutputs && t.data.coinoutputs.some(output => output.unlockhash === address))
+      map(pool => filterTransactionsByAddress(address, pool.transactions || [])
         .map(t => convertPendingTransaction(t, address, outputIds))),
     );
   }
@@ -66,8 +66,8 @@ export class WalletService {
       const minerfees = (COIN_TO_HASTINGS / 10);
       let outputIds = getOutputIds(hashInfo.transactions, data.from_address).available;
       const pendingOutputIds = pendingTransactions
-        .map(t => t.data.coininputs || [])
-        .reduce((total, inputs) => [...total, ...inputs.map(input => input.parentid)], []);
+        .map(t => <CoinInput[]>(t.data.coininputs || []))
+        .reduce((total: string[], inputs) => [...total, ...inputs.map(input => input.parentid)], []);
       outputIds = outputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
       const transactionData: CryptoTransactionData[] = [];
       let feeSubtracted = false;
@@ -94,15 +94,15 @@ export class WalletService {
         }
         transactionData.push(d);
         if ((amountLeft - amount) > 0) {
-          d.outputs.push({value: amount.toString(), unlockhash: data.to_address});
+          d.outputs.push({ value: amount.toString(), unlockhash: data.to_address });
           amountLeft -= amount;
         } else {
           if (amountLeft > 0) {
-            d.outputs.push({value: amountLeft.toString(), unlockhash: data.to_address});
+            d.outputs.push({ value: amountLeft.toString(), unlockhash: data.to_address });
           }
           const restAmount = amount - amountLeft;
           if (restAmount > 0) {
-            d.outputs.push({value: restAmount.toString(), unlockhash: data.from_address});
+            d.outputs.push({ value: restAmount.toString(), unlockhash: data.from_address });
           }
           if (feeSubtracted) {
             hasSufficientFunds = true;
@@ -122,8 +122,9 @@ export class WalletService {
     }));
   }
 
+  // TODO update to version 1. App needs to be updated for that.
   createTransaction(data: CryptoTransaction) {
-    const transaction: RivineCreateTransaction = {
+    const transaction: CreateTransaction = {
       version: 0,
       data: {
         arbitrarydata: null,
@@ -141,11 +142,11 @@ export class WalletService {
             },
           },
         })),
-        coinoutputs: data.data.reduce((total, d) => ([...total, ...d.outputs]), []),
+        coinoutputs: data.data.reduce((total: CryptoTransactionOutput[], d) => ([...total, ...d.outputs]), []),
         minerfees: [data.minerfees],
       },
     };
-    return this._post<RivineCreateTransactionResult>(`/transactionpool/transactions`, transaction);
+    return this._post<CreateTransactionResult>(`/transactionpool/transactions`, transaction);
   }
 
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {

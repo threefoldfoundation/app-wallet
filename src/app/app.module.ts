@@ -12,11 +12,20 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { QRCodeModule } from 'angular2-qrcode';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { ClipboardModule } from 'ngx-clipboard';
-import { ApiRequestStatusComponent, ConfirmSendComponent, SendComponent } from '../components';
+import {
+  ApiRequestStatusComponent,
+  CoinInputComponent,
+  CoinOutputComponent,
+  ConfirmSendComponent,
+  FulfillmentComponent,
+  OutputConditionComponent,
+  SendComponent
+} from '../components';
 import { RogerthatEffects, WalletEffects } from '../effects';
 import {
   ConfirmSendPageComponent,
   PayWidgetPageComponent,
+  PendingTransactionDetailPageComponent,
   ReceivePageComponent,
   SendPageComponent,
   TransactionDetailPageComponent,
@@ -26,7 +35,7 @@ import {
 import { AmountPipe, LocaleDecimalPipe } from '../pipes';
 import { ErrorService, I18nService, RogerthatService, WalletService } from '../services';
 import { reducers } from '../state';
-import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
+import { MissingTranslationWarnHandler } from '../util';
 import { AppComponent } from './app.component';
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -38,6 +47,7 @@ const IONIC_NATIVE_PLUGINS = [InAppBrowser, StatusBar, SplashScreen];
 export const PAGES = [
   ConfirmSendPageComponent,
   PayWidgetPageComponent,
+  PendingTransactionDetailPageComponent,
   ReceivePageComponent,
   SendPageComponent,
   TransactionDetailPageComponent,
@@ -47,7 +57,11 @@ export const PAGES = [
 
 export const COMPONENTS = [
   ApiRequestStatusComponent,
+  CoinInputComponent,
+  CoinOutputComponent,
   ConfirmSendComponent,
+  FulfillmentComponent,
+  OutputConditionComponent,
   SendComponent,
 ];
 
