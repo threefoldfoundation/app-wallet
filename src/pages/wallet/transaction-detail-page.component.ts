@@ -5,9 +5,9 @@ import { NavParams, ToastController, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { GetBlockAction, GetLatestBlockAction } from '../../actions';
-import { COIN_TO_HASTINGS_PRECISION, ExplorerBlock, ExplorerBlockGET, ParsedTransaction, } from '../../interfaces';
+import { ApiRequestStatus, COIN_TO_HASTINGS_PRECISION, ExplorerBlock, ExplorerBlockGET, ParsedTransaction, } from '../../interfaces';
 import { AmountPipe } from '../../pipes';
-import { getBlock, getLatestBlock, IAppState } from '../../state';
+import { getBlock, getLatestBlock, getLatestBlockStatus, IAppState } from '../../state';
 import { filterNull, getLocked, isPendingTransaction } from '../../util';
 
 @Component({
@@ -19,6 +19,7 @@ export class TransactionDetailPageComponent implements OnInit {
   transaction: ParsedTransaction;
   latestBlock$: Observable<ExplorerBlock>;
   transactionBlock$: Observable<ExplorerBlockGET>;
+  getLatestBlockStatus$: Observable<ApiRequestStatus>;
   timestamp$: Observable<Date>;
   confirmations$: Observable<number>;
   digits = `1.0-${COIN_TO_HASTINGS_PRECISION}`;
@@ -40,6 +41,7 @@ export class TransactionDetailPageComponent implements OnInit {
     this.confirmations$ = this.latestBlock$.pipe(
       map(block => isPendingTransaction(this.transaction) ? 0 : block.height - this.transaction.height),
     );
+    this.getLatestBlockStatus$ = this.store.pipe(select(getLatestBlockStatus));
     this.transactionBlock$ = this.store.pipe(
       select(getBlock),
       filterNull(),
