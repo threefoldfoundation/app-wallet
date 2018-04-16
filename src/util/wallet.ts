@@ -14,7 +14,6 @@ import {
   TimeLockedCondition,
   Transaction,
   Transaction0,
-  Transaction1,
 } from '../interfaces';
 
 export function outputReducer(total: number, output: CoinOutput) {
@@ -152,8 +151,13 @@ export function isv0Input(input: CoinInput): input is CoinInput0 {
   return (<CoinInput0>input).unlocker !== undefined;
 }
 
-export function filterTransactionsByAddress(address: string, transactions: Transaction1[]) {
-  return transactions.filter(t => (t.data.coinoutputs || []).some(output => filterOutputCondition(address, output.condition)));
+export function filterTransactionsByAddress(address: string, transactions: Transaction[]) {
+  return transactions.filter(t => {
+    if (t.version === 0) {
+      return (t.data.coinoutputs || []).some(o => o.unlockhash === address);
+    }
+    return (t.data.coinoutputs || []).some(output => filterOutputCondition(address, output.condition));
+  });
 }
 
 

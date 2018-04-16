@@ -125,7 +125,7 @@ export interface ExplorerHashGET {
 }
 
 export interface TransactionPool {
-  transactions: null | Transaction1[];
+  transactions: null | Transaction[];
 }
 
 export interface OutputMapping {
