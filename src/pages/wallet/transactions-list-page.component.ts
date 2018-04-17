@@ -20,7 +20,7 @@ import {
   getTransactionsStatus,
   IAppState,
 } from '../../state';
-import { getOutputIds, isPendingTransaction, isUnrecognizedHashError } from '../../util';
+import { getInputIds, isPendingTransaction, isUnrecognizedHashError } from '../../util';
 import { PendingTransactionDetailPageComponent } from './pending-transaction-detail-page.component';
 import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 
@@ -71,8 +71,8 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
         if (!transactions.length) {
           return;
         }
-        const outputIds = getOutputIds(transactions, this.address.address).all.map(o => o.id);
-        this.store.dispatch(new GetPendingTransactionsAction(this.address.address, outputIds));
+        const inputIds = getInputIds(transactions, this.address.address).all.map(o => o.id);
+        this.store.dispatch(new GetPendingTransactionsAction(this.address.address, inputIds));
       }));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));

@@ -9,7 +9,7 @@ import {
   CreateTransactionDataFailedAction,
   GetBlockAction,
   GetLatestBlockAction,
-  WalletActions,
+  WalletActions
 } from '../actions';
 import { WalletService } from '../services';
 import { IAppState } from '../state';
@@ -26,7 +26,7 @@ export class WalletEffects {
 
   @Effect() getPendingTransactions$ = this.actions$.pipe(
     ofType<actions.GetPendingTransactionsAction>(actions.WalletActionTypes.GET_PENDING_TRANSACTIONS),
-    switchMap(action => this.walletService.getPendingTransactions(action.address, action.outputIds).pipe(
+    switchMap(action => this.walletService.getPendingTransactions(action.address, action.inputIds).pipe(
       map(transactions => new actions.GetPendingTransactionsCompleteAction(transactions)),
       catchError(err => handleError(actions.GetPendingTransactionsFailedAction, err))),
     ));

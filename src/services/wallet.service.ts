@@ -20,7 +20,7 @@ import {
   TransactionPool,
   TranslatedError,
 } from '../interfaces';
-import { convertPendingTransaction, convertTransaction, filterTransactionsByAddress, getOutputIds, isUnrecognizedHashError } from '../util';
+import { convertPendingTransaction, convertTransaction, filterTransactionsByAddress, getInputIds, isUnrecognizedHashError } from '../util';
 
 @Injectable()
 export class WalletService {
@@ -64,16 +64,20 @@ export class WalletService {
   createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[]): Observable<CryptoTransaction> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
-      let outputIds = getOutputIds(hashInfo.transactions, data.from_address).available;
+      let inputIds = getInputIds(hashInfo.transactions, data.from_address).available;
       const pendingOutputIds = pendingTransactions
         .map(t => <CoinInput[]>(t.data.coininputs || []))
         .reduce((total: string[], inputs) => [...total, ...inputs.map(input => input.parentid)], []);
-      outputIds = outputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
+      inputIds = inputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
       const transactionData: CryptoTransactionData[] = [];
-      let feeSubtracted = false;
-      let hasSufficientFunds = false;
-      let amountLeft = data.amount * COIN_TO_HASTINGS / Math.pow(10, data.precision);
-      for (const outputId of outputIds) {
+      const required = data.amount * COIN_TO_HASTINGS / Math.pow(10, data.precision);
+      let requiredFunds = required + minerfees;
+      const totalFunds = inputIds.reduce((total, output) => total + parseInt(output.amount), 0);
+      if (requiredFunds > totalFunds) {
+        throw new TranslatedError('insufficient_funds');
+      }
+      let inputValue = 0;
+      for (const inputId of inputIds) {
         const d: CryptoTransactionData = {
           timelock: 0,
           outputs: [],
@@ -83,35 +87,22 @@ export class WalletService {
           signature: '',
           signature_hash: '',
           input: {
-            parent_id: outputId.id,
+            parent_id: inputId.id,
             timelock: 0,
           },
         };
-        let amount = parseInt(outputId.amount);
-        if (!feeSubtracted && (amount >= minerfees)) {
-          amount -= minerfees;
-          feeSubtracted = true;
-        }
         transactionData.push(d);
-        if ((amountLeft - amount) > 0) {
-          d.outputs.push({ value: amount.toString(), unlockhash: data.to_address });
-          amountLeft -= amount;
-        } else {
-          if (amountLeft > 0) {
-            d.outputs.push({ value: amountLeft.toString(), unlockhash: data.to_address });
-          }
-          const restAmount = amount - amountLeft;
-          if (restAmount > 0) {
-            d.outputs.push({ value: restAmount.toString(), unlockhash: data.from_address });
-          }
-          if (feeSubtracted) {
-            hasSufficientFunds = true;
-            break;
-          }
+        inputValue += parseInt(inputId.amount);
+        if (inputValue >= requiredFunds) {
+          // done
+          break;
         }
       }
-      if (!hasSufficientFunds) {
-        throw new TranslatedError('insufficient_funds');
+      transactionData[0].outputs.push({ value: required.toString(), unlockhash: data.to_address });
+      // Send the rest (if any) to our address
+      if (inputValue > requiredFunds) {
+        const difference = inputValue - requiredFunds;
+        transactionData[0].outputs.push({ value: difference.toString(), unlockhash: data.from_address });
       }
       return <CryptoTransaction>{
         minerfees: minerfees.toString(),

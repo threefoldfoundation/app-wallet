@@ -89,7 +89,7 @@ export function convertPendingTransaction(transaction: Transaction, address: str
   };
 }
 
-export function getOutputIds(transactions: ExplorerTransaction[], unlockhash: string) {
+export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string) {
   const allCoinOutputs: OutputMapping[] = [];
   let spentOutputs: OutputMapping[] = [];
   for (const t of transactions) {

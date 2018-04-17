@@ -23,7 +23,7 @@ import {
   getTransactions,
   IAppState,
 } from '../../state';
-import { filterNull, getOutputIds } from '../../util';
+import { filterNull, getInputIds } from '../../util';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,14 +57,14 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
     this.data = this.params.get('transactionData');
     // Ensure latest data by fetching it again
     this._transactionsSubscription = this.store.pipe(select(getTransactions)).subscribe(transactions => {
-      const outputIds = getOutputIds(transactions, this.data.from_address).all.map(o => o.id);
+      const inputIds = getInputIds(transactions, this.data.from_address).all.map(o => o.id);
       this._pendingTransactionSubscription = this.actions$.pipe(
         ofType<GetPendingTransactionsCompleteAction>(WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE),
         first(),
       ).subscribe(action => {
         this.store.dispatch(new CreateSignatureDataAction(this.data, action.payload));
       });
-      this.store.dispatch(new GetPendingTransactionsAction(this.data.from_address, outputIds));
+      this.store.dispatch(new GetPendingTransactionsAction(this.data.from_address, inputIds));
     });
     this.pendingTransaction$ = this.store.pipe(select(getPendingTransaction), filterNull());
     this.pendingTransactionStatus$ = this.store.pipe(select(getPendingTransactionStatus));

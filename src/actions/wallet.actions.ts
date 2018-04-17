@@ -55,7 +55,7 @@ export class GetTransactionsFailedAction implements Action {
 export class GetPendingTransactionsAction implements Action {
   readonly type = WalletActionTypes.GET_PENDING_TRANSACTIONS;
 
-  constructor(public address: string, public outputIds: string[]) {
+  constructor(public address: string, public inputIds: string[]) {
   }
 }
 
