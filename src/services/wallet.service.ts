@@ -100,8 +100,8 @@ export class WalletService {
       }
       transactionData[0].outputs.push({ value: required.toString(), unlockhash: data.to_address });
       // Send the rest (if any) to our address
-      if (inputValue > requiredFunds) {
-        const difference = inputValue - requiredFunds;
+      const difference = inputValue - requiredFunds;
+      if (difference > 0) {
         transactionData[0].outputs.push({ value: difference.toString(), unlockhash: data.from_address });
       }
       return <CryptoTransaction>{
