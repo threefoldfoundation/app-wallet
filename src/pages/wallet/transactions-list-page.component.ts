@@ -1,13 +1,21 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
-import { first, tap } from 'rxjs/operators';
+import { first } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { GetAddresssAction, GetPendingTransactionsAction, GetTransactionsAction } from '../../actions';
+import {
+  GetAddresssAction,
+  GetPendingTransactionsAction,
+  GetTransactionsAction,
+  GetTransactionsCompleteAction,
+  GetTransactionsFailedAction,
+  WalletActionTypes,
+} from '../../actions';
 import { ApiRequestStatus, KEY_NAME, ParsedTransaction, PendingTransaction, RIVINE_ALGORITHM, } from '../../interfaces';
 import { ErrorService } from '../../services';
 import {
@@ -16,7 +24,6 @@ import {
   getPendingTransactions,
   getTotalAmount,
   getTotalLockedAmount,
-  getTransactions,
   getTransactionsStatus,
   IAppState,
 } from '../../state';
@@ -44,16 +51,15 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   transactionsStatus$: Observable<ApiRequestStatus>;
   address: CryptoAddress;
 
-  private _addressStatusSub: Subscription;
-  private _transactionStatusSub: Subscription;
-  private _intervalSubscription: Subscription;
+  private _subscriptions: Subscription[] = [];
   private errorAlert: Alert | null;
 
   constructor(private store: Store<IAppState>,
               private translate: TranslateService,
               private errorService: ErrorService,
               private alertCtrl: AlertController,
-              private modalController: ModalController) {
+              private modalController: ModalController,
+              private actions$: Actions) {
   }
 
   ngOnInit() {
@@ -65,42 +71,46 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     }));
     this.address$ = this.store.pipe(select(getAddress));
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
-    this.transactions$ = this.store.pipe(
-      select(getTransactions),
-      tap(transactions => {
-        if (!transactions.length) {
-          return;
-        }
-        const inputIds = getInputIds(transactions, this.address.address).all.map(o => o.id);
-        this.store.dispatch(new GetPendingTransactionsAction(this.address.address, inputIds));
-      }));
+    this._subscriptions.push(this.actions$.pipe(
+      ofType<GetTransactionsCompleteAction>(WalletActionTypes.GET_TRANSACTIONS_COMPLETE)
+    ).subscribe(action => {
+      const inputIds = getInputIds(action.payload, this.address.address).all.map(o => o.id);
+      this.store.dispatch(new GetPendingTransactionsAction(this.address.address, inputIds));
+    }));
+    this._subscriptions.push(this.actions$.pipe(
+      ofType<GetTransactionsFailedAction>(WalletActionTypes.GET_TRANSACTIONS_FAILED)
+    ).subscribe(result => {
+      if (result.payload.error && isUnrecognizedHashError(result.payload.error.error)) {
+        this.store.dispatch(new GetPendingTransactionsAction(this.address.address, []));
+      }
+    }));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
     this.totalAmount$ = this.store.pipe(select(getTotalAmount));
     this.totalLocked$ = this.store.pipe(select(getTotalLockedAmount));
-    this._addressStatusSub = this.addressStatus$.subscribe(s => {
+    this._subscriptions.push(this.addressStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null) {
         return this._showErrorDialog(s.error.error);
       } else if (s.success) {
         this.getTransactions();
       }
-    });
-    this._transactionStatusSub = this.transactionsStatus$.subscribe(s => {
+    }));
+    this._subscriptions.push(this.transactionsStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null && !isUnrecognizedHashError(s.error.error)) {
         this._showErrorDialog(s.error.error);
       } else if (!s.loading) {
         this.refresher.complete();
         this._dismissErrorDialog();
       }
-    });
+    }));
     // Refresh transactions every 5 minutes
-    this._intervalSubscription = IntervalObservable.create(300000).subscribe(() => this.getTransactions());
+    this._subscriptions.push(IntervalObservable.create(300000).subscribe(() => this.getTransactions()));
   }
 
   ngOnDestroy() {
-    this._addressStatusSub.unsubscribe();
-    this._transactionStatusSub.unsubscribe();
-    this._intervalSubscription.unsubscribe();
+    for (const subscription of this._subscriptions) {
+      subscription.unsubscribe();
+    }
   }
 
   trackTransactions(index: number, transaction: ParsedTransaction) {
