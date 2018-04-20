@@ -24,6 +24,7 @@ import {
   getPendingTransactions,
   getTotalAmount,
   getTotalLockedAmount,
+  getTransactions,
   getTransactionsStatus,
   IAppState,
 } from '../../state';
@@ -50,6 +51,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   pendingTransactions$: Observable<PendingTransaction[]>;
   transactionsStatus$: Observable<ApiRequestStatus>;
   address: CryptoAddress;
+  showInitialLoading = true;
 
   private _subscriptions: Subscription[] = [];
   private errorAlert: Alert | null;
@@ -84,6 +86,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
         this.store.dispatch(new GetPendingTransactionsAction(this.address.address, []));
       }
     }));
+    this.transactions$ = this.store.pipe(select(getTransactions));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
     this.totalAmount$ = this.store.pipe(select(getTotalAmount));
@@ -101,6 +104,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
       } else if (!s.loading) {
         this.refresher.complete();
         this._dismissErrorDialog();
+        this.showInitialLoading = false;
       }
     }));
     // Refresh transactions every 5 minutes

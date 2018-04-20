@@ -71,7 +71,7 @@ export class WalletService {
       inputIds = inputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
       const transactionData: CryptoTransactionData[] = [];
       const required = data.amount * COIN_TO_HASTINGS / Math.pow(10, data.precision);
-      let requiredFunds = required + minerfees;
+      const requiredFunds = required + minerfees;
       const totalFunds = inputIds.reduce((total, output) => total + parseInt(output.amount), 0);
       if (requiredFunds > totalFunds) {
         throw new TranslatedError('insufficient_funds');
