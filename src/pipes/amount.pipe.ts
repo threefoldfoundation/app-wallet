@@ -1,5 +1,5 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
-import { COIN_TO_HASTINGS, CURRENCY_SYMBOL } from '../interfaces';
+import { COIN_TO_HASTINGS, CURRENCY_DETAIL_DIGITS, CURRENCY_SYMBOL } from '../interfaces';
 import { LocaleDecimalPipe } from './localized-pipes';
 
 @Injectable()
@@ -11,6 +11,6 @@ export class AmountPipe implements PipeTransform {
 
   transform(value: string | number, digits?: string) {
     const amount = (typeof value === 'number' ? value : parseInt(value)) / COIN_TO_HASTINGS;
-    return `${this.decimalPipe.transform(amount, digits || '1.0-2')} ${CURRENCY_SYMBOL}`;
+    return `${this.decimalPipe.transform(amount, digits || CURRENCY_DETAIL_DIGITS)} ${CURRENCY_SYMBOL}`;
   }
 }

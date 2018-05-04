@@ -1,7 +1,8 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { NavParams, ToastController, ViewController } from 'ionic-angular';
-import { COIN_TO_HASTINGS_PRECISION, CopyEventData, PendingTransaction } from '../../interfaces';
+import { CopyEventData, LOCKTIME_BLOCK_LIMIT, PendingTransaction } from '../../interfaces';
 import { AmountPipe } from '../../pipes';
 import { getLocked } from '../../util';
 
@@ -12,14 +13,13 @@ import { getLocked } from '../../util';
 })
 export class PendingTransactionDetailPageComponent implements OnInit {
   transaction: PendingTransaction;
-  digits = `1.0-${COIN_TO_HASTINGS_PRECISION}`;
-  getLocked = getLocked;
 
   constructor(private params: NavParams,
               private translate: TranslateService,
               private amountPipe: AmountPipe,
               private viewCtrl: ViewController,
-              private toastCtrl: ToastController) {
+              private toastCtrl: ToastController,
+              private datePipe: DatePipe) {
   }
 
   ngOnInit() {
@@ -27,7 +27,22 @@ export class PendingTransactionDetailPageComponent implements OnInit {
   }
 
   getAmount(amount: number) {
-    return this.amountPipe.transform(Math.abs(amount), this.digits);
+    return this.amountPipe.transform(Math.abs(amount));
+  }
+
+  getLocked() {
+    return getLocked(this.transaction).map(locked => {
+      let unlocktime;
+      let key;
+      if (locked.value < LOCKTIME_BLOCK_LIMIT) {
+        key = 'x_currency_locked_until_block_y';
+        unlocktime = locked.unlocktime;
+      } else {
+        key = 'x_currency_locked_until_y';
+        unlocktime = this.datePipe.transform(locked.date, 'medium');
+      }
+      return this.translate.instant(key, { amount: this.amountPipe.transform(locked.value), unlocktime });
+    });
   }
 
   showCopiedToast(result: CopyEventData) {

@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
@@ -5,7 +6,7 @@ import { NavParams, ToastController, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { GetBlockAction, GetLatestBlockAction } from '../../actions';
-import { ApiRequestStatus, COIN_TO_HASTINGS_PRECISION, ExplorerBlock, ExplorerBlockGET, ParsedTransaction, } from '../../interfaces';
+import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, LOCKTIME_BLOCK_LIMIT, ParsedTransaction, Transaction } from '../../interfaces';
 import { AmountPipe } from '../../pipes';
 import { getBlock, getLatestBlock, getLatestBlockStatus, IAppState } from '../../state';
 import { filterNull, getLocked, isPendingTransaction } from '../../util';
@@ -22,15 +23,14 @@ export class TransactionDetailPageComponent implements OnInit {
   getLatestBlockStatus$: Observable<ApiRequestStatus>;
   timestamp$: Observable<Date>;
   confirmations$: Observable<number>;
-  digits = `1.0-${COIN_TO_HASTINGS_PRECISION}`;
-  getLocked = getLocked;
 
   constructor(private params: NavParams,
               private translate: TranslateService,
               private amountPipe: AmountPipe,
               private viewCtrl: ViewController,
               private toastCtrl: ToastController,
-              private store: Store<IAppState>) {
+              private store: Store<IAppState>,
+              private datePipe: DatePipe) {
   }
 
   ngOnInit() {
@@ -52,7 +52,7 @@ export class TransactionDetailPageComponent implements OnInit {
   }
 
   getAmount(amount: number) {
-    return this.amountPipe.transform(Math.abs(amount), this.digits);
+    return this.amountPipe.transform(Math.abs(amount));
   }
 
   showCopiedToast(result: { isSuccess: boolean, content?: string }) {
@@ -65,6 +65,21 @@ export class TransactionDetailPageComponent implements OnInit {
         closeButtonText: this.translate.instant('ok'),
       }).present();
     }
+  }
+
+  getLocked(transaction: Transaction) {
+    return getLocked(transaction).map(locked => {
+      let unlocktime;
+      let key;
+      if (locked.value < LOCKTIME_BLOCK_LIMIT) {
+        key = 'x_currency_locked_until_block_y';
+        unlocktime = locked.unlocktime;
+      } else {
+        key = 'x_currency_locked_until_y';
+        unlocktime = this.datePipe.transform(locked.date, 'medium');
+      }
+      return this.translate.instant(key, { amount: this.amountPipe.transform(locked.value), unlocktime });
+    });
   }
 
   dismiss() {

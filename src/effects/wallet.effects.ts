@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { of } from 'rxjs/observable/of';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as actions from '../actions';
 import {
   CreateTransactionDataCompleteAction,
@@ -12,8 +12,8 @@ import {
   WalletActions
 } from '../actions';
 import { WalletService } from '../services';
-import { IAppState } from '../state';
-import { handleError } from '../util/rpc';
+import { getLatestBlock, IAppState } from '../state';
+import { filterNull, handleError } from '../util';
 
 @Injectable()
 export class WalletEffects {
@@ -33,7 +33,8 @@ export class WalletEffects {
 
   @Effect() createSignatureData$ = this.actions$.pipe(
     ofType<actions.CreateSignatureDataAction>(actions.WalletActionTypes.CREATE_SIGNATURE_DATA),
-    switchMap(action => this.walletService.createSignatureData(action.payload, action.pendingTransactions).pipe(
+    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull())),
+    switchMap(([action, block]) => this.walletService.createSignatureData(action.payload, action.pendingTransactions, block).pipe(
       map(result => new actions.CreateSignatureDataCompleteAction(result)),
       catchError(err => handleError(actions.CreateSignatureDataFailedAction, err))),
     ));

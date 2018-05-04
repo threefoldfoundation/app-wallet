@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AlertController, NavParams, ViewController } from 'ionic-angular';
 import { CryptoTransaction } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
-import { first, switchMap } from 'rxjs/operators';
+import { first, switchMap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import {
   CreateSignatureDataAction,
@@ -18,6 +18,7 @@ import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, KEY_NAM
 import {
   createTransactionStatus,
   getCreatedTransaction,
+  getLatestBlock,
   getPendingTransaction,
   getPendingTransactionStatus,
   getTransactions,
@@ -56,8 +57,11 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.data = this.params.get('transactionData');
     // Ensure latest data by fetching it again
-    this._transactionsSubscription = this.store.pipe(select(getTransactions)).subscribe(transactions => {
-      const inputIds = getInputIds(transactions, this.data.from_address).all.map(o => o.id);
+    this._transactionsSubscription = this.store.pipe(
+      select(getTransactions),
+      withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull())),
+    ).subscribe(([transactions, latestBlock]) => {
+      const inputIds = getInputIds(transactions, this.data.from_address, latestBlock).all.map(o => o.id);
       this._pendingTransactionSubscription = this.actions$.pipe(
         ofType<GetPendingTransactionsCompleteAction>(WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE),
         first(),

@@ -6,7 +6,7 @@ import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { filter, map } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { GetAddresssAction, GetTransactionsAction, ScanQrCodeAction } from '../../actions';
+import { GetAddresssAction, GetLatestBlockAction, GetTransactionsAction, ScanQrCodeAction } from '../../actions';
 import {
   ADDRESS_LENGTH,
   CreateSignatureData,

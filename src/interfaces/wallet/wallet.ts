@@ -80,9 +80,9 @@ export interface ExplorerBlockGET {
 
 export interface Transaction1 {
   data: {
-    arbitrarydata: string | null;
-    blockstakeinputs: CoinInput1[] | null;
-    blockstakeoutputs: CoinOutput1[] | null;
+    arbitrarydata?: string;
+    blockstakeinputs?: CoinInput1[] | null;
+    blockstakeoutputs?: CoinOutput1[] | null;
     coininputs: CoinInput1[] | null;
     coinoutputs: CoinOutput1[] | null;
     minerfees: string[] | null;
@@ -167,6 +167,11 @@ export const ADDRESS_LENGTH = 78;
 export const COIN_TO_HASTINGS_PRECISION = 9;
 export const COIN_TO_HASTINGS = Math.pow(10, COIN_TO_HASTINGS_PRECISION);
 export const CURRENCY_SYMBOL = configuration.currency_symbol;
+export const CURRENCY_DETAIL_DIGITS = `1.0-${COIN_TO_HASTINGS_PRECISION}`;
 export const KEY_NAME = configuration.key_name;
 export const PROVIDER_ID = configuration.provider_id;
 export const RIVINE_ALGORITHM = 'ed25519';
+/**
+ * Starting from this number, the 'locktime' indicates a unix timestamp. Else it is a block number
+ */
+export const LOCKTIME_BLOCK_LIMIT = 500000000;

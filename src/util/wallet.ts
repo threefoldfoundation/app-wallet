@@ -1,4 +1,5 @@
 import {
+  BlockFacts,
   CoinInput,
   CoinInput0,
   CoinOutput,
@@ -6,12 +7,12 @@ import {
   CoinOutput1,
   ExplorerTransaction,
   ExplorerTransaction0,
+  LOCKTIME_BLOCK_LIMIT,
   OutputCondition,
   OutputMapping,
   OutputType,
   ParsedTransaction,
   PendingTransaction,
-  TimeLockedCondition,
   Transaction,
   Transaction0,
 } from '../interfaces';
@@ -89,7 +90,7 @@ export function convertPendingTransaction(transaction: Transaction, address: str
   };
 }
 
-export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string) {
+export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: BlockFacts) {
   const allCoinOutputs: OutputMapping[] = [];
   let spentOutputs: OutputMapping[] = [];
   for (const t of transactions) {
@@ -106,7 +107,7 @@ export function getInputIds(transactions: ExplorerTransaction[], unlockhash: str
         }
       } else {
         coinOutput = <CoinOutput1>coinOutputs[i];
-        if (filterReceivingOutputCondition(unlockhash, coinOutput.condition)) {
+        if (filterReceivingOutputCondition(unlockhash, coinOutput.condition, latestBlock)) {
           allCoinOutputs.push({ id: outputId, amount: coinOutput.value });
         }
       }
@@ -162,18 +163,17 @@ export function filterTransactionsByAddress(address: string, transactions: Trans
 
 
 export function getLocked(transaction: Transaction) {
-  const locked: { value: string, date: Date }[] = [];
+  const locked: { value: number, date: Date, unlocktime?: number }[] = [];
   if (isv0RawTransaction(transaction) || !transaction.data.coinoutputs) {
     return [];
   }
   for (const output of transaction.data.coinoutputs) {
     if (output.condition.type === OutputType.TIMELOCKED && output.condition.data) {
-      locked.push({ value: output.value, date: new Date(output.condition.data.timelock * 1000) });
-    } else if (output.condition.type === OutputType.SORTED_SET) {
-      const condition = <TimeLockedCondition | undefined>output.condition.data.conditions.find(c => c.type === OutputType.TIMELOCKED);
-      if (condition && condition.data) {
-        locked.push({ value: output.value, date: new Date(condition.data.timelock * 1000) });
-      }
+      locked.push({
+        value: parseInt(output.value),
+        unlocktime: output.condition.data.locktime,
+        date: new Date(output.condition.data.locktime * 1000)
+      });
     }
   }
   return locked;
@@ -185,21 +185,31 @@ export function filterOutputCondition(address: string, condition: OutputConditio
       return condition.data.unlockhash === address;
     case OutputType.ATOMIC_SWAP:
       return condition.data.sender === address || condition.data.receiver === address;
-    case OutputType.SORTED_SET:
-      return condition.data.conditions.some(c => filterOutputCondition(address, c));
+    case OutputType.TIMELOCKED:
+      return condition.data.condition.data.unlockhash === address;
     default:
       return false;
   }
 }
 
-export function filterReceivingOutputCondition(address: string, condition: OutputCondition): boolean {
+export function filterReceivingOutputCondition(address: string, condition: OutputCondition, latestBlock?: BlockFacts): boolean {
   switch (condition.type) {
     case OutputType.UNLOCKHASH:
       return condition.data.unlockhash === address;
     case OutputType.ATOMIC_SWAP:
-      return condition.data.receiver === address;
-    case OutputType.SORTED_SET:
-      return condition.data.conditions.some(c => filterOutputCondition(address, c));
+      return false;
+    case OutputType.TIMELOCKED:
+      if (condition.data.condition.data.unlockhash !== address) {
+        return false;
+      }
+      if (latestBlock) {
+        if (condition.data.locktime < LOCKTIME_BLOCK_LIMIT) {
+          // Lock time is a block height here, compare with that.
+          return latestBlock.height >= condition.data.locktime;
+        }
+        return latestBlock.maturitytimestamp >= condition.data.locktime;
+      }
+      return true;
     default:
       return false;
   }
@@ -211,8 +221,8 @@ export function filterSendOutputCondition(address: string, condition: OutputCond
       return condition.data.unlockhash !== address;
     case OutputType.ATOMIC_SWAP:
       return condition.data.sender === address;
-    case OutputType.SORTED_SET:
-      return condition.data.conditions.some(c => filterOutputCondition(address, c));
+    case OutputType.TIMELOCKED:
+      return condition.data.condition.data.unlockhash === address;
     default:
       return false;
   }

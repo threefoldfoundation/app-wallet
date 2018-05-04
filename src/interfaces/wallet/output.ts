@@ -3,7 +3,6 @@ export enum OutputType {
   UNLOCKHASH = 1,
   ATOMIC_SWAP = 2,
   TIMELOCKED = 3,
-  SORTED_SET = 4
 }
 
 export interface NilCondition {
@@ -29,22 +28,17 @@ export interface AtomicSwapCondition {
 }
 
 export interface TimeLockedCondition {
-  data?: {
-    timelock: number;
+  data: {
+    /**
+     * Unix timestamp if higher than 500 000 000, else block number
+     */
+    locktime: number;
+    condition: UnlockHashCondition;
   };
   type: OutputType.TIMELOCKED;
 }
 
-export type SortedSetConditionTypes = NilCondition | UnlockHashCondition | AtomicSwapCondition | TimeLockedCondition;
-
-export interface SortedSetCondition {
-  data: {
-    conditions: SortedSetConditionTypes[];
-  };
-  type: OutputType.SORTED_SET;
-}
-
-export type OutputCondition = SortedSetConditionTypes | SortedSetCondition;
+export type OutputCondition =  NilCondition | UnlockHashCondition | AtomicSwapCondition | TimeLockedCondition;
 
 export interface CoinOutput1 {
   condition: OutputCondition;

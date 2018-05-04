@@ -2,7 +2,7 @@ import { Action } from '@ngrx/store';
 import { CameraType, CryptoAddress, CryptoTransaction, QrCodeScannedContent, RogerthatError, SupportedAlgorithms, } from 'rogerthat-plugin';
 import { ApiRequestStatus, GetAddressPayload, ServiceData, UserData } from '../interfaces';
 
-export enum RogerthatActionTypes {
+export const enum RogerthatActionTypes {
   SET_USER_DATA = '[rogerthat] Set user data',
   SET_SERVICE_DATA = '[rogerthat] Set service data',
   SCAN_QR_CODE = '[rogerthat] Scan QR code',

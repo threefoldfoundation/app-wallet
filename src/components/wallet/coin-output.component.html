@@ -1,4 +1,4 @@
-<h2>{{ coinOutput.value | amount : digits }}</h2>
+<h2>{{ coinOutput.value | amount }}</h2>
 <ng-container *ngIf="isv0Output(coinOutput); else v1List">
   <p ngxClipboard [cbContent]="coinOutput.unlockhash" (cbOnSuccess)="copied.emit($event)">
     {{ coinOutput.unlockhash }}

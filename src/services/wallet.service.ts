@@ -8,6 +8,7 @@ import { map, mergeMap, retryWhen, timeout } from 'rxjs/operators';
 import { TimeoutError } from 'rxjs/util/TimeoutError';
 import { configuration } from '../configuration';
 import {
+  BlockFacts,
   COIN_TO_HASTINGS,
   CoinInput,
   CreateSignatureData,
@@ -61,10 +62,11 @@ export class WalletService {
     );
   }
 
-  createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[]): Observable<CryptoTransaction> {
+  createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[],
+                      latestBlock: BlockFacts): Observable<CryptoTransaction> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
-      let inputIds = getInputIds(hashInfo.transactions, data.from_address).available;
+      let inputIds = getInputIds(hashInfo.transactions, data.from_address, latestBlock).available;
       const pendingOutputIds = pendingTransactions
         .map(t => <CoinInput[]>(t.data.coininputs || []))
         .reduce((total: string[], inputs) => [...total, ...inputs.map(input => input.parentid)], []);

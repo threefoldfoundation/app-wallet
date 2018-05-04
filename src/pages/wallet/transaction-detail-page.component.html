@@ -10,10 +10,7 @@
 </ion-header>
 <ion-content padding class="selectable">
   <h3>{{ (transaction.receiving ? 'received': 'sent') | translate }} {{ getAmount(transaction.amount) }}</h3>
-  <h4 *ngFor="let locked of getLocked(transaction.rawtransaction)">
-    {{ 'x_currency_locked_until_y' | translate : { amount: locked.value | amount, date: locked.date | date: 'medium'
-    } }}
-  </h4>
+  <h4 *ngFor="let locked of getLocked(transaction.rawtransaction)">{{ locked }}</h4>
   <h4>{{ timestamp$ | async | date : 'd MMMM yyyy HH:mm:ss' }}</h4>
   <p *ngIf="transaction.id">{{ 'transaction_id_x' | translate : { id: transaction.id } }}</p>
   <api-request-status [status]="getLatestBlockStatus$ | async"></api-request-status>
@@ -25,7 +22,7 @@
     <ion-item *ngFor="let input of transaction.coininputoutputs" ngxClipboard [cbContent]="input.unlockhash"
               (cbOnSuccess)="showCopiedToast($event)">
       <h2>{{ input.unlockhash }}</h2>
-      <p>{{ input.value | amount : digits }}</p>
+      <p>{{ input.value | amount }}</p>
     </ion-item>
   </ion-list>
   <ion-list class="input-output-list">
@@ -39,5 +36,5 @@
       <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
     </ion-item>
   </ion-list>
-  <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount : digits } }}</p>
+  <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount } }}</p>
 </ion-content>

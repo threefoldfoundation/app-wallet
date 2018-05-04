@@ -79,8 +79,8 @@ Proxy to allow non-localhost addresses
 
 ```bash
 git clone https://github.com/threefoldfoundation/tfchain
-cd tfchain
-caddy -conf caddy/Caddyfile.local
+cd tfchain/frontend/explorer/caddy
+caddy -conf Caddyfile.local
 ```
 
 if prompted for a password enter `test123`

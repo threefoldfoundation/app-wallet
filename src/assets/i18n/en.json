@@ -51,11 +51,13 @@
   "transaction_total_x": "Transaction total: {{ amount }}",
   "transactions": "Transactions",
   "unknown_qr_code_scanned": "Unknown QR code scanned",
+  "locked_until_block_x": "Locked until block {{ block }}",
   "unlocks_on_x": "Unlocks on: {{ date }}",
   "update_app": "Update app",
   "update_required": "Update required",
   "wallet": "Wallet",
   "x_confirmations": "{{ confirmations }} confirmations",
-  "x_currency_locked_until_y": "{{ amount }} locked until {{ date }}",
+  "x_currency_locked_until_block_y": "{{ amount }} locked until block {{ unlocktime }}",
+  "x_currency_locked_until_y": "{{ amount }} locked until {{ unlocktime }}",
   "yes": "Yes"
 }

@@ -6,10 +6,11 @@ import { Alert, AlertController, ModalController, Refresher } from 'ionic-angula
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
-import { first } from 'rxjs/operators';
+import { first, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import {
   GetAddresssAction,
+  GetLatestBlockAction,
   GetPendingTransactionsAction,
   GetTransactionsAction,
   GetTransactionsCompleteAction,
@@ -21,6 +22,7 @@ import { ErrorService } from '../../services';
 import {
   getAddress,
   getAddressStatus,
+  getLatestBlock,
   getPendingTransactions,
   getTotalAmount,
   getTotalLockedAmount,
@@ -28,7 +30,7 @@ import {
   getTransactionsStatus,
   IAppState,
 } from '../../state';
-import { getInputIds, isPendingTransaction, isUnrecognizedHashError } from '../../util';
+import { filterNull, getInputIds, isPendingTransaction, isUnrecognizedHashError } from '../../util';
 import { PendingTransactionDetailPageComponent } from './pending-transaction-detail-page.component';
 import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 
@@ -52,6 +54,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   transactionsStatus$: Observable<ApiRequestStatus>;
   address: CryptoAddress;
   showInitialLoading = true;
+  digits = '1.0-2';
 
   private _subscriptions: Subscription[] = [];
   private errorAlert: Alert | null;
@@ -74,9 +77,10 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.address$ = this.store.pipe(select(getAddress));
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this._subscriptions.push(this.actions$.pipe(
-      ofType<GetTransactionsCompleteAction>(WalletActionTypes.GET_TRANSACTIONS_COMPLETE)
-    ).subscribe(action => {
-      const inputIds = getInputIds(action.payload, this.address.address).all.map(o => o.id);
+      ofType<GetTransactionsCompleteAction>(WalletActionTypes.GET_TRANSACTIONS_COMPLETE),
+      withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull())),
+    ).subscribe(([action, latestBlock]) => {
+      const inputIds = getInputIds(action.payload, this.address.address, latestBlock).all.map(o => o.id);
       this.store.dispatch(new GetPendingTransactionsAction(this.address.address, inputIds));
     }));
     this._subscriptions.push(this.actions$.pipe(
@@ -125,6 +129,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.address$.pipe(first()).subscribe((address: CryptoAddress | null) => {
       if (address) {
         this.address = address;
+        this.store.dispatch(new GetLatestBlockAction());
         this.store.dispatch(new GetTransactionsAction(address.address));
       }
     });

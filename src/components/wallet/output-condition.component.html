@@ -2,16 +2,15 @@
 <ng-container *ngIf="condition.type === OutputType.ATOMIC_SWAP">
   <p>{{ 'sender_x' | translate : { sender: condition.data.sender } }}</p>
   <p>{{ 'receiver_x' | translate : { receiver: condition.data.receiver } }}</p>
-  <p>{{ 'unlocks_on_x' | translate : { date: (condition.data.timelock * 1000) | date : dateformat } }}</p>
+  <p>{{ 'unlocks_on_x' | translate : { date: (condition.data.locktime * 1000) | date : dateformat } }}</p>
   <p>{{ 'hashed_secret_x' | translate : { secret: condition.data.hashedsecret} }}</p>
 </ng-container>
 <ng-container *ngIf="condition.type === OutputType.TIMELOCKED">
-  <p *ngIf="condition.data?.timelock">
-    {{ 'unlocks_on_x' | translate : { date: (condition.data.timelock * 1000) | date: dateformat } }}
+  <p *ngIf="condition.data.locktime < LOCKTIME_BLOCK_LIMIT; else lockTimeDate">
+    {{ 'locked_until_block_x' | translate : { block: condition.data.locktime } }}
   </p>
-</ng-container>
-<ng-container *ngIf="condition.type === OutputType.SORTED_SET">
-  <ng-container *ngFor="let condition of condition.data.conditions">
-    <output-condition [condition]="condition" (copied)="copied.emit($event)"></output-condition>
-  </ng-container>
+  <ng-template #lockTimeDate>
+    <p>{{ 'unlocks_on_x' | translate : { date: (condition.data.locktime * 1000) | date: dateformat } }}</p>
+  </ng-template>
+  <output-condition [condition]="condition.data.condition"></output-condition>
 </ng-container>

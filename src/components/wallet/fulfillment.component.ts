@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
-import { FulFillment, InputType } from '../../interfaces/wallet';
+import { Fulfillment, InputType } from '../../interfaces/wallet';
 
 @Component({
   selector: 'fulfillment',
@@ -9,5 +9,5 @@ import { FulFillment, InputType } from '../../interfaces/wallet';
 })
 export class FulfillmentComponent {
   InputType = InputType;
-  @Input() fulfillment: FulFillment;
+  @Input() fulfillment: Fulfillment;
 }

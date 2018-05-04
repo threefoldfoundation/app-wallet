@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
-import { CopyEventData, OutputCondition, OutputType } from '../../interfaces/wallet';
+import { CopyEventData, LOCKTIME_BLOCK_LIMIT, OutputCondition, OutputType } from '../../interfaces/wallet';
 
 @Component({
   selector: 'output-condition',
@@ -10,6 +10,7 @@ import { CopyEventData, OutputCondition, OutputType } from '../../interfaces/wal
 export class OutputConditionComponent {
   OutputType = OutputType;
   dateformat = 'medium';
+  LOCKTIME_BLOCK_LIMIT = LOCKTIME_BLOCK_LIMIT;
   @Input() condition: OutputCondition;
   @Output() copied = new EventEmitter<CopyEventData>();
 }

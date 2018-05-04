@@ -1,9 +1,9 @@
 <ion-content>
   <ion-row justify-content-center>
-    <h2 *ngIf="!showInitialLoading">{{ totalAmount$ | async | amount }}</h2>
+    <h2 *ngIf="!showInitialLoading">{{ totalAmount$ | async | amount : digits }}</h2>
   </ion-row>
   <ion-row *ngIf="totalLocked$ | async as locked" justify-content-center>
-    <h3>{{ 'locked_tokens_x' | translate: { amount: locked | amount } }}</h3>
+    <h3>{{ 'locked_tokens_x' | translate: { amount: locked | amount : digits } }}</h3>
   </ion-row>
   <ion-refresher #refresher (ionRefresh)="getTransactions()" (ionPull)="{}">
     <ion-refresher-content></ion-refresher-content>
@@ -15,7 +15,7 @@
       <h3 [class]="getColorClass(transaction)">
         {{ (transaction.receiving ? 'received': 'sent') | translate }}
       </h3>
-      <button ion-button item-end [color]="getColor(transaction)">{{ transaction.amount | amount }}</button>
+      <button ion-button item-end [color]="getColor(transaction)">{{ transaction.amount | amount : digits }}</button>
     </ion-item>
     <ion-item *ngFor="let transaction of transactions$ | async; trackBy: trackTransactions"
               (click)="showDetails(transaction)">
@@ -23,7 +23,7 @@
       <h3 [class]="getColorClass(transaction)">
         {{ (transaction.receiving ? 'received': 'sent') | translate }}
       </h3>
-      <button ion-button item-end [color]="getColor(transaction)">{{ transaction.amount | amount }}</button>
+      <button ion-button item-end [color]="getColor(transaction)">{{ transaction.amount | amount : digits }}</button>
     </ion-item>
   </ion-list>
 </ion-content>

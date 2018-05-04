@@ -1,14 +1,7 @@
 export enum InputType {
-  NIL = 0,
   SINGLE_SIGNATURE = 1,
   ATOMIC_SWAP = 2,
   TIMELOCKED = 3,
-  SORTED_SET = 4
-}
-
-export interface NilFulFillment {
-  data: null;
-  type: InputType.NIL;
 }
 
 export interface SingleSignatureFulfillment {
@@ -29,25 +22,13 @@ export interface AtomicSwapFulfillment {
 }
 
 export interface TimeLockedFulfillment {
+  data: SingleSignatureFulfillment; // can be other types in the future
   type: InputType.TIMELOCKED;
 }
 
-export type SortedSetFulfillmentTypes =
-  NilFulFillment
-  | SingleSignatureFulfillment
-  | AtomicSwapFulfillment
-  | TimeLockedFulfillment;
-
-export interface SortedSetFulfillment {
-  data: {
-    fulfillments: SortedSetFulfillmentTypes[];
-  };
-  type: InputType.SORTED_SET;
-}
-
-export type FulFillment = SortedSetFulfillmentTypes | SortedSetFulfillment;
+export type Fulfillment = SingleSignatureFulfillment | AtomicSwapFulfillment | TimeLockedFulfillment;
 
 export interface CoinInput1 {
-  fulfillment: FulFillment;
+  fulfillment: Fulfillment;
   parentid: string;
 }

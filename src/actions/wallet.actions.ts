@@ -10,7 +10,7 @@ import {
   PendingTransaction,
 } from '../interfaces';
 
-export enum WalletActionTypes  {
+export const enum WalletActionTypes  {
   GET_TRANSACTIONS = 'Get transactions',
   GET_TRANSACTIONS_COMPLETE = 'Get transactions complete',
   GET_TRANSACTIONS_FAILED = 'Get transactions failed',
