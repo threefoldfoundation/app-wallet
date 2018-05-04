@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { NavParams, ToastController, ViewController } from 'ionic-angular';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GetBlockAction, GetLatestBlockAction } from '../../actions';
 import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, LOCKTIME_BLOCK_LIMIT, ParsedTransaction, Transaction } from '../../interfaces';

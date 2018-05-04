@@ -3,10 +3,9 @@ import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
 import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
-import { Observable } from 'rxjs/Observable';
+import { Observable, Subscription } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { Subscription } from 'rxjs/Subscription';
-import { GetAddresssAction, GetLatestBlockAction, GetTransactionsAction, ScanQrCodeAction } from '../../actions';
+import { GetAddresssAction, GetTransactionsAction, ScanQrCodeAction } from '../../actions';
 import {
   ADDRESS_LENGTH,
   CreateSignatureData,

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { SplashScreen } from '@ionic-native/splash-screen';
-import { StatusBar } from '@ionic-native/status-bar';
+import { SplashScreen } from '@ionic-native/splash-screen/ngx';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';

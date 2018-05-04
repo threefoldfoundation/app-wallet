@@ -4,9 +4,8 @@ import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, NavParams, ViewController } from 'ionic-angular';
 import { CryptoTransaction } from 'rogerthat-plugin';
-import { Observable } from 'rxjs/Observable';
+import { Observable, Subscription } from 'rxjs';
 import { first, switchMap, withLatestFrom } from 'rxjs/operators';
-import { Subscription } from 'rxjs/Subscription';
 import {
   CreateSignatureDataAction,
   CreateTransactionDataAction,

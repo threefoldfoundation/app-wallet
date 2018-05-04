@@ -1,13 +1,12 @@
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject } from 'rxjs';
 
 export function filterNull<T>() {
-  return function filterNullImplementation(source: Observable<T>): Observable<NonNullable<T>> {
-    return Observable.create((subscriber: Subject<NonNullable<T>>) => {
+  return function filterNullImplementation(source: Observable<T | null>): Observable<T> {
+    return Observable.create((subscriber: Subject<T>) => {
       return source.subscribe(value => {
           if (value !== null) {
             try {
-              subscriber.next(<NonNullable<T>>value);
+              subscriber.next(<T>value);
             } catch (err) {
               subscriber.error(err);
             }

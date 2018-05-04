@@ -10,8 +10,7 @@ import {
   SignatureData,
   SupportedAlgorithms,
 } from 'rogerthat-plugin';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject } from 'rxjs';
 import { ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
 import { GetAddressPayload } from '../interfaces';
 import { IAppState } from '../state';

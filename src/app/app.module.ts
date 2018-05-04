@@ -2,9 +2,9 @@ import { CurrencyPipe, DatePipe, DecimalPipe, I18nPluralPipe } from '@angular/co
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { InAppBrowser } from '@ionic-native/in-app-browser';
-import { SplashScreen } from '@ionic-native/splash-screen';
-import { StatusBar } from '@ionic-native/status-bar';
+import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
+import { SplashScreen } from '@ionic-native/splash-screen/ngx';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 import { MissingTranslationHandler, TranslateLoader, TranslateModule } from '@ngx-translate/core';

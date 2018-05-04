@@ -1,11 +1,8 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
-import { Observable } from 'rxjs/Observable';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { TimerObservable } from 'rxjs/observable/TimerObservable';
+import { Observable, throwError, TimeoutError, timer } from 'rxjs';
 import { map, mergeMap, retryWhen, timeout } from 'rxjs/operators';
-import { TimeoutError } from 'rxjs/util/TimeoutError';
 import { configuration } from '../configuration';
 import {
   BlockFacts,
@@ -29,7 +26,7 @@ export class WalletService {
 
   constructor(private http: HttpClient) {
     const resetDelay = 5 * 60 * 1000;
-    TimerObservable.create(resetDelay, resetDelay).subscribe(a => {
+    timer(resetDelay, resetDelay).subscribe(a => {
       this.unavailableExplorers = [];
     });
   }
@@ -145,7 +142,7 @@ export class WalletService {
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
-    return TimerObservable.create(0).pipe(
+    return timer(0).pipe(
       mergeMap(() => {
         currentUrl = this._getUrl();
         return this.http.get<T>(`${currentUrl}${path}`, options);
@@ -156,16 +153,16 @@ export class WalletService {
           if (error instanceof HttpErrorResponse && typeof error.error === 'object'
             && isUnrecognizedHashError(error.error.message)) {
             // Don't retry in case the hash wasn't recognized
-            return ErrorObservable.create(error);
+            return throwError(error);
           }
           retries++;
           const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
             || error instanceof TimeoutError;
           if (retries < 5 && shouldRetry) {
             this.unavailableExplorers.push(currentUrl);
-            return TimerObservable.create(0);
+            return timer(0);
           }
-          return ErrorObservable.create(error);
+          return throwError(error);
         }));
       }),
     );
@@ -174,7 +171,7 @@ export class WalletService {
   private _post<T>(path: string, body: any | null, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
-    return TimerObservable.create(0).pipe(
+    return timer(0).pipe(
       mergeMap(() => {
         currentUrl = this._getUrl();
         return this.http.post<T>(currentUrl + path, body, options);
@@ -187,9 +184,9 @@ export class WalletService {
             || error instanceof TimeoutError;
           if (retries < 5 && shouldRetry) {
             this.unavailableExplorers.push(currentUrl);
-            return TimerObservable.create(0);
+            return timer(0);
           }
-          return ErrorObservable.create(error);
+          return throwError(error);
         }));
       }),
     );

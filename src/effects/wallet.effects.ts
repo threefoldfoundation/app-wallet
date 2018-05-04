@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { of } from 'rxjs/observable/of';
+import { of } from 'rxjs';
 import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as actions from '../actions';
 import {

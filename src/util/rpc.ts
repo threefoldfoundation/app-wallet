@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { of } from 'rxjs/observable/of';
+import { of } from 'rxjs';
 import { ApiError, ApiRequestStatus, TranslatedError } from '../interfaces';
 
 export function transformErrorResponse<T = any>(response: HttpErrorResponse | TranslatedError | Error): ApiRequestStatus<T> {

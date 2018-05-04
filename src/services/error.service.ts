@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { InAppBrowser } from '@ionic-native/in-app-browser';
+import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
 import { RogerthatError } from 'rogerthat-plugin';
