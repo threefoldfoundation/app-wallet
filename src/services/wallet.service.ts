@@ -40,7 +40,9 @@ export class WalletService {
   }
 
   getTransactions(address: string) {
-    return this.getHashInfo(address).pipe(map(info => info.transactions.map(t => convertTransaction(t, address))
+    return this.getHashInfo(address).pipe(map(info => info.transactions
+      .filter(t => t.rawtransaction.version <= 1)
+      .map(t => convertTransaction(t, address))
       .sort((t1, t2) => t2.height - t1.height)));
   }
 
@@ -55,6 +57,7 @@ export class WalletService {
   getPendingTransactions(address: string, outputIds: string[]): Observable<PendingTransaction[]> {
     return this.getTransactionPool().pipe(
       map(pool => filterTransactionsByAddress(address, pool.transactions || [])
+        .filter(t => t.version <= 1)
         .map(t => convertPendingTransaction(t, address, outputIds))),
     );
   }
