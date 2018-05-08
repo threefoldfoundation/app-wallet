@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Injectable } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
 import { Observable, throwError, TimeoutError, timer } from 'rxjs';
-import { map, mergeMap, retryWhen, timeout } from 'rxjs/operators';
+import { map, mergeMap, retryWhen, switchMap, timeout } from 'rxjs/operators';
 import { configuration } from '../configuration';
 import {
   BlockFacts,
@@ -26,24 +26,27 @@ export class WalletService {
 
   constructor(private http: HttpClient) {
     const resetDelay = 5 * 60 * 1000;
-    timer(resetDelay, resetDelay).subscribe(a => {
+    timer(resetDelay, resetDelay).subscribe(() => {
       this.unavailableExplorers = [];
     });
   }
 
-  getLatestBlock() {
-    return this._get<ExplorerBlock>('/explorer');
+  getLatestBlock(): Observable<ExplorerBlockGET> {
+    return this._get<BlockFacts>('/explorer').pipe(switchMap(blockFacts => this.getBlock(blockFacts.height)));
   }
 
   getBlock(height: number) {
     return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
   }
 
-  getTransactions(address: string) {
-    return this.getHashInfo(address).pipe(map(info => info.transactions
-      .filter(t => t.rawtransaction.version <= 1)
-      .map(t => convertTransaction(t, address))
-      .sort((t1, t2) => t2.height - t1.height)));
+  getTransactions(address: string, latestBlock: ExplorerBlock) {
+    return this.getHashInfo(address).pipe(map(info => {
+      const inputs = getInputIds(info.transactions, address, latestBlock).all;
+      return info.transactions
+        .filter(t => t.rawtransaction.version <= 1)
+        .map(t => convertTransaction(t, address, latestBlock, inputs))
+        .sort((t1, t2) => t2.height - t1.height);
+    }));
   }
 
   getHashInfo(hash: string) {
@@ -63,7 +66,7 @@ export class WalletService {
   }
 
   createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[],
-                      latestBlock: BlockFacts): Observable<CryptoTransaction> {
+                      latestBlock: ExplorerBlock): Observable<CryptoTransaction> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
       let inputIds = getInputIds(hashInfo.transactions, data.from_address, latestBlock).available;
@@ -100,11 +103,11 @@ export class WalletService {
           break;
         }
       }
-      transactionData[0].outputs.push({ value: required.toString(), unlockhash: data.to_address });
+      transactionData[0].outputs.push({value: required.toString(), unlockhash: data.to_address});
       // Send the rest (if any) to our address
       const difference = inputValue - requiredFunds;
       if (difference > 0) {
-        transactionData[0].outputs.push({ value: difference.toString(), unlockhash: data.from_address });
+        transactionData[0].outputs.push({value: difference.toString(), unlockhash: data.from_address});
       }
       return <CryptoTransaction>{
         minerfees: minerfees.toString(),

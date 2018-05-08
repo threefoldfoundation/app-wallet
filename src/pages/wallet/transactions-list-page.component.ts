@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { interval, Observable, Subscription } from 'rxjs';
-import { first, withLatestFrom } from 'rxjs/operators';
+import { switchMap, withLatestFrom } from 'rxjs/operators';
 import {
   GetAddresssAction,
   GetLatestBlockAction,
@@ -22,8 +22,8 @@ import {
   getAddressStatus,
   getLatestBlock,
   getPendingTransactions,
-  getTotalAmount,
   getTotalLockedAmount,
+  getTotalUnlockedAmount,
   getTransactions,
   getTransactionsStatus,
   IAppState,
@@ -43,7 +43,7 @@ import { TransactionDetailPageComponent } from './transaction-detail-page.compon
 })
 export class TransactionsListPageComponent implements OnInit, OnDestroy {
   @ViewChild(Refresher) refresher: Refresher;
-  totalAmount$: Observable<number>;
+  totalUnlockedAmount$: Observable<number>;
   totalLocked$: Observable<number>;
   address$: Observable<CryptoAddress | null>;
   addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
@@ -91,7 +91,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.transactions$ = this.store.pipe(select(getTransactions));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
-    this.totalAmount$ = this.store.pipe(select(getTotalAmount));
+    this.totalUnlockedAmount$ = this.store.pipe(select(getTotalUnlockedAmount));
     this.totalLocked$ = this.store.pipe(select(getTotalLockedAmount));
     this._subscriptions.push(this.addressStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null) {
@@ -124,10 +124,13 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   }
 
   getTransactions() {
-    this.address$.pipe(first()).subscribe((address: CryptoAddress | null) => {
+    this.store.dispatch(new GetLatestBlockAction());
+    this.actions$.pipe(
+      ofType(WalletActionTypes.GET_LATEST_BLOCK_COMPLETE),
+      switchMap(() => this.address$)
+    ).subscribe((address: CryptoAddress | null) => {
       if (address) {
         this.address = address;
-        this.store.dispatch(new GetLatestBlockAction());
         this.store.dispatch(new GetTransactionsAction(address.address));
       }
     });

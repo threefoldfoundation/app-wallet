@@ -1,0 +1,6 @@
+<p *ngIf="locktime < LOCKTIME_BLOCK_LIMIT; else lockTimeDate">
+  {{ 'locked_until_block_x' | translate : { block: locktime } }}
+</p>
+<ng-template #lockTimeDate>
+  <p>{{ 'unlocks_on_x' | translate : { date: (locktime * 1000) | date : dateformat } }}</p>
+</ng-template>

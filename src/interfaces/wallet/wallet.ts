@@ -48,6 +48,9 @@ export interface BlockFacts {
   difficulty: string;
   estimatedactivebs: string;
   height: number;
+  /**
+   * Timestamp of the block which matured due to the creation of this block. Usually current block height - 720
+   */
   maturitytimestamp: number;
   minerfeecount: number;
   minerpayoutcount: number;
@@ -137,6 +140,7 @@ export interface OutputMapping {
 
 export interface ParsedTransactionInfo {
   amount: number;
+  lockedAmount: number;
   minerfee: number;
   receiving: boolean;
 }
@@ -174,4 +178,4 @@ export const RIVINE_ALGORITHM = 'ed25519';
 /**
  * Starting from this number, the 'locktime' indicates a unix timestamp. Else it is a block number
  */
-export const LOCKTIME_BLOCK_LIMIT = 500000000;
+export const LOCKTIME_BLOCK_LIMIT = 500_000_000;

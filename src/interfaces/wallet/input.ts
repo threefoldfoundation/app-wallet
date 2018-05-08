@@ -1,7 +1,6 @@
 export enum InputType {
   SINGLE_SIGNATURE = 1,
   ATOMIC_SWAP = 2,
-  TIMELOCKED = 3,
 }
 
 export interface SingleSignatureFulfillment {
@@ -21,12 +20,7 @@ export interface AtomicSwapFulfillment {
   type: InputType.ATOMIC_SWAP;
 }
 
-export interface TimeLockedFulfillment {
-  data: SingleSignatureFulfillment; // can be other types in the future
-  type: InputType.TIMELOCKED;
-}
-
-export type Fulfillment = SingleSignatureFulfillment | AtomicSwapFulfillment | TimeLockedFulfillment;
+export type Fulfillment = SingleSignatureFulfillment | AtomicSwapFulfillment;
 
 export interface CoinInput1 {
   fulfillment: Fulfillment;

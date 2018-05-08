@@ -1,10 +1,10 @@
 import {
-  BlockFacts,
   CoinInput,
   CoinInput0,
   CoinOutput,
   CoinOutput0,
   CoinOutput1,
+  ExplorerBlock,
   ExplorerTransaction,
   ExplorerTransaction0,
   LOCKTIME_BLOCK_LIMIT,
@@ -30,12 +30,6 @@ export function getv0TransactionAmount(address: string, inputs: CoinOutput0[], o
   return outputTotal - inputs.reduce(outputReducer, 0);
 }
 
-export function getv1TransactionAmount(address: string, inputs: CoinOutput1[], outputs: CoinOutput1[]): number {
-  const isReceiving = !inputs.some(input => filterReceivingOutputCondition(address, input.condition));
-  const outputTotal = outputs.filter(output => filterReceivingOutputCondition(address, output.condition)).reduce(outputReducer, 0);
-  return isReceiving ? outputTotal : outputTotal - inputs.reduce(outputReducer, 0);
-}
-
 export function getMinerFee(minerfees: string[] | null): number {
   return (minerfees || []).reduce((total: number, fee: string) => total + parseInt(fee), 0);
 }
@@ -44,19 +38,13 @@ export function isUnrecognizedHashError(err: string | null | undefined) {
   return err && err.indexOf('unrecognized hash') !== -1;
 }
 
-export function convertTransaction(transaction: ExplorerTransaction, address: string): ParsedTransaction {
-  transaction.coininputoutputs = transaction.coininputoutputs || [];
-  const outputs = transaction.rawtransaction.data.coinoutputs || [];
-  let amount = 0;
-  if (isv0RawTransaction(transaction.rawtransaction)) {
-    amount = getv0TransactionAmount(address, <CoinOutput0[]>transaction.coininputoutputs, <CoinOutput0[]>outputs);
-  } else {
-    amount = getv1TransactionAmount(address, <CoinOutput1[]>transaction.coininputoutputs, <CoinOutput1[]>outputs);
-  }
+export function convertTransaction(transaction: ExplorerTransaction, address: string, latestBlock: ExplorerBlock, coinInputs: OutputMapping[]): ParsedTransaction {
+  const { locked, unlocked } = getTransactionAmount(transaction, latestBlock, address, coinInputs);
   return {
     ...transaction,
-    receiving: amount > 0,
-    amount,
+    receiving: (unlocked + locked) > 0,
+    amount: unlocked + locked,
+    lockedAmount: locked,
     minerfee: getMinerFee(transaction.rawtransaction.data.minerfees),
   };
 }
@@ -73,13 +61,11 @@ export function convertPendingTransaction(transaction: Transaction, address: str
         amount = -transaction.data.coinoutputs.filter(o => o.unlockhash !== address).reduce(outputReducer, 0);
       }
     }
-  } else {
-    if (transaction.data.coinoutputs) {
-      if (receiving) {
-        amount = transaction.data.coinoutputs.filter(o => filterReceivingOutputCondition(address, o.condition)).reduce(outputReducer, 0);
-      } else {
-        amount = -transaction.data.coinoutputs.filter(o => filterSendOutputCondition(address, o.condition)).reduce(outputReducer, 0);
-      }
+  } else if (transaction.data.coinoutputs) {
+    if (receiving) {
+      amount = transaction.data.coinoutputs.filter(o => filterReceivingOutputCondition(address, o.condition)).reduce(outputReducer, 0);
+    } else {
+      amount = -transaction.data.coinoutputs.filter(o => filterSendOutputCondition(address, o.condition)).reduce(outputReducer, 0);
     }
   }
   return {
@@ -90,7 +76,7 @@ export function convertPendingTransaction(transaction: Transaction, address: str
   };
 }
 
-export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: BlockFacts) {
+export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: ExplorerBlock) {
   const allCoinOutputs: OutputMapping[] = [];
   let spentOutputs: OutputMapping[] = [];
   for (const t of transactions) {
@@ -162,21 +148,54 @@ export function filterTransactionsByAddress(address: string, transactions: Trans
 }
 
 
-export function getLocked(transaction: Transaction) {
-  const locked: { value: number, date: Date, unlocktime?: number }[] = [];
-  if (isv0RawTransaction(transaction) || !transaction.data.coinoutputs) {
-    return [];
-  }
-  for (const output of transaction.data.coinoutputs) {
-    if (output.condition.type === OutputType.TIMELOCKED && output.condition.data) {
-      locked.push({
-        value: parseInt(output.value),
-        unlocktime: output.condition.data.locktime,
-        date: new Date(output.condition.data.locktime * 1000)
-      });
+export function getTransactionAmount(transaction: ExplorerTransaction, latestBlock: ExplorerBlock, address: string,
+                                     allInputIds: OutputMapping[]) {
+  let locked = 0;
+  let unlocked = 0;
+  const coinOutputs = <CoinOutput1[]> transaction.rawtransaction.data.coinoutputs || [];
+  for (const input of (transaction.rawtransaction.data.coininputs || [])) {
+    const spentInput = allInputIds.find(i => i.id === input.parentid);
+    if (spentInput) {
+      unlocked -= parseInt(spentInput.amount);
     }
   }
-  return locked;
+  if (isv0RawTransaction(transaction.rawtransaction)) {
+    const outputs = <CoinOutput0[]>transaction.rawtransaction.data.coinoutputs || [];
+    const amount = getv0TransactionAmount(address, <CoinOutput0[]>transaction.coininputoutputs || [], outputs);
+    return {
+      locked,
+      unlocked: amount
+    };
+  }
+  for (const output of coinOutputs) {
+    const value = parseInt(output.value);
+    switch (output.condition.type) {
+      case OutputType.UNLOCKHASH:
+        if (output.condition.data.unlockhash === address) {
+          unlocked += value;
+        }
+        break;
+      case OutputType.TIMELOCKED:
+        if (output.condition.data.condition.data.unlockhash !== address) {
+          continue;
+        }
+        if (output.condition.data.locktime < LOCKTIME_BLOCK_LIMIT) {
+          if (latestBlock.height >= output.condition.data.locktime) {
+            unlocked += value;
+          } else {
+            locked += value;
+          }
+        } else {
+          if (output.condition.data.locktime <= latestBlock.rawblock.timestamp) {
+            unlocked += value;
+          } else {
+            locked += value;
+          }
+        }
+        break;
+    }
+  }
+  return { locked, unlocked };
 }
 
 export function filterOutputCondition(address: string, condition: OutputCondition): boolean {
@@ -192,7 +211,7 @@ export function filterOutputCondition(address: string, condition: OutputConditio
   }
 }
 
-export function filterReceivingOutputCondition(address: string, condition: OutputCondition, latestBlock?: BlockFacts): boolean {
+export function filterReceivingOutputCondition(address: string, condition: OutputCondition, latestBlock?: ExplorerBlock): boolean {
   switch (condition.type) {
     case OutputType.UNLOCKHASH:
       return condition.data.unlockhash === address;
@@ -207,7 +226,7 @@ export function filterReceivingOutputCondition(address: string, condition: Outpu
           // Lock time is a block height here, compare with that.
           return latestBlock.height >= condition.data.locktime;
         }
-        return latestBlock.maturitytimestamp >= condition.data.locktime;
+        return latestBlock.rawblock.timestamp >= condition.data.locktime;
       }
       return true;
     default:

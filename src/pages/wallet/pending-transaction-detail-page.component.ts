@@ -1,10 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { NavParams, ToastController, ViewController } from 'ionic-angular';
-import { CopyEventData, LOCKTIME_BLOCK_LIMIT, PendingTransaction } from '../../interfaces';
+import { Observable } from 'rxjs';
+import { CopyEventData, ExplorerBlock, PendingTransaction } from '../../interfaces';
 import { AmountPipe } from '../../pipes';
-import { getLocked } from '../../util';
+import { getLatestBlock, IAppState } from '../../state';
+import { filterNull } from '../../util';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -13,36 +16,24 @@ import { getLocked } from '../../util';
 })
 export class PendingTransactionDetailPageComponent implements OnInit {
   transaction: PendingTransaction;
+  latestBlock$: Observable<ExplorerBlock>;
 
   constructor(private params: NavParams,
               private translate: TranslateService,
               private amountPipe: AmountPipe,
               private viewCtrl: ViewController,
               private toastCtrl: ToastController,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private store: Store<IAppState>) {
   }
 
   ngOnInit() {
     this.transaction = this.params.get('transaction');
+    this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());
   }
 
   getAmount(amount: number) {
     return this.amountPipe.transform(Math.abs(amount));
-  }
-
-  getLocked() {
-    return getLocked(this.transaction).map(locked => {
-      let unlocktime;
-      let key;
-      if (locked.value < LOCKTIME_BLOCK_LIMIT) {
-        key = 'x_currency_locked_until_block_y';
-        unlocktime = locked.unlocktime;
-      } else {
-        key = 'x_currency_locked_until_y';
-        unlocktime = this.datePipe.transform(locked.date, 'medium');
-      }
-      return this.translate.instant(key, { amount: this.amountPipe.transform(locked.value), unlocktime });
-    });
   }
 
   showCopiedToast(result: CopyEventData) {

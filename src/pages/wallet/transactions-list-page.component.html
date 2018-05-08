@@ -1,6 +1,6 @@
 <ion-content>
   <ion-row justify-content-center>
-    <h2 *ngIf="!showInitialLoading">{{ totalAmount$ | async | amount : digits }}</h2>
+    <h2 *ngIf="!showInitialLoading">{{ totalUnlockedAmount$ | async | amount : digits }}</h2>
   </ion-row>
   <ion-row *ngIf="totalLocked$ | async as locked" justify-content-center>
     <h3>{{ 'locked_tokens_x' | translate: { amount: locked | amount : digits } }}</h3>
