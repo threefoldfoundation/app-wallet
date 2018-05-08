@@ -124,10 +124,10 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   }
 
   getTransactions() {
+    this.store.dispatch(new GetLatestBlockAction());
     this.address$.pipe(first()).subscribe((address: CryptoAddress | null) => {
       if (address) {
         this.address = address;
-        this.store.dispatch(new GetLatestBlockAction());
         this.store.dispatch(new GetTransactionsAction(address.address));
       }
     });

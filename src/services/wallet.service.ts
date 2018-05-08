@@ -1,11 +1,10 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
-import { Observable, throwError, TimeoutError, timer } from 'rxjs';
-import { map, mergeMap, retryWhen, switchMap, timeout } from 'rxjs/operators';
+import { Observable, of, throwError, TimeoutError, timer } from 'rxjs';
+import { map, mergeMap, retryWhen, timeout } from 'rxjs/operators';
 import { configuration } from '../configuration';
 import {
-  BlockFacts,
   COIN_TO_HASTINGS,
   CoinInput,
   CreateSignatureData,
@@ -32,22 +31,28 @@ export class WalletService {
   }
 
   getLatestBlock(): Observable<ExplorerBlockGET> {
-    return this._get<BlockFacts>('/explorer').pipe(switchMap(blockFacts => this.getBlock(blockFacts.height)));
+    return of<ExplorerBlockGET>(require('./block-24610.json'));
+    // return this._get<BlockFacts>('/explorer').pipe(switchMap(blockFacts => this.getBlock(blockFacts.height)));
   }
 
   getBlock(height: number) {
-    return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
+    return of<ExplorerBlockGET>(require('./block-24610.json'));
+    // return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
   }
 
-  getTransactions(address: string) {
-    return this.getHashInfo(address).pipe(map(info => info.transactions
-      .filter(t => t.rawtransaction.version <= 1)
-      .map(t => convertTransaction(t, address))
-      .sort((t1, t2) => t2.height - t1.height)));
+  getTransactions(address: string, latestBlock: ExplorerBlock) {
+    return this.getHashInfo(address).pipe(map(info => {
+      const inputs = getInputIds(info.transactions, address, latestBlock).all;
+      return info.transactions
+        .filter(t => t.rawtransaction.version <= 1)
+        .map(t => convertTransaction(t, address, latestBlock, inputs))
+        .sort((t1, t2) => t2.height - t1.height);
+    }));
   }
 
   getHashInfo(hash: string) {
-    return this._get<ExplorerHashGET>(`/explorer/hashes/${hash}`);
+    return of<ExplorerHashGET>(require('./012.json'));
+    // return this._get<ExplorerHashGET>(`/explorer/hashes/${hash}`);
   }
 
   getTransactionPool() {

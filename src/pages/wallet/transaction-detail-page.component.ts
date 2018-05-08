@@ -6,10 +6,10 @@ import { NavParams, ToastController, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GetBlockAction, GetLatestBlockAction } from '../../actions';
-import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, LOCKTIME_BLOCK_LIMIT, ParsedTransaction, Transaction } from '../../interfaces';
+import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, ParsedTransaction } from '../../interfaces';
 import { AmountPipe } from '../../pipes';
 import { getBlock, getLatestBlock, getLatestBlockStatus, IAppState } from '../../state';
-import { filterNull, getLocked, isPendingTransaction } from '../../util';
+import { filterNull, isPendingTransaction } from '../../util';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,18 +50,6 @@ export class TransactionDetailPageComponent implements OnInit {
     this.timestamp$ = this.transactionBlock$.pipe(
       map(block => new Date(block.block.rawblock.timestamp * 1000)),
     );
-    this.lockedTokens$ = this.latestBlock$.pipe(map(block => getLocked(this.transaction.rawtransaction, block).map(locked => {
-      let unlocktime;
-      let key;
-      if (locked.unlocktime < LOCKTIME_BLOCK_LIMIT) {
-        key = 'x_currency_locked_until_block_y';
-        unlocktime = locked.unlocktime;
-      } else {
-        key = 'x_currency_locked_until_y';
-        unlocktime = this.datePipe.transform(locked.date, 'medium');
-      }
-      return this.translate.instant(key, { amount: this.amountPipe.transform(locked.value), unlocktime });
-    })));
   }
 
   getAmount(amount: number) {

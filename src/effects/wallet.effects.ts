@@ -19,7 +19,8 @@ import { filterNull, handleError } from '../util';
 export class WalletEffects {
   @Effect() getTransactions$ = this.actions$.pipe(
     ofType<actions.GetTransactionsAction>(actions.WalletActionTypes.GET_TRANSACTIONS),
-    switchMap(action => this.walletService.getTransactions(action.address).pipe(
+    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull())),
+    switchMap(([action, latestBlock]) => this.walletService.getTransactions(action.address, latestBlock).pipe(
       map(transactions => new actions.GetTransactionsCompleteAction(transactions)),
       catchError(err => handleError(actions.GetTransactionsFailedAction, err))),
     ));

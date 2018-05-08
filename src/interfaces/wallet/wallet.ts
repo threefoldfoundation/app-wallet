@@ -140,6 +140,7 @@ export interface OutputMapping {
 
 export interface ParsedTransactionInfo {
   amount: number;
+  lockedAmount: number;
   minerfee: number;
   receiving: boolean;
 }

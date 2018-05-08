@@ -9,8 +9,9 @@ import {
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
-import { getLocked } from '../util';
+import { getInputIds, getTransactionAmount } from '../util';
 import { IAppState } from './app.state';
+import { getAddress } from './rogerthat.state';
 
 export interface IWalletState {
   transactions: ParsedTransaction[];
@@ -50,14 +51,16 @@ export const getPendingTransactions = createSelector(getWalletState, s => s.pend
 export const getLatestBlock = createSelector(getWalletState, s => s.latestBlock);
 export const getLatestBlockStatus = createSelector(getWalletState, s => s.latestBlockStatus);
 
-export const getTotalAmount = createSelector(getTransactions, getLatestBlock, (transactions, latestBlock) => {
+export const getTotalAmount = createSelector(getTransactions, getLatestBlock, getAddress, (transactions, latestBlock, address) => {
   let locked = 0;
   let unlocked = 0;
-  if (latestBlock) {
+
+  if (latestBlock && address) {
+    const allCoinInputs = getInputIds(transactions, address.address, latestBlock).all;
     for (const transaction of transactions) {
-      const transactionLocked = getLocked(transaction.rawtransaction, latestBlock).reduce((rawTotal, locked) => rawTotal + locked.value, 0);
-      locked += transactionLocked;
-      unlocked += transaction.amount - transactionLocked;
+      const result = getTransactionAmount(transaction, latestBlock, address.address, allCoinInputs);
+      locked += result.locked;
+      unlocked += result.unlocked;
     }
   }
   return { locked, unlocked };
