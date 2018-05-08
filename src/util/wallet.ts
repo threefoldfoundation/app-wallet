@@ -39,9 +39,7 @@ export function isUnrecognizedHashError(err: string | null | undefined) {
 }
 
 export function convertTransaction(transaction: ExplorerTransaction, address: string, latestBlock: ExplorerBlock, coinInputs: OutputMapping[]): ParsedTransaction {
-  console.log('convertTransaction', transaction);
   const { locked, unlocked } = getTransactionAmount(transaction, latestBlock, address, coinInputs);
-  console.log('convertTransaction2');
   return {
     ...transaction,
     receiving: (unlocked + locked) > 0,
