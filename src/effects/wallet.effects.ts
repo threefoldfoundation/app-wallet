@@ -54,7 +54,7 @@ export class WalletEffects {
   @Effect() getLatestBlock$ = this.actions$.pipe(
     ofType<GetLatestBlockAction>(actions.WalletActionTypes.GET_LATEST_BLOCK),
     switchMap(action => this.walletService.getLatestBlock().pipe(
-      map(result => new actions.GetLatestBlockCompleteAction(result)),
+      map(result => new actions.GetLatestBlockCompleteAction(result.block)),
       catchError(err => handleError(actions.GetLatestBlockFailedAction, err))),
     ));
 

@@ -4,3 +4,4 @@ export * from './coin-output.component';
 export * from './fulfillment.component';
 export * from './output-condition.component';
 export * from './send.component';
+export * from './unlocks-on.component';

@@ -48,6 +48,9 @@ export interface BlockFacts {
   difficulty: string;
   estimatedactivebs: string;
   height: number;
+  /**
+   * Timestamp of the block which matured due to the creation of this block. Usually current block height - 720
+   */
   maturitytimestamp: number;
   minerfeecount: number;
   minerpayoutcount: number;

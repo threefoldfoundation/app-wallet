@@ -46,20 +46,30 @@ export const initialWalletState: IWalletState = {
 
 export const getTransactions = createSelector(getWalletState, s => s.transactions);
 export const getPendingTransactions = createSelector(getWalletState, s => s.pendingTransactions);
-export const getTotalAmount = createSelector(getTransactions, transactions => {
-  return transactions.reduce((total: number, transaction: ParsedTransaction) => total + transaction.amount, 0);
+
+export const getLatestBlock = createSelector(getWalletState, s => s.latestBlock);
+export const getLatestBlockStatus = createSelector(getWalletState, s => s.latestBlockStatus);
+
+export const getTotalAmount = createSelector(getTransactions, getLatestBlock, (transactions, latestBlock) => {
+  let locked = 0;
+  let unlocked = 0;
+  if (latestBlock) {
+    for (const transaction of transactions) {
+      const transactionLocked = getLocked(transaction.rawtransaction, latestBlock).reduce((rawTotal, locked) => rawTotal + locked.value, 0);
+      locked += transactionLocked;
+      unlocked += transaction.amount - transactionLocked;
+    }
+  }
+  return { locked, unlocked };
 });
-export const getTotalLockedAmount = createSelector(getTransactions, transactions => transactions.reduce((total, transaction) => {
-  return total + getLocked(transaction.rawtransaction).reduce((rawTotal, locked) => rawTotal + locked.value, 0);
-}, 0));
-export const getTotalUnlockedAmount = createSelector(getTotalAmount, getTotalLockedAmount, (total, locked) => total - locked);
+
+export const getTotalLockedAmount = createSelector(getTotalAmount, total => total.locked);
+export const getTotalUnlockedAmount = createSelector(getTotalAmount, total => total.unlocked);
 export const getTransactionsStatus = createSelector(getWalletState, s => s.transactionsStatus);
 export const getPendingTransaction = createSelector(getWalletState, s => s.pendingTransaction);
 export const getCreatedTransaction = createSelector(getWalletState, s => s.createdTransaction);
 export const getPendingTransactionStatus = createSelector(getWalletState, s => s.pendingTransactionStatus);
 export const createTransactionStatus = createSelector(getWalletState, s => s.createTransactionStatus);
-export const getLatestBlock = createSelector(getWalletState, s => s.latestBlock);
-export const getLatestBlockStatus = createSelector(getWalletState, s => s.latestBlockStatus);
 export const getBlock = createSelector(getWalletState, s => s.block);
 export const getBlockStatus = createSelector(getWalletState, s => s.blockStatus);
 

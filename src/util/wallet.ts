@@ -1,10 +1,10 @@
 import {
-  BlockFacts,
   CoinInput,
   CoinInput0,
   CoinOutput,
   CoinOutput0,
   CoinOutput1,
+  ExplorerBlock,
   ExplorerTransaction,
   ExplorerTransaction0,
   LOCKTIME_BLOCK_LIMIT,
@@ -90,7 +90,7 @@ export function convertPendingTransaction(transaction: Transaction, address: str
   };
 }
 
-export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: BlockFacts) {
+export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: ExplorerBlock) {
   const allCoinOutputs: OutputMapping[] = [];
   let spentOutputs: OutputMapping[] = [];
   for (const t of transactions) {
@@ -162,13 +162,19 @@ export function filterTransactionsByAddress(address: string, transactions: Trans
 }
 
 
-export function getLocked(transaction: Transaction) {
-  const locked: { value: number, date: Date, unlocktime?: number }[] = [];
+export function getLocked(transaction: Transaction, latestBlock: ExplorerBlock) {
+  const locked: { value: number, date: Date, unlocktime: number }[] = [];
   if (isv0RawTransaction(transaction) || !transaction.data.coinoutputs) {
     return [];
   }
   for (const output of transaction.data.coinoutputs) {
     if (output.condition.type === OutputType.TIMELOCKED && output.condition.data) {
+      if (output.condition.data.locktime < LOCKTIME_BLOCK_LIMIT && latestBlock.height > output.condition.data.locktime) {
+        continue;
+      }
+      if (output.condition.data.locktime < latestBlock.rawblock.timestamp) {
+        continue;
+      }
       locked.push({
         value: parseInt(output.value),
         unlocktime: output.condition.data.locktime,
@@ -192,7 +198,7 @@ export function filterOutputCondition(address: string, condition: OutputConditio
   }
 }
 
-export function filterReceivingOutputCondition(address: string, condition: OutputCondition, latestBlock?: BlockFacts): boolean {
+export function filterReceivingOutputCondition(address: string, condition: OutputCondition, latestBlock?: ExplorerBlock): boolean {
   switch (condition.type) {
     case OutputType.UNLOCKHASH:
       return condition.data.unlockhash === address;
@@ -207,7 +213,7 @@ export function filterReceivingOutputCondition(address: string, condition: Outpu
           // Lock time is a block height here, compare with that.
           return latestBlock.height >= condition.data.locktime;
         }
-        return latestBlock.maturitytimestamp >= condition.data.locktime;
+        return latestBlock.rawblock.timestamp >= condition.data.locktime;
       }
       return true;
     default:

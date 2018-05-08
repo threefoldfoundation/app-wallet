@@ -19,7 +19,8 @@ import {
   ConfirmSendComponent,
   FulfillmentComponent,
   OutputConditionComponent,
-  SendComponent
+  SendComponent,
+  UnlocksOnComponent,
 } from '../components';
 import { RogerthatEffects, WalletEffects } from '../effects';
 import {
@@ -63,6 +64,7 @@ export const COMPONENTS = [
   FulfillmentComponent,
   OutputConditionComponent,
   SendComponent,
+  UnlocksOnComponent,
 ];
 
 export const SERVICES = [I18nService, RogerthatService, ErrorService, WalletService];

@@ -19,6 +19,7 @@ import { filterNull, getLocked, isPendingTransaction } from '../../util';
 export class TransactionDetailPageComponent implements OnInit {
   transaction: ParsedTransaction;
   latestBlock$: Observable<ExplorerBlock>;
+  lockedTokens$: Observable<string[]>;
   transactionBlock$: Observable<ExplorerBlockGET>;
   getLatestBlockStatus$: Observable<ApiRequestStatus>;
   timestamp$: Observable<Date>;
@@ -49,6 +50,18 @@ export class TransactionDetailPageComponent implements OnInit {
     this.timestamp$ = this.transactionBlock$.pipe(
       map(block => new Date(block.block.rawblock.timestamp * 1000)),
     );
+    this.lockedTokens$ = this.latestBlock$.pipe(map(block => getLocked(this.transaction.rawtransaction, block).map(locked => {
+      let unlocktime;
+      let key;
+      if (locked.unlocktime < LOCKTIME_BLOCK_LIMIT) {
+        key = 'x_currency_locked_until_block_y';
+        unlocktime = locked.unlocktime;
+      } else {
+        key = 'x_currency_locked_until_y';
+        unlocktime = this.datePipe.transform(locked.date, 'medium');
+      }
+      return this.translate.instant(key, { amount: this.amountPipe.transform(locked.value), unlocktime });
+    })));
   }
 
   getAmount(amount: number) {
@@ -65,21 +78,6 @@ export class TransactionDetailPageComponent implements OnInit {
         closeButtonText: this.translate.instant('ok'),
       }).present();
     }
-  }
-
-  getLocked(transaction: Transaction) {
-    return getLocked(transaction).map(locked => {
-      let unlocktime;
-      let key;
-      if (locked.value < LOCKTIME_BLOCK_LIMIT) {
-        key = 'x_currency_locked_until_block_y';
-        unlocktime = locked.unlocktime;
-      } else {
-        key = 'x_currency_locked_until_y';
-        unlocktime = this.datePipe.transform(locked.date, 'medium');
-      }
-      return this.translate.instant(key, { amount: this.amountPipe.transform(locked.value), unlocktime });
-    });
   }
 
   dismiss() {
