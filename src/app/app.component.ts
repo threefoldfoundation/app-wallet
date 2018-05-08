@@ -105,6 +105,6 @@ export class AppComponent implements OnInit {
           }
       }
     }
-    return {page: WalletPageComponent, params: null};
+    return { page: WalletPageComponent, params: null };
   }
 }

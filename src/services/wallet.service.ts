@@ -1,10 +1,11 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
-import { Observable, of, throwError, TimeoutError, timer } from 'rxjs';
-import { map, mergeMap, retryWhen, timeout } from 'rxjs/operators';
+import { Observable, throwError, TimeoutError, timer } from 'rxjs';
+import { map, mergeMap, retryWhen, switchMap, timeout } from 'rxjs/operators';
 import { configuration } from '../configuration';
 import {
+  BlockFacts,
   COIN_TO_HASTINGS,
   CoinInput,
   CreateSignatureData,
@@ -31,13 +32,11 @@ export class WalletService {
   }
 
   getLatestBlock(): Observable<ExplorerBlockGET> {
-    return of<ExplorerBlockGET>(require('./block-24610.json'));
-    // return this._get<BlockFacts>('/explorer').pipe(switchMap(blockFacts => this.getBlock(blockFacts.height)));
+    return this._get<BlockFacts>('/explorer').pipe(switchMap(blockFacts => this.getBlock(blockFacts.height)));
   }
 
   getBlock(height: number) {
-    return of<ExplorerBlockGET>(require('./block-24610.json'));
-    // return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
+    return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
   }
 
   getTransactions(address: string, latestBlock: ExplorerBlock) {
@@ -51,8 +50,7 @@ export class WalletService {
   }
 
   getHashInfo(hash: string) {
-    return of<ExplorerHashGET>(require('./012.json'));
-    // return this._get<ExplorerHashGET>(`/explorer/hashes/${hash}`);
+    return this._get<ExplorerHashGET>(`/explorer/hashes/${hash}`);
   }
 
   getTransactionPool() {

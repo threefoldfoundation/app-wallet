@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { interval, Observable, Subscription } from 'rxjs';
-import { first, withLatestFrom } from 'rxjs/operators';
+import { switchMap, withLatestFrom } from 'rxjs/operators';
 import {
   GetAddresssAction,
   GetLatestBlockAction,
@@ -125,7 +125,10 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
 
   getTransactions() {
     this.store.dispatch(new GetLatestBlockAction());
-    this.address$.pipe(first()).subscribe((address: CryptoAddress | null) => {
+    this.actions$.pipe(
+      ofType(WalletActionTypes.GET_LATEST_BLOCK_COMPLETE),
+      switchMap(() => this.address$)
+    ).subscribe((address: CryptoAddress | null) => {
       if (address) {
         this.address = address;
         this.store.dispatch(new GetTransactionsAction(address.address));
