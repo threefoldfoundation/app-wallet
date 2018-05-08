@@ -22,8 +22,8 @@ import {
   getAddressStatus,
   getLatestBlock,
   getPendingTransactions,
-  getTotalAmount,
   getTotalLockedAmount,
+  getTotalUnlockedAmount,
   getTransactions,
   getTransactionsStatus,
   IAppState,
@@ -43,7 +43,7 @@ import { TransactionDetailPageComponent } from './transaction-detail-page.compon
 })
 export class TransactionsListPageComponent implements OnInit, OnDestroy {
   @ViewChild(Refresher) refresher: Refresher;
-  totalAmount$: Observable<number>;
+  totalUnlockedAmount$: Observable<number>;
   totalLocked$: Observable<number>;
   address$: Observable<CryptoAddress | null>;
   addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
@@ -91,7 +91,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.transactions$ = this.store.pipe(select(getTransactions));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
-    this.totalAmount$ = this.store.pipe(select(getTotalAmount));
+    this.totalUnlockedAmount$ = this.store.pipe(select(getTotalUnlockedAmount));
     this.totalLocked$ = this.store.pipe(select(getTotalLockedAmount));
     this._subscriptions.push(this.addressStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null) {

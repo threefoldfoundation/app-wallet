@@ -52,6 +52,7 @@ export const getTotalAmount = createSelector(getTransactions, transactions => {
 export const getTotalLockedAmount = createSelector(getTransactions, transactions => transactions.reduce((total, transaction) => {
   return total + getLocked(transaction.rawtransaction).reduce((rawTotal, locked) => rawTotal + locked.value, 0);
 }, 0));
+export const getTotalUnlockedAmount = createSelector(getTotalAmount, getTotalLockedAmount, (total, locked) => total - locked);
 export const getTransactionsStatus = createSelector(getWalletState, s => s.transactionsStatus);
 export const getPendingTransaction = createSelector(getWalletState, s => s.pendingTransaction);
 export const getCreatedTransaction = createSelector(getWalletState, s => s.createdTransaction);
