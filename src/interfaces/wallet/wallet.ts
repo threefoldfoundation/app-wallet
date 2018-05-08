@@ -178,4 +178,4 @@ export const RIVINE_ALGORITHM = 'ed25519';
 /**
  * Starting from this number, the 'locktime' indicates a unix timestamp. Else it is a block number
  */
-export const LOCKTIME_BLOCK_LIMIT = 500000000;
+export const LOCKTIME_BLOCK_LIMIT = 500_000_000;

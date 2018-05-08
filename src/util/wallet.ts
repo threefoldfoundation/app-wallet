@@ -169,8 +169,7 @@ export function getTransactionAmount(transaction: ExplorerTransaction, latestBlo
       unlocked: amount
     };
   }
-  for (let i = 0; i < coinOutputs.length; i++) {
-    const output = coinOutputs[i];
+  for (const output of coinOutputs) {
     const value = parseInt(output.value);
     switch (output.condition.type) {
       case OutputType.UNLOCKHASH:
@@ -182,10 +181,18 @@ export function getTransactionAmount(transaction: ExplorerTransaction, latestBlo
         if (output.condition.data.condition.data.unlockhash !== address) {
           continue;
         }
-        if (output.condition.data.locktime < LOCKTIME_BLOCK_LIMIT && latestBlock.height >= output.condition.data.locktime || output.condition.data.locktime <= latestBlock.rawblock.timestamp) {
-          unlocked += value;
+        if (output.condition.data.locktime < LOCKTIME_BLOCK_LIMIT) {
+          if (latestBlock.height >= output.condition.data.locktime) {
+            unlocked += value;
+          } else {
+            locked += value;
+          }
         } else {
-          locked += value;
+          if (output.condition.data.locktime <= latestBlock.rawblock.timestamp) {
+            unlocked += value;
+          } else {
+            locked += value;
+          }
         }
         break;
     }
