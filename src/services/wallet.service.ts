@@ -18,7 +18,7 @@ import {
   TransactionPool,
   TranslatedError,
 } from '../interfaces';
-import { convertPendingTransaction, convertTransaction, filterTransactionsByAddress, getInputIds, isUnrecognizedHashError, } from '../util';
+import { convertPendingTransaction, convertTransaction, filterTransactionsByAddress, getInputIds, isUnrecognizedHashError } from '../util';
 
 @Injectable()
 export class WalletService {
