@@ -6,6 +6,7 @@ import {
   CreateTransactionResult,
   ExplorerBlock,
   ExplorerBlockGET,
+  ExplorerHashGET,
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
@@ -14,6 +15,8 @@ import { IAppState } from './app.state';
 import { getAddress } from './rogerthat.state';
 
 export interface IWalletState {
+  hashInfo: ExplorerHashGET | null;
+  hashInfoStatus: ApiRequestStatus;
   transactions: ParsedTransaction[];
   pendingTransactions: PendingTransaction[];
   pendingTransactionsStatus: ApiRequestStatus;
@@ -31,6 +34,8 @@ export interface IWalletState {
 export const getWalletState = (state: IAppState) => state.wallet;
 
 export const initialWalletState: IWalletState = {
+  hashInfo: null,
+  hashInfoStatus: apiRequestInitial,
   transactions: [],
   pendingTransactions: [],
   pendingTransactionsStatus: apiRequestInitial,
@@ -45,6 +50,9 @@ export const initialWalletState: IWalletState = {
   blockStatus: apiRequestInitial,
 };
 
+export const getHashInfo = createSelector(getWalletState, s => s.hashInfo);
+export const getHashInfoStatus = createSelector(getWalletState, s => s.hashInfoStatus);
+
 export const getTransactions = createSelector(getWalletState, s => s.transactions);
 export const getPendingTransactions = createSelector(getWalletState, s => s.pendingTransactions);
 
@@ -58,7 +66,7 @@ export const getTotalAmount = createSelector(getTransactions, getLatestBlock, ge
   if (latestBlock && address) {
     const allCoinInputs = getInputIds(transactions, address.address, latestBlock).all;
     for (const transaction of transactions) {
-      const result = getTransactionAmount(transaction, latestBlock, address.address, allCoinInputs);
+      const result = getTransactionAmount(transaction.rawtransaction, latestBlock, address.address, allCoinInputs);
       locked += result.locked;
       unlocked += result.unlocked;
     }

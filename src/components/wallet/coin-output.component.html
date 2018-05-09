@@ -1,9 +1,2 @@
 <h2>{{ coinOutput.value | amount }}</h2>
-<ng-container *ngIf="isv0Output(coinOutput); else v1List">
-  <p ngxClipboard [cbContent]="coinOutput.unlockhash" (cbOnSuccess)="copied.emit($event)">
-    {{ coinOutput.unlockhash }}
-  </p>
-</ng-container>
-<ng-template #v1List>
-  <output-condition [condition]="coinOutput.condition"></output-condition>
-</ng-template>
+<output-condition [condition]="coinOutput.condition"></output-condition>

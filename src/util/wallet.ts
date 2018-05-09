@@ -1,12 +1,14 @@
 import {
-  CoinInput,
   CoinInput0,
+  CoinInput1,
   CoinOutput,
   CoinOutput0,
   CoinOutput1,
   ExplorerBlock,
   ExplorerTransaction,
   ExplorerTransaction0,
+  ExplorerTransaction1,
+  InputType,
   LOCKTIME_BLOCK_LIMIT,
   OutputCondition,
   OutputMapping,
@@ -15,6 +17,7 @@ import {
   PendingTransaction,
   Transaction,
   Transaction0,
+  Transaction1,
 } from '../interfaces';
 
 export function outputReducer(total: number, output: CoinOutput) {
@@ -35,11 +38,12 @@ export function getMinerFee(minerfees: string[] | null): number {
 }
 
 export function isUnrecognizedHashError(err: string | null | undefined) {
-  return err && err.indexOf('unrecognized hash') !== -1;
+  return err && err.indexOf('unrecognized address') !== -1;
 }
 
-export function convertTransaction(transaction: ExplorerTransaction, address: string, latestBlock: ExplorerBlock, coinInputs: OutputMapping[]): ParsedTransaction {
-  const { locked, unlocked } = getTransactionAmount(transaction, latestBlock, address, coinInputs);
+export function convertTransaction(transaction: ExplorerTransaction1, address: string, latestBlock: ExplorerBlock,
+                                   coinInputs: OutputMapping[]): ParsedTransaction {
+  const { locked, unlocked } = getTransactionAmount(transaction.rawtransaction, latestBlock, address, coinInputs);
   return {
     ...transaction,
     receiving: (unlocked + locked) > 0,
@@ -49,30 +53,73 @@ export function convertTransaction(transaction: ExplorerTransaction, address: st
   };
 }
 
-export function convertPendingTransaction(transaction: Transaction, address: string, outputIds: string[]): PendingTransaction {
-  transaction.data.coininputs = transaction.data.coininputs || [];
-  let amount = 0;
-  const receiving = !(<CoinInput[]>transaction.data.coininputs).some((input: CoinInput) => outputIds.indexOf(input.parentid) !== -1);
+export function convertToV1RawTransaction(transaction: Transaction): Transaction1 {
   if (isv0RawTransaction(transaction)) {
-    if (transaction.data.coinoutputs) {
-      if (receiving) {
-        amount = transaction.data.coinoutputs.filter(o => o.unlockhash === address).reduce(outputReducer, 0);
-      } else {
-        amount = -transaction.data.coinoutputs.filter(o => o.unlockhash !== address).reduce(outputReducer, 0);
+    return {
+      version: 1,
+      data: {
+        coininputs: (transaction.data.coininputs || []).map(input => convertToV1Input(input)),
+        coinoutputs: (transaction.data.coinoutputs || []).map(output => convertToV1Output(output)),
+        arbitrarydata: transaction.data.arbitrarydata,
+        blockstakeinputs: (transaction.data.blockstakeinputs || []).map(input => convertToV1Input(input)),
+        blockstakeoutputs: (transaction.data.blockstakeoutputs || []).map(output => convertToV1Output(output)),
+        minerfees: transaction.data.minerfees,
+      }
+    };
+  }
+  return transaction;
+}
+
+export function convertToV1Transaction(transaction: ExplorerTransaction): ExplorerTransaction1 {
+  if (isv0Transaction(transaction)) {
+    return {
+      id: transaction.id,
+      height: transaction.height,
+      parent: transaction.parent,
+      coinoutputids: transaction.coinoutputids,
+      coininputoutputs: (transaction.coininputoutputs || []).map(i => (convertToV1Output(i))),
+      blockstakeinputoutputs: (transaction.blockstakeinputoutputs || []).map(i => convertToV1Output(i)),
+      blockstakeoutputids: transaction.blockstakeoutputids,
+      rawtransaction: convertToV1RawTransaction(transaction.rawtransaction),
+    };
+  }
+  return transaction;
+}
+
+export function convertToV1Output(output: CoinOutput0): CoinOutput1 {
+  return {
+    value: output.value,
+    condition: {
+      type: OutputType.UNLOCKHASH,
+      data: {
+        unlockhash: output.unlockhash
       }
     }
-  } else if (transaction.data.coinoutputs) {
-    if (receiving) {
-      amount = transaction.data.coinoutputs.filter(o => filterReceivingOutputCondition(address, o.condition)).reduce(outputReducer, 0);
-    } else {
-      amount = -transaction.data.coinoutputs.filter(o => filterSendOutputCondition(address, o.condition)).reduce(outputReducer, 0);
+  };
+}
+
+export function convertToV1Input(input: CoinInput0): CoinInput1 {
+  return {
+    parentid: input.parentid,
+    fulfillment: {
+      type: InputType.SINGLE_SIGNATURE,
+      data: {
+        publickey: input.unlocker.condition.publickey,
+        signature: input.unlocker.fulfillment.signature,
+      }
     }
-  }
+  };
+}
+
+export function convertPendingTransaction(transaction: Transaction1, address: string, latestBlock: ExplorerBlock,
+                                          coinInputs: OutputMapping[]): PendingTransaction {
+  const { locked, unlocked } = getTransactionAmount(transaction, latestBlock, address, coinInputs);
   return {
     ...transaction,
-    amount,
+    receiving: (unlocked + locked) > 0,
+    amount: unlocked + locked,
+    lockedAmount: locked,
     minerfee: getMinerFee(transaction.data.minerfees),
-    receiving,
   };
 }
 
@@ -130,43 +177,25 @@ export function isv0RawTransaction(transaction: Transaction): transaction is Tra
   return transaction.version === 0;
 }
 
-export function isv0Output(output: CoinOutput): output is CoinOutput0 {
-  return (<CoinOutput0>output).unlockhash !== undefined;
-}
-
-export function isv0Input(input: CoinInput): input is CoinInput0 {
-  return (<CoinInput0>input).unlocker !== undefined;
-}
-
-export function filterTransactionsByAddress(address: string, transactions: Transaction[]) {
-  return transactions.filter(t => {
-    if (t.version === 0) {
-      return (t.data.coinoutputs || []).some(o => o.unlockhash === address);
+export function filterTransactionsByAddress(address: string, transaction: Transaction) {
+  if (transaction.version === 0) {
+    return (transaction.data.coinoutputs || []).some(o => o.unlockhash === address);
     }
-    return (t.data.coinoutputs || []).some(output => filterOutputCondition(address, output.condition));
-  });
+  return (transaction.data.coinoutputs || []).some(output => filterOutputCondition(address, output.condition));
 }
 
 
-export function getTransactionAmount(transaction: ExplorerTransaction, latestBlock: ExplorerBlock, address: string,
+export function getTransactionAmount(transaction: Transaction1, latestBlock: ExplorerBlock, address: string,
                                      allInputIds: OutputMapping[]) {
   let locked = 0;
   let unlocked = 0;
-  const coinOutputs = <CoinOutput1[]> transaction.rawtransaction.data.coinoutputs || [];
-  for (const input of (transaction.rawtransaction.data.coininputs || [])) {
+  for (const input of (transaction.data.coininputs || [])) {
     const spentInput = allInputIds.find(i => i.id === input.parentid);
     if (spentInput) {
       unlocked -= parseInt(spentInput.amount);
     }
   }
-  if (isv0RawTransaction(transaction.rawtransaction)) {
-    const outputs = <CoinOutput0[]>transaction.rawtransaction.data.coinoutputs || [];
-    const amount = getv0TransactionAmount(address, <CoinOutput0[]>transaction.coininputoutputs || [], outputs);
-    return {
-      locked,
-      unlocked: amount
-    };
-  }
+  const coinOutputs = <CoinOutput1[]> transaction.data.coinoutputs || [];
   for (const output of coinOutputs) {
     const value = parseInt(output.value);
     switch (output.condition.type) {

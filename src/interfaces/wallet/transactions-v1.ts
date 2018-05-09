@@ -23,6 +23,7 @@ export interface Transaction0 {
     blockstakeinputs?: null | CoinInput0[];
     blockstakeoutputs?: null | CoinOutput0[];
     minerfees: string[] | null;
+    arbitrarydata?: string;
   };
   version: 0;
 }

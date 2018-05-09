@@ -6,6 +6,7 @@ import {
   CreateTransactionResult,
   ExplorerBlock,
   ExplorerBlockGET,
+  ExplorerHashGET,
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
@@ -14,6 +15,9 @@ export const enum WalletActionTypes  {
   GET_TRANSACTIONS = 'Get transactions',
   GET_TRANSACTIONS_COMPLETE = 'Get transactions complete',
   GET_TRANSACTIONS_FAILED = 'Get transactions failed',
+  GET_HASH_INFO = 'Get hash info',
+  GET_HASH_INFO_COMPLETE = 'Get hash info complete',
+  GET_HASH_INFO_FAILED = 'Get hash info failed',
   GET_PENDING_TRANSACTIONS = 'Get pending transactions',
   GET_PENDING_TRANSACTIONS_COMPLETE = 'Get pending transactions complete',
   GET_PENDING_TRANSACTIONS_FAILED = 'Get pending transactions failed',
@@ -52,10 +56,31 @@ export class GetTransactionsFailedAction implements Action {
   }
 }
 
+export class GetHashInfoAction implements Action {
+  readonly type = WalletActionTypes.GET_HASH_INFO;
+
+  constructor(public address: string) {
+  }
+}
+
+export class GetHashInfoCompleteAction implements Action {
+  readonly type = WalletActionTypes.GET_HASH_INFO_COMPLETE;
+
+  constructor(public payload: ExplorerHashGET) {
+  }
+}
+
+export class GetHashInfoFailedAction implements Action {
+  readonly type = WalletActionTypes.GET_HASH_INFO_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export class GetPendingTransactionsAction implements Action {
   readonly type = WalletActionTypes.GET_PENDING_TRANSACTIONS;
 
-  constructor(public address: string, public inputIds: string[]) {
+  constructor(public address: string) {
   }
 }
 
@@ -159,6 +184,9 @@ export type WalletActions
   = GetTransactionsAction
   | GetTransactionsCompleteAction
   | GetTransactionsFailedAction
+  | GetHashInfoAction
+  | GetHashInfoCompleteAction
+  | GetHashInfoFailedAction
   | GetPendingTransactionsAction
   | GetPendingTransactionsCompleteAction
   | GetPendingTransactionsFailedAction

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { CoinOutput, CopyEventData } from '../../interfaces';
-import { isv0Output } from '../../util';
 
 @Component({
   selector: 'coin-output',
@@ -9,7 +8,6 @@ import { isv0Output } from '../../util';
   templateUrl: 'coin-output.component.html'
 })
 export class CoinOutputComponent {
-  isv0Output = isv0Output;
   @Input() coinOutput: CoinOutput;
   @Output() copied = new EventEmitter<CopyEventData>();
 }

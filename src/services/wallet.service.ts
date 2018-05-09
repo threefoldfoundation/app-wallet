@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
-import { Observable, throwError, TimeoutError, timer } from 'rxjs';
+import { Observable, of, throwError, TimeoutError, timer } from 'rxjs';
 import { map, mergeMap, retryWhen, switchMap, timeout } from 'rxjs/operators';
 import { configuration } from '../configuration';
 import {
@@ -14,11 +14,20 @@ import {
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
+  ParsedTransaction,
   PendingTransaction,
   TransactionPool,
   TranslatedError,
 } from '../interfaces';
-import { convertPendingTransaction, convertTransaction, filterTransactionsByAddress, getInputIds, isUnrecognizedHashError } from '../util';
+import {
+  convertPendingTransaction,
+  convertToV1RawTransaction,
+  convertToV1Transaction,
+  convertTransaction,
+  filterTransactionsByAddress,
+  getInputIds,
+  isUnrecognizedHashError
+} from '../util';
 
 @Injectable()
 export class WalletService {
@@ -39,11 +48,12 @@ export class WalletService {
     return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
   }
 
-  getTransactions(address: string, latestBlock: ExplorerBlock) {
-    return this.getHashInfo(address).pipe(map(info => {
+  getTransactions(address: string, hashInfo: ExplorerHashGET, latestBlock: ExplorerBlock): Observable<ParsedTransaction[]> {
+    return of(hashInfo).pipe(map(info => {
       const inputs = getInputIds(info.transactions, address, latestBlock).all;
       return info.transactions
         .filter(t => t.rawtransaction.version <= 1)
+        .map(t => convertToV1Transaction(t))
         .map(t => convertTransaction(t, address, latestBlock, inputs))
         .sort((t1, t2) => t2.height - t1.height);
     }));
@@ -57,12 +67,17 @@ export class WalletService {
     return this._get<TransactionPool>('/transactionpool/transactions');
   }
 
-  getPendingTransactions(address: string, outputIds: string[]): Observable<PendingTransaction[]> {
+  /**
+   * Get all transactions that are currently in the pool for a specific address
+   */
+  getPendingTransactions(address: string, hashInfo: ExplorerHashGET, latestBlock: ExplorerBlock): Observable<PendingTransaction[]> {
     return this.getTransactionPool().pipe(
-      map(pool => filterTransactionsByAddress(address, pool.transactions || [])
-        .filter(t => t.version <= 1)
-        .map(t => convertPendingTransaction(t, address, outputIds))),
-    );
+      map(pool => {
+        const inputs = getInputIds(hashInfo.transactions, address, latestBlock).all;
+        return (pool.transactions || []).filter(t => filterTransactionsByAddress(address, t) && t.version <= 1)
+          .map(t => convertToV1RawTransaction(t))
+          .map(t => convertPendingTransaction(t, address, latestBlock, inputs));
+      }));
   }
 
   createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[],
@@ -145,6 +160,10 @@ export class WalletService {
     return this._post<CreateTransactionResult>(`/transactionpool/transactions`, transaction);
   }
 
+  /**
+   * Executes a GET request to one of the available explorers.
+   * Should the request fail, it is retried 4 more times to different explorers.
+   */
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;

@@ -4,6 +4,23 @@ import { initialWalletState, IWalletState } from '../state';
 
 export function walletReducer(state: IWalletState = initialWalletState, action: WalletActions): IWalletState {
   switch (action.type) {
+    case WalletActionTypes.GET_HASH_INFO:
+      return {
+        ...state,
+        hashInfo: initialWalletState.hashInfo,
+        hashInfoStatus: apiRequestLoading,
+      };
+    case WalletActionTypes.GET_HASH_INFO_COMPLETE:
+      return {
+        ...state,
+        hashInfo: action.payload,
+        hashInfoStatus: apiRequestSuccess,
+      };
+    case WalletActionTypes.GET_HASH_INFO_FAILED:
+      return {
+        ...state,
+        hashInfoStatus: action.payload,
+      };
     case WalletActionTypes.GET_TRANSACTIONS:
       return {
         ...state,

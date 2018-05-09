@@ -5,7 +5,7 @@
   <ion-row *ngIf="totalLocked$ | async as locked" justify-content-center>
     <h3>{{ 'locked_tokens_x' | translate: { amount: locked | amount : digits } }}</h3>
   </ion-row>
-  <ion-refresher #refresher (ionRefresh)="getTransactions()" (ionPull)="{}">
+  <ion-refresher #refresher (ionRefresh)="refreshTransactions()" (ionPull)="{}">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
   <api-request-status [status]="transactionsStatus$ | async" *ngIf="showInitialLoading"></api-request-status>

@@ -145,27 +145,11 @@ export interface ParsedTransactionInfo {
   receiving: boolean;
 }
 
-export interface ParsedTransaction0 extends ExplorerTransaction0, ParsedTransactionInfo {
+export interface ParsedTransaction extends ExplorerTransaction1, ParsedTransactionInfo {
 }
 
-export interface ParsedTransaction1 extends ExplorerTransaction1, ParsedTransactionInfo {
+export interface PendingTransaction extends Transaction1, ParsedTransactionInfo {
 }
-
-export type ParsedTransaction = ParsedTransaction0 | ParsedTransaction1;
-
-export interface RawTransactionInfo {
-  amount: number;
-  minerfee: number;
-  receiving: boolean;
-}
-
-export interface PendingTransaction0 extends Transaction0, RawTransactionInfo {
-}
-
-export interface PendingTransaction1 extends Transaction1, RawTransactionInfo {
-}
-
-export type PendingTransaction = PendingTransaction0 | PendingTransaction1;
 
 export const ADDRESS_LENGTH = 78;
 export const COIN_TO_HASTINGS_PRECISION = 9;
