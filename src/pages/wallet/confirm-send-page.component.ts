@@ -9,7 +9,8 @@ import { first, switchMap } from 'rxjs/operators';
 import {
   CreateSignatureDataAction,
   CreateTransactionDataAction,
-  GetPendingTransactionsAction,
+  GetHashInfoAction,
+  GetLatestBlockAction,
   GetPendingTransactionsCompleteAction,
   WalletActionTypes,
 } from '../../actions';
@@ -52,14 +53,14 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.data = this.params.get('transactionData');
-    // Ensure latest data by fetching it again
+    this.store.dispatch(new GetLatestBlockAction());
+    this.store.dispatch(new GetHashInfoAction(this.data.from_address));
     this._pendingTransactionSubscription = this.actions$.pipe(
       ofType<GetPendingTransactionsCompleteAction>(WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE),
       first(),
     ).subscribe(action => {
       this.store.dispatch(new CreateSignatureDataAction(this.data, action.payload));
     });
-    this.store.dispatch(new GetPendingTransactionsAction(this.data.from_address));
     this.pendingTransaction$ = this.store.pipe(select(getPendingTransaction), filterNull());
     this.pendingTransactionStatus$ = this.store.pipe(select(getPendingTransactionStatus));
     this.createTransactionStatus$ = this.store.pipe(select(createTransactionStatus));

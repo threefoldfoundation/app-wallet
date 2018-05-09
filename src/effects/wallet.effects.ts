@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { of } from 'rxjs';
+import { combineLatest, of } from 'rxjs';
 import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as actions from '../actions';
+import { GetTransactionsAction } from '../actions';
 import { WalletService } from '../services';
-import { getHashInfo, getLatestBlock, IAppState } from '../state';
+import { getAddress, getHashInfo, getLatestBlock, IAppState } from '../state';
 import { filterNull, handleError } from '../util';
 
 @Injectable()
@@ -17,6 +18,12 @@ export class WalletEffects {
       map(transactions => new actions.GetHashInfoCompleteAction(transactions)),
       catchError(err => handleError(actions.GetHashInfoFailedAction, err))),
     ));
+
+  @Effect() afterGetTransactionsComplete$ = this.actions$.pipe(
+    ofType<actions.GetTransactionsCompleteAction>(actions.WalletActionTypes.GET_TRANSACTIONS_COMPLETE),
+    withLatestFrom(this.store.pipe(select(getAddress), filterNull())),
+    switchMap(([action, address]) => of(new actions.GetPendingTransactionsAction(address.address)))
+  );
 
   @Effect() getTransactions$ = this.actions$.pipe(
     ofType<actions.GetTransactionsAction>(actions.WalletActionTypes.GET_TRANSACTIONS),
@@ -71,5 +78,13 @@ export class WalletEffects {
   constructor(private actions$: Actions<actions.WalletActions>,
               private store: Store<IAppState>,
               private walletService: WalletService) {
+    combineLatest(this.store.pipe(select(getHashInfo)),
+      this.store.pipe(select(getLatestBlock)),
+      this.store.pipe(select(getAddress))
+    ).subscribe(([hashInfo, latestBlock, address]) => {
+      if (hashInfo && latestBlock && address) {
+        this.store.dispatch(new GetTransactionsAction(address.address));
+      }
+    });
   }
 }

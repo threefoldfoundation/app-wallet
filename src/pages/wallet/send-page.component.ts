@@ -5,7 +5,7 @@ import { AlertController, ModalController } from 'ionic-angular';
 import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { GetAddresssAction, GetTransactionsAction, ScanQrCodeAction } from '../../actions';
+import { GetAddresssAction, GetHashInfoAction, ScanQrCodeAction } from '../../actions';
 import {
   ADDRESS_LENGTH,
   CreateSignatureData,
@@ -120,7 +120,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
         const alert = this.alertCtrl.create(config);
         alert.present();
         alert.onDidDismiss(() => {
-          this.store.dispatch(new GetTransactionsAction(data.from_address));
+          this.store.dispatch(new GetHashInfoAction(data.from_address));
         });
         this.setData(DEFAULT_FORM_DATA);
       }

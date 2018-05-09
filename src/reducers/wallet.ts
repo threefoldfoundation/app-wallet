@@ -90,6 +90,7 @@ export function walletReducer(state: IWalletState = initialWalletState, action: 
     case WalletActionTypes.GET_LATEST_BLOCK:
       return {
         ...state,
+        latestBlock: initialWalletState.latestBlock,
         latestBlockStatus: apiRequestLoading,
       };
     case WalletActionTypes.GET_LATEST_BLOCK_COMPLETE:

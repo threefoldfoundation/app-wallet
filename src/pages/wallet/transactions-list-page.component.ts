@@ -77,12 +77,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.address$ = this.store.pipe(select(getAddress), filterNull());
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this._subscriptions.push(this.actions$.pipe(
-      ofType<GetTransactionsCompleteAction>(WalletActionTypes.GET_TRANSACTIONS_COMPLETE),
-      withLatestFrom(this.address$),
-    ).subscribe(([_, address]) => {
-      this.store.dispatch(new GetPendingTransactionsAction(address.address));
-    }));
-    this._subscriptions.push(this.actions$.pipe(
       ofType<GetTransactionsFailedAction>(WalletActionTypes.GET_TRANSACTIONS_FAILED),
       withLatestFrom(this.address$),
     ).subscribe(([result, address]) => {
@@ -116,13 +110,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this._subscriptions.push(
       interval(300000).pipe(withLatestFrom(this.address$)).subscribe(([_, address]) => this.getTransactions(address.address))
     );
-    this._subscriptions.push(combineLatest(
-      this.store.pipe(select(getHashInfo)), this.latestBlock$, this.address$).subscribe(([hashInfo, latestBlock, address]) => {
-      console.log({ hashInfo, latestBlock, address });
-      if (hashInfo && latestBlock && address) {
-        this.store.dispatch(new GetTransactionsAction(address.address));
-      }
-    }));
   }
 
   ngOnDestroy() {
