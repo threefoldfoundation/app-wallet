@@ -65,3 +65,25 @@ export function parseQuery(queryString: string): { [ key: string ]: string } {
   }
   return query;
 }
+
+export function combineRequestStatuses(...statuses: ApiRequestStatus[]): ApiRequestStatus {
+  // Start with a success / request done response
+  const result: ApiRequestStatus = {
+    success: true,
+    error: null,
+    loading: false,
+  };
+  for (const status of statuses) {
+    if (!status.success) {
+      result.success = status.success;
+    }
+    if (status.loading) {
+      result.loading = status.loading;
+    }
+    if (status.error) {
+      result.error = status.error;
+      break;
+    }
+  }
+  return result;
+}

@@ -5,14 +5,12 @@ import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { combineLatest, interval, Observable, Subscription } from 'rxjs';
-import { first, withLatestFrom } from 'rxjs/operators';
+import { first, map, withLatestFrom } from 'rxjs/operators';
 import {
   GetAddresssAction,
   GetHashInfoAction,
   GetLatestBlockAction,
   GetPendingTransactionsAction,
-  GetTransactionsAction,
-  GetTransactionsCompleteAction,
   GetTransactionsFailedAction,
   WalletActionTypes,
 } from '../../actions';
@@ -21,8 +19,8 @@ import { ErrorService } from '../../services';
 import {
   getAddress,
   getAddressStatus,
-  getHashInfo,
   getLatestBlock,
+  getLatestBlockStatus,
   getPendingTransactions,
   getTotalLockedAmount,
   getTotalUnlockedAmount,
@@ -30,7 +28,7 @@ import {
   getTransactionsStatus,
   IAppState,
 } from '../../state';
-import { filterNull, isPendingTransaction, isUnrecognizedHashError } from '../../util';
+import { combineRequestStatuses, filterNull, isPendingTransaction, isUnrecognizedHashError } from '../../util';
 import { PendingTransactionDetailPageComponent } from './pending-transaction-detail-page.component';
 import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 
@@ -51,9 +49,8 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   transactions$: Observable<ParsedTransaction[]>;
   pendingTransactions$: Observable<PendingTransaction[]>;
-  transactionsStatus$: Observable<ApiRequestStatus>;
+  loadingStatus$: Observable<ApiRequestStatus>;
   latestBlock$: Observable<ExplorerBlock>;
-  showInitialLoading = true;
   digits = '1.0-2';
 
   private _subscriptions: Subscription[] = [];
@@ -86,7 +83,11 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     }));
     this.transactions$ = this.store.pipe(select(getTransactions));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
-    this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
+    this.loadingStatus$ = combineLatest(
+      this.store.pipe(select(getTransactionsStatus)),
+      this.store.pipe(select(getAddressStatus)),
+      this.store.pipe(select(getLatestBlockStatus)),
+    ).pipe(map(([s1, s2, s3]) => combineRequestStatuses(s1, s2, s3)));
     this.totalUnlockedAmount$ = this.store.pipe(select(getTotalUnlockedAmount));
     this.totalLocked$ = this.store.pipe(select(getTotalLockedAmount));
     this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());
@@ -97,13 +98,11 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
         this.getTransactions(address.address);
       }
     }));
-    this._subscriptions.push(this.transactionsStatus$.subscribe(s => {
+    this._subscriptions.push(this.loadingStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null && !isUnrecognizedHashError(s.error.error)) {
         this._showErrorDialog(s.error.error);
       } else if (!s.loading) {
-        this.refresher.complete();
         this._dismissErrorDialog();
-        this.showInitialLoading = false;
       }
     }));
     // Refresh transactions every 5 minutes
@@ -128,6 +127,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   }
 
   refreshTransactions() {
+    this.refresher.complete();
     this.address$.pipe(first()).subscribe(address => this.getTransactions(address.address));
   }
 

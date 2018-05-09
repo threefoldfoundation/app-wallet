@@ -1,14 +1,16 @@
 <ion-content>
-  <ion-row justify-content-center>
-    <h2 *ngIf="!showInitialLoading">{{ totalUnlockedAmount$ | async | amount : digits }}</h2>
-  </ion-row>
-  <ion-row *ngIf="totalLocked$ | async as locked" justify-content-center>
-    <h3>{{ 'locked_tokens_x' | translate: { amount: locked | amount : digits } }}</h3>
-  </ion-row>
+  <ng-container *ngIf="(loadingStatus$ | async).success">
+    <ion-row justify-content-center>
+      <h2>{{ totalUnlockedAmount$ | async | amount : digits }}</h2>
+    </ion-row>
+    <ion-row *ngIf="totalLocked$ | async as locked" justify-content-center>
+      <h3>{{ 'locked_tokens_x' | translate: { amount: locked | amount : digits } }}</h3>
+    </ion-row>
+  </ng-container>
   <ion-refresher #refresher (ionRefresh)="refreshTransactions()" (ionPull)="{}">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
-  <api-request-status [status]="transactionsStatus$ | async" *ngIf="showInitialLoading"></api-request-status>
+  <api-request-status [status]="loadingStatus$ | async"></api-request-status>
   <ion-list>
     <ion-item *ngFor="let transaction of pendingTransactions$ | async" (click)="showDetails(transaction)">
       <h2>{{ 'pending_transaction' | translate }}</h2>
