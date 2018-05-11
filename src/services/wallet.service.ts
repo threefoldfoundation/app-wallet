@@ -48,7 +48,10 @@ export class WalletService {
     return this._get<ExplorerBlockGET>(`/explorer/blocks/${height}`);
   }
 
-  getTransactions(address: string, hashInfo: ExplorerHashGET, latestBlock: ExplorerBlock): Observable<ParsedTransaction[]> {
+  getTransactions(address: string, hashInfo: ExplorerHashGET | null, latestBlock: ExplorerBlock): Observable<ParsedTransaction[]> {
+    if (!hashInfo) {
+      return of([]);
+    }
     return of(hashInfo).pipe(map(info => {
       const inputs = getInputIds(info.transactions, address, latestBlock).all;
       return info.transactions
@@ -70,10 +73,10 @@ export class WalletService {
   /**
    * Get all transactions that are currently in the pool for a specific address
    */
-  getPendingTransactions(address: string, hashInfo: ExplorerHashGET, latestBlock: ExplorerBlock): Observable<PendingTransaction[]> {
+  getPendingTransactions(address: string, hashInfo: ExplorerHashGET | null, latestBlock: ExplorerBlock): Observable<PendingTransaction[]> {
     return this.getTransactionPool().pipe(
       map(pool => {
-        const inputs = getInputIds(hashInfo.transactions, address, latestBlock).all;
+        const inputs = hashInfo ? getInputIds(hashInfo.transactions, address, latestBlock).all : [];
         return (pool.transactions || []).filter(t => filterTransactionsByAddress(address, t) && t.version <= 1)
           .map(t => convertToV1RawTransaction(t))
           .map(t => convertPendingTransaction(t, address, latestBlock, inputs));

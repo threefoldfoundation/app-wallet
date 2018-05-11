@@ -2,12 +2,11 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, of } from 'rxjs';
-import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as actions from '../actions';
-import { GetTransactionsAction } from '../actions';
 import { WalletService } from '../services';
-import { getAddress, getHashInfo, getLatestBlock, IAppState } from '../state';
-import { filterNull, handleError } from '../util';
+import { getAddress, getHashInfo, getHashInfoStatus, getLatestBlock, IAppState } from '../state';
+import { filterNull, handleError, isUnrecognizedHashError } from '../util';
 
 @Injectable()
 export class WalletEffects {
@@ -19,23 +18,30 @@ export class WalletEffects {
       catchError(err => handleError(actions.GetHashInfoFailedAction, err))),
     ));
 
+  @Effect() getHashInfoFailedSideEffects$ = this.actions$.pipe(
+    ofType<actions.GetHashInfoFailedAction>(actions.WalletActionTypes.GET_HASH_INFO_FAILED),
+    filter(action => action.payload.error != null && isUnrecognizedHashError(action.payload.error.error)),
+    withLatestFrom(this.store.pipe(select(getAddress), filterNull())),
+    switchMap(([action, address]) => of(new actions.GetTransactionsAction(address.address)))
+  );
+
+  @Effect() getTransactions$ = this.actions$.pipe(
+    ofType<actions.GetTransactionsAction>(actions.WalletActionTypes.GET_TRANSACTIONS),
+    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull()), this.store.pipe(select(getHashInfo))),
+    switchMap(([action, latestBlock, hashInfo]) => this.walletService.getTransactions(action.address, hashInfo, latestBlock).pipe(
+      map(transactions => new actions.GetTransactionsCompleteAction(transactions)),
+      catchError(err => handleError(actions.GetTransactionsFailedAction, err))),
+    ));
+
   @Effect() afterGetTransactionsComplete$ = this.actions$.pipe(
     ofType<actions.GetTransactionsCompleteAction>(actions.WalletActionTypes.GET_TRANSACTIONS_COMPLETE),
     withLatestFrom(this.store.pipe(select(getAddress), filterNull())),
     switchMap(([action, address]) => of(new actions.GetPendingTransactionsAction(address.address)))
   );
 
-  @Effect() getTransactions$ = this.actions$.pipe(
-    ofType<actions.GetTransactionsAction>(actions.WalletActionTypes.GET_TRANSACTIONS),
-    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull()), this.store.pipe(select(getHashInfo), filterNull())),
-    switchMap(([action, latestBlock, hashInfo]) => this.walletService.getTransactions(action.address, hashInfo, latestBlock).pipe(
-      map(transactions => new actions.GetTransactionsCompleteAction(transactions)),
-      catchError(err => handleError(actions.GetTransactionsFailedAction, err))),
-    ));
-
   @Effect() getPendingTransactions$ = this.actions$.pipe(
     ofType<actions.GetPendingTransactionsAction>(actions.WalletActionTypes.GET_PENDING_TRANSACTIONS),
-    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull()), this.store.pipe(select(getHashInfo), filterNull())),
+    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull()), this.store.pipe(select(getHashInfo))),
     switchMap(([action, latestBlock, hashInfo]) => this.walletService.getPendingTransactions(action.address, hashInfo, latestBlock).pipe(
       map(transactions => new actions.GetPendingTransactionsCompleteAction(transactions)),
       catchError(err => handleError(actions.GetPendingTransactionsFailedAction, err))),
@@ -78,12 +84,13 @@ export class WalletEffects {
   constructor(private actions$: Actions<actions.WalletActions>,
               private store: Store<IAppState>,
               private walletService: WalletService) {
-    combineLatest(this.store.pipe(select(getHashInfo)),
+    combineLatest(this.store.pipe(select(getHashInfoStatus)),
       this.store.pipe(select(getLatestBlock)),
       this.store.pipe(select(getAddress))
-    ).subscribe(([hashInfo, latestBlock, address]) => {
-      if (hashInfo && latestBlock && address) {
-        this.store.dispatch(new GetTransactionsAction(address.address));
+    ).subscribe(([hashInfoStatus, latestBlock, address]) => {
+      const hasHashInfo = (hashInfoStatus.success || hashInfoStatus.error != null && isUnrecognizedHashError(hashInfoStatus.error.error));
+      if (hasHashInfo && latestBlock && address) {
+        this.store.dispatch(new actions.GetTransactionsAction(address.address));
       }
     });
   }

@@ -1,19 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { combineLatest, interval, Observable, Subscription } from 'rxjs';
 import { first, map, withLatestFrom } from 'rxjs/operators';
-import {
-  GetAddresssAction,
-  GetHashInfoAction,
-  GetLatestBlockAction,
-  GetPendingTransactionsAction,
-  GetTransactionsFailedAction,
-  WalletActionTypes,
-} from '../../actions';
+import { GetAddresssAction, GetHashInfoAction, GetLatestBlockAction, } from '../../actions';
 import { ApiRequestStatus, ExplorerBlock, KEY_NAME, ParsedTransaction, PendingTransaction, RIVINE_ALGORITHM, } from '../../interfaces';
 import { ErrorService } from '../../services';
 import {
@@ -60,8 +52,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
               private translate: TranslateService,
               private errorService: ErrorService,
               private alertCtrl: AlertController,
-              private modalController: ModalController,
-              private actions$: Actions) {
+              private modalController: ModalController) {
   }
 
   ngOnInit() {
@@ -73,14 +64,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     }));
     this.address$ = this.store.pipe(select(getAddress), filterNull());
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
-    this._subscriptions.push(this.actions$.pipe(
-      ofType<GetTransactionsFailedAction>(WalletActionTypes.GET_TRANSACTIONS_FAILED),
-      withLatestFrom(this.address$),
-    ).subscribe(([result, address]) => {
-      if (result.payload.error && isUnrecognizedHashError(result.payload.error.error)) {
-        this.store.dispatch(new GetPendingTransactionsAction(address.address));
-      }
-    }));
     this.transactions$ = this.store.pipe(select(getTransactions));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.loadingStatus$ = combineLatest(

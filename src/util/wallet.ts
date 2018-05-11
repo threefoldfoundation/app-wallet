@@ -37,8 +37,8 @@ export function getMinerFee(minerfees: string[] | null): number {
   return (minerfees || []).reduce((total: number, fee: string) => total + parseInt(fee), 0);
 }
 
-export function isUnrecognizedHashError(err: string | null | undefined) {
-  return err && err.indexOf('unrecognized address') !== -1;
+export function isUnrecognizedHashError(err: string | null | undefined): boolean {
+  return (!!err) && err.indexOf('unrecognized hash') !== -1;
 }
 
 export function convertTransaction(transaction: ExplorerTransaction1, address: string, latestBlock: ExplorerBlock,
