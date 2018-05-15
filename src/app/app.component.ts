@@ -4,10 +4,10 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
+import { CreatePaymentRequestContext, RogerthatContextType } from 'rogerthat-plugin';
 import { configuration } from '../configuration';
-import { PaymentQRCodeType } from '../interfaces';
-import { PayWidgetPageComponent } from '../pages/wallet';
 import { WalletChooserPageComponent } from '../pages/wallet-manager';
+import { PayWidgetPageComponent } from '../pages/wallet';
 import { ErrorService, RogerthatService } from '../services';
 
 interface RootPage {
@@ -75,35 +75,29 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Useful for debugging
-    if (!configuration.production) {
-      this.actions$.subscribe(action => console.log(action));
-    } else {
+    if (configuration.production) {
       this.actions$.subscribe(action => console.log(JSON.stringify(action)));
+    } else {
+      this.actions$.subscribe(action => console.log(action));
     }
   }
 
   private processContext(data: any): RootPage | null {
     if (data.context && data.context.t) {
       switch (data.context.t) {
-        case PaymentQRCodeType.TRANSACTION:
+        case RogerthatContextType.TRANSACTION:
           // Currently not supported, just show the wallet instead
           return {page: WalletChooserPageComponent, params: null};
-        case PaymentQRCodeType.PAY:
+        case RogerthatContextType.PAY:
           const payContext: any = data.context; // type PayWidgetData
           return {page: WalletChooserPageComponent, params: {payContext, nextPage: PayWidgetPageComponent}};
         default:
-          if (data.context.result_type === 'plugin') {
-            const msg = this.translate.instant('not_supported_ensure_latest_version', {appName: rogerthat.system.appName});
             const content = {
               success: false,
               code: 'not_supported',
-              message: msg,
+              message: this.translate.instant('not_supported_pls_update'),
             };
             rogerthat.app.exitWithResult(JSON.stringify(content));
-          } else {
-            const msg = this.translate.instant('qr_code_not_supported_ensure_latest_version', {appName: rogerthat.system.appName});
-            this.errorService.showVersionNotSupported(msg);
-          }
       }
     }
     return { page: WalletChooserPageComponent, params: null };
