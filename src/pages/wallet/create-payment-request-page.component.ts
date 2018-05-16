@@ -64,12 +64,12 @@ export class CreatePaymentRequestPageComponent implements OnInit {
 
   submit(form: NgForm) {
     if (form.form.valid) {
-      const messageEmbeddedApp: MessageEmbeddedApp<MessageContextData> = {
-        context: {
+      const context: MessageContextData = {
           type: ContextDataType.PAYMENT_REQUEST,
           data: { ...this.request, amount: this.amountControl.value * Math.pow(10, this.request.precision) }
-        },
-        result: null,
+      };
+      const messageEmbeddedApp: MessageEmbeddedApp = {
+        context: JSON.stringify(context),
         title: this.translate.instant(`Payment to ${rogerthat.user.name}`),
         description: this.request.memo,
       };
