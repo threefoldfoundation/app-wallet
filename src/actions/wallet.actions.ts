@@ -6,12 +6,15 @@ import {
   CreateTransactionResult,
   ExplorerBlock,
   ExplorerBlockGET,
-  ExplorerHashGET,
+  ExplorerHashGET, ExplorerTransaction,
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
 
-export const enum WalletActionTypes {
+export const enum WalletActionTypes  {
+  GET_TRANSACTION = 'Get transaction',
+  GET_TRANSACTION_COMPLETE = 'Get transaction complete',
+  GET_TRANSACTION_FAILED = 'Get transaction failed',
   GET_TRANSACTIONS = 'Get transactions',
   GET_TRANSACTIONS_COMPLETE = 'Get transactions complete',
   GET_TRANSACTIONS_FAILED = 'Get transactions failed',
@@ -34,6 +37,27 @@ export const enum WalletActionTypes {
   GET_BLOCK_COMPLETE = 'Get block complete',
   GET_BLOCK_FAILED = 'Get block failed',
   SET_SELECTED_KEY_PAIR = 'Set selected key pair'
+}
+
+export class GetTransactionAction implements Action {
+  readonly type = WalletActionTypes.GET_TRANSACTION;
+
+  constructor(public transactionId: string, public unlockhash: string) {
+  }
+}
+
+export class GetTransactionCompleteAction implements Action {
+  readonly type = WalletActionTypes.GET_TRANSACTION_COMPLETE;
+
+  constructor(public payload: ParsedTransaction) {
+  }
+}
+
+export class GetTransactionFailedAction implements Action {
+  readonly type = WalletActionTypes.GET_TRANSACTION_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
 }
 
 export class GetTransactionsAction implements Action {
@@ -189,7 +213,10 @@ export class SetSelectedKeyPairAction implements Action {
 }
 
 export type WalletActions
-  = GetTransactionsAction
+  = GetTransactionAction
+  | GetTransactionCompleteAction
+  | GetTransactionFailedAction
+  | GetTransactionsAction
   | GetTransactionsCompleteAction
   | GetTransactionsFailedAction
   | GetHashInfoAction

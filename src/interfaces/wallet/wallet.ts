@@ -125,6 +125,10 @@ export interface ExplorerHashGET {
   hashtype: 'unlockhash' | 'transactionid' | 'coinoutputid' | 'blockstakeoutputid';
   transaction: ExplorerTransaction;
   transactions: ExplorerTransaction[];
+  /**
+   * true in case hashtype == 'transactionid' and the transaction isn't confirmed yet (meaning it's currently in the transaction pool)
+   */
+  unconfirmed: boolean;
 }
 
 export interface TransactionPool {

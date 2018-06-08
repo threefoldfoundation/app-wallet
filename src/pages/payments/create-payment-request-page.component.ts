@@ -2,19 +2,12 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormControl, NgForm, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { MessageEmbeddedApp } from 'rogerthat-plugin';
-import { Subscription } from 'rxjs';
+import { MessageEmbeddedApp, PaymentRequestData } from 'rogerthat-plugin';
+import { CreatePaymentRequestContext, RogerthatContextType } from 'rogerthat-plugin/www/rogerthat-payment';
+import { first } from 'rxjs/operators';
 import { GetAddresssAction } from '../../actions';
 import { configuration } from '../../configuration';
-import {
-  COIN_TO_HASTINGS_PRECISION,
-  ContextDataType,
-  CURRENCY_SYMBOL,
-  KEY_NAME,
-  MessageContextData,
-  PaymentRequestData,
-  RIVINE_ALGORITHM
-} from '../../interfaces';
+import { COIN_TO_HASTINGS_PRECISION, CURRENCY_SYMBOL, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/index';
 import { getAddress, IAppState } from '../../state';
 import { filterNull } from '../../util';
 
@@ -25,8 +18,6 @@ import { filterNull } from '../../util';
 export class CreatePaymentRequestPageComponent implements OnInit {
   request: PaymentRequestData;
   amountControl: FormControl;
-
-  private _addressSub: Subscription;
 
   constructor(private translate: TranslateService, private store: Store<IAppState>) {
     this.amountControl = new FormControl(0, [Validators.required, Validators.min(0.01)]);
@@ -47,7 +38,6 @@ export class CreatePaymentRequestPageComponent implements OnInit {
       keyName: KEY_NAME,
       message: this.translate.instant('please_enter_your_pin'),
     }));
-    this._addressSub = this.store.pipe(select(getAddress), filterNull()).subscribe(address => this.request.to = address.address);
   }
 
   close() {
@@ -64,16 +54,22 @@ export class CreatePaymentRequestPageComponent implements OnInit {
 
   submit(form: NgForm) {
     if (form.form.valid) {
-      const context: MessageContextData = {
-          type: ContextDataType.PAYMENT_REQUEST,
-          data: { ...this.request, amount: this.amountControl.value * Math.pow(10, this.request.precision) }
-      };
-      const messageEmbeddedApp: MessageEmbeddedApp = {
-        context: JSON.stringify(context),
-        title: this.translate.instant(`Payment to ${rogerthat.user.name}`),
-        description: this.request.memo,
-      };
-      this.exitWithResult(messageEmbeddedApp);
+      this.store.pipe(select(getAddress), filterNull(), first()).subscribe(address => {
+        const context: CreatePaymentRequestContext = {
+          type: RogerthatContextType.CREATE_PAYMENT_REQUEST,
+          data: {
+            ...this.request,
+            amount: this.amountControl.value * Math.pow(10, this.request.precision),
+            to: address.address
+          },
+        };
+        const messageEmbeddedApp: MessageEmbeddedApp = {
+          context: JSON.stringify(context),
+          title: this.translate.instant(`Payment to ${rogerthat.user.name}`),
+          description: this.request.memo,
+        };
+        this.exitWithResult(messageEmbeddedApp);
+      });
     }
   }
 }

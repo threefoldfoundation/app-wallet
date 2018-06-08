@@ -1,0 +1,18 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button="bar-button" (click)="close()" class="back-button show-back-button back-button-md">
+        <ion-icon name="arrow-back" class="back-button-icon-md"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'payment' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <form (ngSubmit)="submitPayment()" #form="ngForm" *ngIf="paymentRequest">
+    <p>Send {{ paymentRequest.amount | amount }} to {{ paymentRequest.to }}?</p>
+    <p>Memo: {{ paymentRequest.memo }}</p>
+    <button type="button" color="danger" ion-button (click)="close()">{{ 'cancel' | translate }}</button>
+    <button ion-button>{{ 'pay' | translate }}</button>
+  </form>
+</ion-content>

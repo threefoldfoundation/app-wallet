@@ -7,6 +7,7 @@ import { combineLatest, interval, Observable, Subscription } from 'rxjs';
 import { first, map, withLatestFrom } from 'rxjs/operators';
 import { GetAddresssAction, GetHashInfoAction, GetLatestBlockAction } from '../../actions';
 import { ApiRequestStatus, ExplorerBlock, ParsedTransaction, PendingTransaction } from '../../interfaces';
+import { GetAddresssAction, GetHashInfoAction, } from '../../actions';
 import { ErrorService } from '../../services';
 import {
   getAddress,
@@ -108,7 +109,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   }
 
   getTransactions(address: string) {
-    this.store.dispatch(new GetLatestBlockAction());
     this.store.dispatch(new GetHashInfoAction(address));
   }
 

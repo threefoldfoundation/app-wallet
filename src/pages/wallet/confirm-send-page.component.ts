@@ -10,7 +10,6 @@ import {
   CreateSignatureDataAction,
   CreateTransactionDataAction,
   GetHashInfoAction,
-  GetLatestBlockAction,
   GetPendingTransactionsCompleteAction,
   WalletActionTypes,
 } from '../../actions';
@@ -55,7 +54,6 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.data = this.params.get('transactionData');
-    this.store.dispatch(new GetLatestBlockAction());
     this.store.dispatch(new GetHashInfoAction(this.data.from_address));
     this._pendingTransactionSubscription = this.actions$.pipe(
       ofType<GetPendingTransactionsCompleteAction>(WalletActionTypes.GET_PENDING_TRANSACTIONS_COMPLETE),

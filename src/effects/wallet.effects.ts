@@ -1,9 +1,11 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { combineLatest, of, Subscription } from 'rxjs';
 import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, interval, of } from 'rxjs';
+import { catchError, filter, map, startWith, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as actions from '../actions';
+import { GetLatestBlockAction } from '../actions';
 import { WalletService } from '../services';
 import { getAddress, getHashInfo, getHashInfoStatus, getLatestBlock, IAppState } from '../state';
 import { filterNull, handleError, isUnrecognizedHashError } from '../util';
@@ -24,6 +26,16 @@ export class WalletEffects implements OnDestroy {
     withLatestFrom(this.store.pipe(select(getAddress), filterNull())),
     switchMap(([action, address]) => of(new actions.GetTransactionsAction(address.address)))
   );
+
+  @Effect() getTransaction$ = this.actions$.pipe(
+    ofType<actions.GetTransactionAction>(actions.WalletActionTypes.GET_TRANSACTION),
+    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull())),
+    switchMap(([action, latestBlock]) => {
+        return this.walletService.getTransaction(action.transactionId, action.unlockhash, latestBlock).pipe(
+          map(transaction => new actions.GetTransactionCompleteAction(transaction)),
+          catchError(err => handleError(actions.GetTransactionFailedAction, err)));
+      },
+    ));
 
   @Effect() getTransactions$ = this.actions$.pipe(
     ofType<actions.GetTransactionsAction>(actions.WalletActionTypes.GET_TRANSACTIONS),
@@ -69,7 +81,8 @@ export class WalletEffects implements OnDestroy {
 
   @Effect() getLatestBlock$ = this.actions$.pipe(
     ofType<actions.GetLatestBlockAction>(actions.WalletActionTypes.GET_LATEST_BLOCK),
-    switchMap(action => this.walletService.getLatestBlock().pipe(
+    startWith(new GetLatestBlockAction()),
+    switchMap(() => this.walletService.getLatestBlock().pipe(
       map(result => new actions.GetLatestBlockCompleteAction(result.block)),
       catchError(err => handleError(actions.GetLatestBlockFailedAction, err))),
     ));
@@ -86,6 +99,9 @@ export class WalletEffects implements OnDestroy {
   constructor(private actions$: Actions<actions.WalletActions>,
               private store: Store<IAppState>,
               private walletService: WalletService) {
+    // Get the latest block every five minutes
+    interval(300000).subscribe(() => this.store.dispatch(new GetLatestBlockAction()));
+    // Get new transactions when the latest block, hash info or address changes, only when all of those aren't null.
     this._transactionsSub = combineLatest(this.store.pipe(select(getHashInfoStatus)),
       this.store.pipe(select(getLatestBlock)),
       this.store.pipe(select(getAddress))

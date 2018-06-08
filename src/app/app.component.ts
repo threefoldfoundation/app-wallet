@@ -5,9 +5,13 @@ import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
 import { CreatePaymentRequestContext, RogerthatContextType } from 'rogerthat-plugin';
+import { CreatePaymentRequestContext, PaymentRequestData, RogerthatContextType } from 'rogerthat-plugin';
+import { MessageEmbeddedApp, PayWidgetContextData } from 'rogerthat-plugin/www/rogerthat-payment';
 import { configuration } from '../configuration';
 import { WalletChooserPageComponent } from '../pages/wallet-manager';
 import { PayWidgetPageComponent } from '../pages/wallet';
+import { PaymentRequestPageComponent } from '../pages/payments';
+import { CreatePaymentRequestPageComponent, PayWidgetPageComponent, WalletPageComponent } from '../pages/wallet';
 import { ErrorService, RogerthatService } from '../services';
 
 interface RootPage {
@@ -83,14 +87,14 @@ export class AppComponent implements OnInit {
   }
 
   private processContext(data: any): RootPage | null {
-    if (data.context && data.context.t) {
-      switch (data.context.t) {
-        case RogerthatContextType.TRANSACTION:
-          // Currently not supported, just show the wallet instead
-          return {page: WalletChooserPageComponent, params: null};
-        case RogerthatContextType.PAY:
-          const payContext: any = data.context; // type PayWidgetData
-          return {page: WalletChooserPageComponent, params: {payContext, nextPage: PayWidgetPageComponent}};
+    if (data.context && data.context.type) {
+      switch (data.context.type) {
+        case RogerthatContextType.PAY_WIDGET:
+          return { page: PayWidgetPageComponent, params: { payContext: data.context as PayWidgetContextData } };
+        case RogerthatContextType.CREATE_PAYMENT_REQUEST:
+          return { page: CreatePaymentRequestPageComponent, params: { payContext: data.context as CreatePaymentRequestContext } };
+        case RogerthatContextType.PAYMENT_REQUEST:
+          return { page: PaymentRequestPageComponent, params: { payContext: data.context as MessageEmbeddedApp } };
         default:
             const content = {
               success: false,

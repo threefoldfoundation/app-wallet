@@ -1,11 +1,10 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { NavParams, ToastController, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { GetBlockAction, GetLatestBlockAction } from '../../actions';
+import { GetBlockAction } from '../../actions';
 import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, ParsedTransaction } from '../../interfaces';
 import { AmountPipe } from '../../pipes';
 import { getBlock, getLatestBlock, getLatestBlockStatus, IAppState } from '../../state';
@@ -19,7 +18,6 @@ import { filterNull, isPendingTransaction } from '../../util';
 export class TransactionDetailPageComponent implements OnInit {
   transaction: ParsedTransaction;
   latestBlock$: Observable<ExplorerBlock>;
-  lockedTokens$: Observable<string[]>;
   transactionBlock$: Observable<ExplorerBlockGET>;
   getLatestBlockStatus$: Observable<ApiRequestStatus>;
   timestamp$: Observable<Date>;
@@ -30,14 +28,12 @@ export class TransactionDetailPageComponent implements OnInit {
               private amountPipe: AmountPipe,
               private viewCtrl: ViewController,
               private toastCtrl: ToastController,
-              private store: Store<IAppState>,
-              private datePipe: DatePipe) {
+              private store: Store<IAppState>) {
   }
 
   ngOnInit() {
     this.transaction = this.params.get('transaction');
     this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());
-    this.store.dispatch(new GetLatestBlockAction());
     this.store.dispatch(new GetBlockAction(this.transaction.height));
     this.confirmations$ = this.latestBlock$.pipe(
       map(block => isPendingTransaction(this.transaction) ? 0 : block.height - this.transaction.height),

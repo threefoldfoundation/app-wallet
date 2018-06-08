@@ -39,6 +39,7 @@
   "outputs": "Outputs",
   "parent_id_x": "Parent id: {{ parentid }}",
   "pay": "Pay",
+  "payment": "Payment",
   "payment_request_canceled": "Payment request canceled",
   "pending_transaction": "Pending transaction",
   "please_enter_a_pin_code_for_this_wallet": "Please enter a pin code for this wallet.",

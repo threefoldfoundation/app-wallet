@@ -9,6 +9,9 @@ import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult } from '
 import { getAddress, getAddressStatus, getKeyPairProvider, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, KEY_NAME, PROVIDER_ID, RIVINE_ALGORITHM, } from '../../interfaces';
+import { getAddress, getAddressStatus, IAppState } from '../../state';
+import { ConfirmSendPageComponent } from '../wallet';
 
 @Component({
   selector: 'pay-widget-page-component',
@@ -88,14 +91,5 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
 
   private exitWithResult(result: any) {
     rogerthat.app.exitWithResult(JSON.stringify(result));
-  }
-
-  private exitWithError(error: RogerthatError) {
-    const exitResult = {
-      code: error.code,
-      message: error.message,
-      success: false,
-    };
-    this.exitWithResult(exitResult);
   }
 }
