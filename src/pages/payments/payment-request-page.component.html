@@ -8,11 +8,15 @@
     <ion-title>{{ 'payment' | translate }}</ion-title>
   </ion-navbar>
 </ion-header>
-<ion-content padding>
+<ion-content padding *ngIf="isOwnRequest$ | async; else requestForm">
+  <p>Pending {{ paymentRequest.amount | amount }} payment request to yourself</p>
+  <ion-content padding #requestForm>
   <form (ngSubmit)="submitPayment()" #form="ngForm" *ngIf="paymentRequest">
-    <p>Send {{ paymentRequest.amount | amount }} to {{ paymentRequest.to }}?</p>
-    <p>Memo: {{ paymentRequest.memo }}</p>
+    <p>
+      {{ 'x_requests_a_payment_of_y' | translate : {user: paymentRequest.to, amount: paymentRequest.amount | amount } }}
+    </p>
+    <p>{{ 'memo_x' | translate : { memo: paymentRequest.memo } }}</p>
     <button type="button" color="danger" ion-button (click)="close()">{{ 'cancel' | translate }}</button>
-    <button ion-button>{{ 'pay' | translate }}</button>
+    <button ion-button>{{ 'continue' | translate }}</button>
   </form>
 </ion-content>

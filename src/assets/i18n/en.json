@@ -29,6 +29,7 @@
   "inputs": "Inputs",
   "locked_tokens_x": "Locked tokens: {{ amount }}",
   "locked_until_block_x": "Locked until block {{ block }}",
+  "memo": "Memo",
   "name": "Name",
   "no": "No",
   "no_spendable_tokens": "You don't have any tokens that you can send.",
@@ -82,6 +83,7 @@
   "x_confirmations": "{{ confirmations }} confirmations",
   "x_currency_locked_until_block_y": "{{ amount }} locked until block {{ unlocktime }}",
   "x_currency_locked_until_y": "{{ amount }} locked until {{ unlocktime }}",
+  "x_requests_a_payment_of_y": "{{ user }} requests a payment of {{ amount }}",
   "yes": "Yes",
   "you_already_have_wallet_with_name": "You already have a wallet with this name, please choose another name."
 }

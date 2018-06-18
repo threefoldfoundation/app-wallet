@@ -4,14 +4,18 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
-import { CreatePaymentRequestContext, RogerthatContextType } from 'rogerthat-plugin';
-import { CreatePaymentRequestContext, PaymentRequestData, RogerthatContextType } from 'rogerthat-plugin';
-import { MessageEmbeddedApp, PayWidgetContextData } from 'rogerthat-plugin/www/rogerthat-payment';
+import { CreatePaymentRequestContext, PaymentRequestContext, RogerthatContextType, MessageEmbeddedApp, PayWidgetContextData } from 'rogerthat-plugin';
 import { configuration } from '../configuration';
 import { WalletChooserPageComponent } from '../pages/wallet-manager';
 import { PayWidgetPageComponent } from '../pages/wallet';
+import { CreateTransactionResult } from '../interfaces/wallet';
 import { PaymentRequestPageComponent } from '../pages/payments';
-import { CreatePaymentRequestPageComponent, PayWidgetPageComponent, WalletPageComponent } from '../pages/wallet';
+import {
+  CreatePaymentRequestPageComponent,
+  PayWidgetPageComponent,
+  TransactionDetailPageComponent,
+  WalletPageComponent
+} from '../pages/wallet';
 import { ErrorService, RogerthatService } from '../services';
 
 interface RootPage {
@@ -94,7 +98,12 @@ export class AppComponent implements OnInit {
         case RogerthatContextType.CREATE_PAYMENT_REQUEST:
           return { page: CreatePaymentRequestPageComponent, params: { payContext: data.context as CreatePaymentRequestContext } };
         case RogerthatContextType.PAYMENT_REQUEST:
-          return { page: PaymentRequestPageComponent, params: { payContext: data.context as MessageEmbeddedApp } };
+          const payContext: PaymentRequestContext = data.context;
+          if (payContext.data.result) {
+            const parsedResult = JSON.parse(payContext.data.result) as CreateTransactionResult;
+            return { page: TransactionDetailPageComponent, params: { transactionId: parsedResult.transactionid } };
+          }
+          return { page: PaymentRequestPageComponent, params: { payContext } };
         default:
             const content = {
               success: false,
