@@ -5,17 +5,16 @@ import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 import { map, startWith, withLatestFrom } from 'rxjs/operators';
-import { CURRENCY_SYMBOL } from '../../interfaces';
-import { getAddress, IAppState } from '../../state';
+import { getAddress, getKeyPairProvider, IAppState } from '../../state';
 import { filterNull } from '../../util';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   templateUrl: 'receive-page.component.html',
-  styles: [`.address-line {
+  styles: [ `.address-line {
     max-width: 100%;
-  }`],
+  }` ],
 })
 export class ReceivePageComponent implements OnInit {
   @ViewChild('address') address: ElementRef;
@@ -37,8 +36,8 @@ export class ReceivePageComponent implements OnInit {
     );
     this.qrContent$ = this.amountControl.valueChanges.pipe(
       startWith(''),
-      withLatestFrom(this.address$),
-      map(([amount, address]) => `${CURRENCY_SYMBOL}:${address}?amount=${parseFloat(amount) || 0}`),
+      withLatestFrom(this.address$, this.store.pipe(select(getKeyPairProvider), filterNull())),
+      map(([ amount, address, provider ]) => `${provider.symbol}:${address}?amount=${parseFloat(amount) || 0}`),
     );
   }
 

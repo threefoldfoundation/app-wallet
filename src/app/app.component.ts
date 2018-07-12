@@ -7,6 +7,7 @@ import { Platform } from 'ionic-angular';
 import { configuration } from '../configuration';
 import { PaymentQRCodeType } from '../interfaces';
 import { PayWidgetPageComponent, WalletPageComponent } from '../pages/wallet';
+import { WalletChooserPageComponent } from '../pages/wallet-manager';
 import { ErrorService, RogerthatService } from '../services';
 
 interface RootPage {
@@ -86,10 +87,10 @@ export class AppComponent implements OnInit {
       switch (data.context.t) {
         case PaymentQRCodeType.TRANSACTION:
           // Currently not supported, just show the wallet instead
-          return {page: WalletPageComponent, params: null};
+          return {page: WalletChooserPageComponent, params: null};
         case PaymentQRCodeType.PAY:
           const payContext: any = data.context; // type PayWidgetData
-          return {page: PayWidgetPageComponent, params: {payContext}};
+          return {page: WalletChooserPageComponent, params: {payContext, nextPage: PayWidgetPageComponent}};
         default:
           if (data.context.result_type === 'plugin') {
             const msg = this.translate.instant('not_supported_ensure_latest_version', {appName: rogerthat.system.appName});
@@ -105,6 +106,6 @@ export class AppComponent implements OnInit {
           }
       }
     }
-    return { page: WalletPageComponent, params: null };
+    return { page: WalletChooserPageComponent, params: null };
   }
 }

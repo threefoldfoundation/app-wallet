@@ -1,5 +1,6 @@
 import { createSelector } from '@ngrx/store';
-import { CryptoTransaction } from 'rogerthat-plugin';
+import { CryptoTransaction, KeyPair } from 'rogerthat-plugin';
+import { configuration, getProviderById } from '../configuration';
 import {
   apiRequestInitial,
   ApiRequestStatus,
@@ -7,6 +8,7 @@ import {
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
+  KeyPairArbitraryData,
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
@@ -29,6 +31,7 @@ export interface IWalletState {
   latestBlockStatus: ApiRequestStatus;
   block: ExplorerBlockGET | null;
   blockStatus: ApiRequestStatus;
+  selectedKeyPair: KeyPair | null;
 }
 
 export const getWalletState = (state: IAppState) => state.wallet;
@@ -48,6 +51,7 @@ export const initialWalletState: IWalletState = {
   latestBlockStatus: apiRequestInitial,
   block: null,
   blockStatus: apiRequestInitial,
+  selectedKeyPair: null,
 };
 
 export const getHashInfo = createSelector(getWalletState, s => s.hashInfo);
@@ -84,3 +88,16 @@ export const createTransactionStatus = createSelector(getWalletState, s => s.cre
 export const getBlock = createSelector(getWalletState, s => s.block);
 export const getBlockStatus = createSelector(getWalletState, s => s.blockStatus);
 
+export const getSelectedKeyPair = createSelector(getWalletState, s => s.selectedKeyPair);
+export const getKeyPairProviderId = createSelector(getSelectedKeyPair, keyPair => {
+  if (keyPair) {
+    if (keyPair.arbitrary_data) {
+      const data: KeyPairArbitraryData = JSON.parse(keyPair.arbitrary_data);
+      return data.provider_id;
+    }
+    return configuration.defaultProviderId;
+  }
+  return null;
+});
+
+export const getKeyPairProvider = createSelector(getKeyPairProviderId, providerId => getProviderById(providerId));

@@ -1,10 +1,14 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
 import {
   CameraType,
   CryptoAddress,
   CryptoSignature,
   CryptoTransaction,
+  KeyPair,
+  KeyPairList,
+  PublicKey,
   RogerthatCallbacks,
   RogerthatError,
   SignatureData,
@@ -12,7 +16,7 @@ import {
 } from 'rogerthat-plugin';
 import { Observable, Subject } from 'rxjs';
 import { ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
-import { GetAddressPayload } from '../interfaces';
+import { CreateKeyPair, GetAddressPayload } from '../interfaces';
 import { IAppState } from '../state';
 import { I18nService } from './i18n.service';
 
@@ -28,7 +32,8 @@ export class RogerthatService {
 
   constructor(private i18nService: I18nService,
               private ngZone: NgZone,
-              private store: Store<IAppState>) {
+              private store: Store<IAppState>,
+              private translate: TranslateService) {
   }
 
   initialize() {
@@ -39,8 +44,8 @@ export class RogerthatService {
     cb.qrCodeScanned(result => this.ngZone.run(() => this.store.dispatch(new ScanQrCodeUpdateAction(result))));
     cb.userDataUpdated(() => this.ngZone.run(() => this.store.dispatch(new SetUserDataAction(rogerthat.user.data))));
     cb.serviceDataUpdated(() => this.ngZone.run(() => this.store.dispatch(new SetServiceDataAction(rogerthat.service.data))));
-    const [major, minor, patch] = rogerthat.system.appVersion.split('.').slice(0, 3).map(s => parseInt(s));
-    this._version = {major, minor, patch};
+    const [ major, minor, patch ] = rogerthat.system.appVersion.split('.').slice(0, 3).map(s => parseInt(s));
+    this._version = { major, minor, patch };
   }
 
   getVersion() {
@@ -119,11 +124,11 @@ export class RogerthatService {
         let signedCounter = updatedTransaction.data.length;
         for (let i = 0; i < updatedTransaction.data.length; i++) {
           rogerthat.security.sign(signature => processSignature(signature, i), signError, algorithm, keyName, index, unlockMessage,
-            updatedTransaction.data[i].signature_hash, false, false);
+            updatedTransaction.data[ i ].signature_hash, false, false);
         }
 
         function processSignature(signature: CryptoSignature, dataIndex: number) {
-          updatedTransaction.data[dataIndex].signature = signature.payload_signature;
+          updatedTransaction.data[ dataIndex ].signature = signature.payload_signature;
           signedCounter--;
           if (signedCounter === 0) {
             // Everything signed, return updated transaction with signatures
@@ -135,8 +140,46 @@ export class RogerthatService {
         }
 
         function signError(exception: RogerthatError) {
-          error({message: exception.message, code: 'failed_to_sign_transaction'});
+          error({ message: exception.message, code: 'failed_to_sign_transaction' });
         }
+      }
+
+      function error(err: RogerthatError) {
+        zone.run(() => {
+          emitter.error(err);
+        });
+      }
+    });
+  }
+
+  listKeyPairs(): Observable<KeyPair[]> {
+    return Observable.create((emitter: Subject<KeyPair[]>) => {
+      const success = (result: KeyPairList) => {
+        this.ngZone.run(() => {
+          emitter.next(result.keyPairs);
+          emitter.complete();
+        });
+      };
+
+      const error = (err: RogerthatError) => {
+        this.ngZone.run(() => {
+          emitter.error(err);
+        });
+      };
+      rogerthat.security.listKeyPairs(success, error);
+    });
+  }
+
+  createKeyPair(keyPair: CreateKeyPair): Observable<PublicKey> {
+    const zone = this.ngZone;
+    return Observable.create((emitter: Subject<PublicKey>) => {
+      const msg = this.translate.instant('please_enter_a_pin_code_for_this_wallet');
+      rogerthat.security.createKeyPair(success, error, keyPair.algorithm, keyPair.name, msg, false, keyPair.seed, keyPair.arbitrary_data);
+
+      function success(publicKey: PublicKey) {
+        zone.run(() => {
+          emitter.next(publicKey);
+        });
       }
 
       function error(err: RogerthatError) {

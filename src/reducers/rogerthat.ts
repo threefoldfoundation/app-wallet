@@ -48,6 +48,31 @@ export function rogerthatReducer(state = initialRogerthatState, action: Rogertha
         ...state,
         addressStatus: action.payload,
       };
+    case RogerthatActionTypes.LIST_KEY_PAIRS:
+      return {
+        ...state,
+        securityKeys: [],
+      };
+    case RogerthatActionTypes.LIST_KEY_PAIRS_COMPLETE:
+      return {
+        ...state,
+        securityKeys: action.payload,
+      };
+    case RogerthatActionTypes.CREATE_KEYPAIR:
+      return {
+        ...state,
+        createKeyPairStatus: apiRequestLoading,
+      };
+    case RogerthatActionTypes.CREATE_KEYPAIR_COMPLETE:
+      return {
+        ...state,
+        createKeyPairStatus: apiRequestSuccess,
+      };
+    case RogerthatActionTypes.CREATE_KEYPAIR_FAILED:
+      return {
+        ...state,
+        createKeyPairStatus: apiRequestSuccess,
+      };
   }
   return state;
 }

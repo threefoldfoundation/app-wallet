@@ -3,8 +3,8 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { RogerthatActions } from '../actions';
 import * as actions from '../actions/rogerthat.actions';
-import { RogerthatService } from '../services/rogerthat.service';
-import { handleError } from '../util/rpc';
+import { RogerthatService } from '../services';
+import { handleError } from '../util';
 
 @Injectable()
 export class RogerthatEffects {
@@ -30,6 +30,21 @@ export class RogerthatEffects {
       action.index, action.message).pipe(
       map(transaction => new actions.CreateTransactionDataCompleteAction(transaction)),
       catchError(err => handleError(actions.CreateTransactionDataFailedAction, err))),
+    ));
+
+  @Effect() listSecurityKeys$ = this.actions$.pipe(
+    ofType<actions.ListKeyPairsAction>(actions.RogerthatActionTypes.LIST_KEY_PAIRS),
+    switchMap(() => this.rogerthatService.listKeyPairs().pipe(
+      map(keys => new actions.ListKeyPairsCompleteAction(keys)),
+      catchError(err => handleError(actions.ListKeyPairsFailedAction, err))),
+    ));
+
+
+  @Effect() createKeyPair$ = this.actions$.pipe(
+    ofType<actions.CreateKeyPairAction>(actions.RogerthatActionTypes.CREATE_KEYPAIR),
+    switchMap(action => this.rogerthatService.createKeyPair(action.payload).pipe(
+      map(keyPair => new actions.CreateKeyPairCompleteAction(keyPair)),
+      catchError(err => handleError(actions.CreateKeyPairFailedAction, err))),
     ));
 
   constructor(private actions$: Actions<RogerthatActions>,

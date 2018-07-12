@@ -5,8 +5,8 @@ import { Alert, AlertController, ModalController, Refresher } from 'ionic-angula
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { combineLatest, interval, Observable, Subscription } from 'rxjs';
 import { first, map, withLatestFrom } from 'rxjs/operators';
-import { GetAddresssAction, GetHashInfoAction, GetLatestBlockAction, } from '../../actions';
-import { ApiRequestStatus, ExplorerBlock, KEY_NAME, ParsedTransaction, PendingTransaction, RIVINE_ALGORITHM, } from '../../interfaces';
+import { GetAddresssAction, GetHashInfoAction, GetLatestBlockAction } from '../../actions';
+import { ApiRequestStatus, ExplorerBlock, ParsedTransaction, PendingTransaction } from '../../interfaces';
 import { ErrorService } from '../../services';
 import {
   getAddress,
@@ -14,6 +14,7 @@ import {
   getLatestBlock,
   getLatestBlockStatus,
   getPendingTransactions,
+  getSelectedKeyPair,
   getTotalLockedAmount,
   getTotalUnlockedAmount,
   getTransactions,
@@ -28,10 +29,10 @@ import { TransactionDetailPageComponent } from './transaction-detail-page.compon
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.Emulated,
   templateUrl: 'transactions-list-page.component.html',
-  styles: [`.send-receive-text {
+  styles: [ `.send-receive-text {
     text-transform: uppercase;
     font-weight: bold;
-  }`],
+  }` ],
 })
 export class TransactionsListPageComponent implements OnInit, OnDestroy {
   @ViewChild(Refresher) refresher: Refresher;
@@ -56,12 +57,14 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.store.dispatch(new GetAddresssAction({
-      algorithm: RIVINE_ALGORITHM,
-      index: 0,
-      keyName: KEY_NAME,
-      message: this.translate.instant('please_enter_your_pin'),
-    }));
+    this._subscriptions.push(this.store.pipe(select(getSelectedKeyPair), filterNull()).subscribe(keyPair =>
+      this.store.dispatch(new GetAddresssAction({
+        algorithm: keyPair.algorithm,
+        index: 0,
+        keyName: keyPair.name,
+        message: this.translate.instant('please_enter_your_pin'),
+      })),
+    ));
     this.address$ = this.store.pipe(select(getAddress), filterNull());
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this.transactions$ = this.store.pipe(select(getTransactions));
@@ -70,11 +73,11 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
       this.store.pipe(select(getTransactionsStatus)),
       this.store.pipe(select(getAddressStatus)),
       this.store.pipe(select(getLatestBlockStatus)),
-    ).pipe(map(([s1, s2, s3]) => combineRequestStatuses(s1, s2, s3)));
+    ).pipe(map(([ s1, s2, s3 ]) => combineRequestStatuses(s1, s2, s3)));
     this.totalUnlockedAmount$ = this.store.pipe(select(getTotalUnlockedAmount));
     this.totalLocked$ = this.store.pipe(select(getTotalLockedAmount));
     this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());
-    this._subscriptions.push(this.addressStatus$.pipe(withLatestFrom(this.address$)).subscribe(([s, address]) => {
+    this._subscriptions.push(this.addressStatus$.pipe(withLatestFrom(this.address$)).subscribe(([ s, address ]) => {
       if (!s.success && !s.loading && s.error !== null) {
         return this._showErrorDialog(s.error.error);
       } else if (s.success) {
@@ -90,7 +93,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     }));
     // Refresh transactions every 5 minutes
     this._subscriptions.push(
-      interval(300000).pipe(withLatestFrom(this.address$)).subscribe(([_, address]) => this.getTransactions(address.address))
+      interval(300000).pipe(withLatestFrom(this.address$)).subscribe(([ _, address ]) => this.getTransactions(address.address)),
     );
   }
 
@@ -136,7 +139,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
       this.errorAlert = this.alertCtrl.create({
         title: this.translate.instant('error'),
         message: msg,
-        buttons: [this.translate.instant('ok')],
+        buttons: [ this.translate.instant('ok') ],
       });
       this.errorAlert.present();
       this.errorAlert.onDidDismiss(() => {
