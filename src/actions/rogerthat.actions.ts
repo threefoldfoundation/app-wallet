@@ -1,10 +1,10 @@
 import { Action } from '@ngrx/store';
 import {
   CameraType,
+  CreateKeyPairResult,
   CryptoAddress,
   CryptoTransaction,
   KeyPair,
-  PublicKey,
   QrCodeScannedContent,
   RogerthatError,
   SupportedAlgorithms,
@@ -142,14 +142,14 @@ export class CreateKeyPairAction implements Action {
 export class CreateKeyPairCompleteAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_KEYPAIR_COMPLETE;
 
-  constructor(public payload: PublicKey) {
+  constructor(public payload: CreateKeyPairResult) {
   }
 }
 
 export class CreateKeyPairFailedAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_KEYPAIR_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 

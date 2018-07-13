@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
-import { CryptoAddress, QrCodeScannedContent } from 'rogerthat-plugin';
+import { CryptoAddress, KeyPair, QrCodeScannedContent } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
 import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { GetAddresssAction, GetHashInfoAction, ScanQrCodeAction } from '../../actions';
 import { Provider } from '../../configuration';
-import { CreateSignatureData, CreateTransactionResult, KeyPair } from '../../interfaces';
+import { CreateSignatureData, CreateTransactionResult } from '../../interfaces';
 import { getAddress, getKeyPairProvider, getQrCodeContent, getSelectedKeyPair, getTransactionsStatus, IAppState } from '../../state';
 import { filterNull, isUnrecognizedHashError, parseQuery } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
@@ -63,7 +63,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
       this.store.dispatch(new GetAddresssAction({
         algorithm: keyPair.algorithm,
         index: 0,
-        keyName: keyPair.key_name,
+        keyName: keyPair.name,
         message: this.translate.instant('please_enter_your_pin'),
       })));
     this.address$ = this.store.pipe(select(getAddress), filterNull());

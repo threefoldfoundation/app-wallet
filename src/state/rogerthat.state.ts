@@ -1,5 +1,5 @@
 import { createSelector } from '@ngrx/store';
-import { CryptoAddress, KeyPair, QrCodeScannedContent, RogerthatError } from 'rogerthat-plugin';
+import { CreateKeyPairResult, CryptoAddress, KeyPair, QrCodeScannedContent, RogerthatError } from 'rogerthat-plugin';
 import { apiRequestInitial, ApiRequestStatus, ServiceData, UserData } from '../interfaces';
 import { IAppState } from './app.state';
 
@@ -11,6 +11,7 @@ export interface IRogerthatState<UserDataType = any, ServiceDataType = any> {
   qrCodeContent: QrCodeScannedContent | null;
   qrCodeError: RogerthatError | null;
   securityKeys: KeyPair[];
+  keyPair: CreateKeyPairResult | null;
   createKeyPairStatus: ApiRequestStatus<RogerthatError>;
 }
 
@@ -24,6 +25,7 @@ export const initialRogerthatState: IRogerthatState<UserData, ServiceData> = {
   qrCodeContent: null,
   qrCodeError: null,
   securityKeys: [],
+  keyPair: null,
   createKeyPairStatus: apiRequestInitial,
 };
 

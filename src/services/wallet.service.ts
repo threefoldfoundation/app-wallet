@@ -228,10 +228,11 @@ export class WalletService {
 
   private _getUrl(provider: Provider) {
     // Reset unavailable explorers when all of them are unavailable
-    if (this.unavailableExplorers.length === provider.explorerUrls.length) {
+    let urls = provider.explorerUrls.filter(url => this.unavailableExplorers.indexOf(url) === -1);
+    if (!urls.length) {
       this.unavailableExplorers = [];
+      urls = provider.explorerUrls;
     }
-    const urls = provider.explorerUrls.filter(url => this.unavailableExplorers.indexOf(url) === -1);
     return urls[ Math.floor(Math.random() * urls.length) ];
   }
 }

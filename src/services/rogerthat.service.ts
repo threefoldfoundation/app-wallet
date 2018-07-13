@@ -2,7 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  CameraType,
+  CameraType, CreateKeyPairResult,
   CryptoAddress,
   CryptoSignature,
   CryptoTransaction,
@@ -170,15 +170,15 @@ export class RogerthatService {
     });
   }
 
-  createKeyPair(keyPair: CreateKeyPair): Observable<PublicKey> {
+  createKeyPair(keyPair: CreateKeyPair): Observable<CreateKeyPairResult> {
     const zone = this.ngZone;
-    return Observable.create((emitter: Subject<PublicKey>) => {
+    return Observable.create((emitter: Subject<CreateKeyPairResult>) => {
       const msg = this.translate.instant('please_enter_a_pin_code_for_this_wallet');
       rogerthat.security.createKeyPair(success, error, keyPair.algorithm, keyPair.name, msg, false, keyPair.seed, keyPair.arbitrary_data);
 
-      function success(publicKey: PublicKey) {
+      function success(result: CreateKeyPairResult) {
         zone.run(() => {
-          emitter.next(publicKey);
+          emitter.next(result);
         });
       }
 

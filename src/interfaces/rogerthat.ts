@@ -1,4 +1,4 @@
-import { PaymentProviderId, KeyPair } from 'rogerthat-plugin';
+import { KeyPair, PaymentProviderId } from 'rogerthat-plugin';
 
 export type UserData = Readonly<Partial<any>>;
 export type ServiceData = Readonly<Partial<any>>;

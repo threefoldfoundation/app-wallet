@@ -61,11 +61,13 @@ export function rogerthatReducer(state = initialRogerthatState, action: Rogertha
     case RogerthatActionTypes.CREATE_KEYPAIR:
       return {
         ...state,
+        keyPair: null,
         createKeyPairStatus: apiRequestLoading,
       };
     case RogerthatActionTypes.CREATE_KEYPAIR_COMPLETE:
       return {
         ...state,
+        keyPair: action.payload,
         createKeyPairStatus: apiRequestSuccess,
       };
     case RogerthatActionTypes.CREATE_KEYPAIR_FAILED:

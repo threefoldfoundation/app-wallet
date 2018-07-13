@@ -4,23 +4,24 @@
   </ion-navbar>
 </ion-header>
 <ion-content padding>
-  <form (ngSubmit)="submit()">
+  <form (ngSubmit)="submit(form)" #form="ngForm">
     <ion-list>
       <ion-item>
         <ion-label color="primary" floating>{{ 'type' | translate }}</ion-label>
-        <ion-select name="providerId" [(ngModel)]="selectedProvider" required>
-          <ion-option *ngFor="let provider of providers" [value]="provider" (ngModelChange)="onProviderChange($event)">
+        <ion-select name="providerId" [(ngModel)]="selectedProvider" required
+                    (ngModelChange)="onProviderChange($event)">
+          <ion-option *ngFor="let provider of providers" [value]="provider">
             {{ provider.name }}
           </ion-option>
         </ion-select>
       </ion-item>
       <ion-item>
         <ion-label color="primary" floating>{{ 'name' | translate }}</ion-label>
-        <ion-input type="text" name="name" [(ngModel)]="newKeyPair.key_name" required></ion-input>
+        <ion-input type="text" name="name" [(ngModel)]="newKeyPair.name" required></ion-input>
       </ion-item>
       <ion-item *ngIf="importing">
         <ion-label color="primary" floating>{{ 'words_seed' | translate }}</ion-label>
-        <ion-textarea name="seed" [(ngModel)]="newKeyPair.seed" required></ion-textarea>
+        <ion-textarea name="seed" rows="3" [(ngModel)]="newKeyPair.seed" required></ion-textarea>
       </ion-item>
     </ion-list>
     <button ion-button>{{ buttonText }}</button>
