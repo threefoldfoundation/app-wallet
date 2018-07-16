@@ -46,7 +46,7 @@
     "ionicons": "4.2.4",
     "minimist": "^1.2.0",
     "ngx-clipboard": "^11.1.1",
-    "rogerthat-plugin": "git+https://github.com/our-city-app/cordova-mobicage-plugin.git#master",
+    "rogerthat-plugin": "git+https://github.com/our-city-app/cordova-mobicage-plugin.git#keypair_list",
     "rxjs": "^6.2.1",
     "rxjs-compat": "^6.2.1",
     "sw-toolbox": "3.6.0",
@@ -57,7 +57,7 @@
     "@types/node": "^10.5.2",
     "codelyzer": "^4.4.2",
     "ionic": "3.20.0",
-    "typescript": "~2.9.2"
+    "typescript": "~2.7.2"
   },
   "description": "An Ionic project",
   "cordova": {
