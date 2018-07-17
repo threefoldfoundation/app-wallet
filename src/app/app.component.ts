@@ -48,11 +48,11 @@ export class AppComponent implements OnInit {
         const version = this.rogerthatService.getVersion();
         let mustUpdate = false;
         if (rogerthat.system.os === 'ios') {
-          if (version.patch < 2681) {
+          if (version.patch < 2947) {
             mustUpdate = true;
           }
         } else {
-          if (version.patch < 3916) {
+          if (version.patch < 4235) {
             mustUpdate = true;
           }
         }
