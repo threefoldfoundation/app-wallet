@@ -10,8 +10,21 @@
 </ion-header>
 <ion-content padding>
   <ion-list>
-    <ion-item *ngFor="let keyPair of keyPairs$ | async" (click)="nextPage(keyPair)">{{ keyPair.name }}</ion-item>
+    <ion-item *ngFor="let keyPair of keyPairs$ | async" (click)="nextPage(keyPair.keyPair)">
+      <ion-thumbnail item-start>
+        <img [src]="keyPair.provider.logoPath" [alt]="keyPair.provider.name"/>
+      </ion-thumbnail>
+      <h2>{{ keyPair.provider.name }}</h2>
+    </ion-item>
   </ion-list>
+  <div *ngIf="!(hasWallets$ | async)">
+    <ion-row justify-content-center>
+      <p>{{ 'no_wallet_message' | translate }}</p>
+    </ion-row>
+    <ion-row justify-content-center>
+      <button ion-button (click)="openNewWalletPage()">{{ 'add_wallet' | translate }}</button>
+    </ion-row>
+  </div>
   <ion-fab bottom right>
     <button ion-fab (click)="openNewWalletPage()">
       <ion-icon name="add"></ion-icon>

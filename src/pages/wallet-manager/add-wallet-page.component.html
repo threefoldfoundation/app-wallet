@@ -10,8 +10,7 @@
         <ion-label color="primary" floating>{{ 'type' | translate }}</ion-label>
         <ion-select name="providerId" [(ngModel)]="selectedProvider" required
                     (ngModelChange)="onProviderChange($event)">
-          <ion-option *ngFor="let provider of providers" [value]="provider">
-            {{ provider.name }}
+          <ion-option *ngFor="let provider of providers" [value]="provider" [innerHTML]="provider.name">
           </ion-option>
         </ion-select>
       </ion-item>

@@ -23,8 +23,28 @@ To test it, either upload it as a branding on your rogerthat server or add this 
     function nothing() {
     }
 
+    var context = {
+      type: 'payment-request',
+      data: {
+        context: JSON.stringify({
+          type: 'payment-request',
+          data: {
+            to: 'adfsafdafa',
+            amount: 900000000000,
+            precision: 9,
+            currency: 'TFT',
+            test_mode: true,
+            memo: 'this is a fancy memo',
+          }
+        }),
+        result: JSON.stringify({
+          transactionid: '1b9ec247fd02890dff5e456cb13332935c507678757d7bc7396c027b824b2398'
+        })
+      }
+    };
+
     rogerthat = {
-      context: func => func({context: null}),
+      context: func => func({context}),
       api: {
         call: nothing,
         callbacks: {
@@ -51,7 +71,14 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         data: {}
       },
       security: {
-        getAddress: success => success({address: '015df22a2e82a3323bc6ffbd1730450ed844feca711c8fe0c15e218c171962fd17b206263220ee'})
+        getAddress: success => success({address: '0198c17d14518655266986a55c6756dc3e79c0e7f49373f23ebaae7db9e67532ccea7043ebd9fb'}),
+        listKeyPairs: success => success({
+          keyPairs: [{
+            algorithm: 'ed25519',
+            name: 'ThreeFold',
+            arbitrary_data: '{"provider_id":"threefold"}'
+          }]
+        })
       },
       menuItem: null,
       util: {

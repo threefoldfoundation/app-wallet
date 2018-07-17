@@ -4,8 +4,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { AlertController, NavController, NavParams, Platform } from 'ionic-angular';
 import { KeyPair } from 'rogerthat-plugin';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ListKeyPairsAction, SetSelectedKeyPairAction } from '../../actions';
-import { getKeyPairs, IAppState } from '../../state';
+import { Provider } from '../../configuration';
+import { getKeyPairMapping, IAppState } from '../../state';
 import { WalletPageComponent } from '../wallet';
 import { AddWalletPageComponent } from './add-wallet-page.component';
 
@@ -14,7 +16,8 @@ import { AddWalletPageComponent } from './add-wallet-page.component';
   templateUrl: 'wallet-chooser-page.component.html',
 })
 export class WalletChooserPageComponent implements OnInit {
-  keyPairs$: Observable<KeyPair[]>;
+  keyPairs$: Observable<{ keyPair: KeyPair, provider: Provider }[]>;
+  hasWallets$: Observable<boolean>;
 
   constructor(private store: Store<IAppState>,
               private navParams: NavParams,
@@ -26,7 +29,8 @@ export class WalletChooserPageComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new ListKeyPairsAction());
-    this.keyPairs$ = this.store.pipe(select(getKeyPairs));
+    this.keyPairs$ = this.store.pipe(select(getKeyPairMapping));
+    this.hasWallets$ = this.keyPairs$.pipe(map(pairs => pairs.length > 0));
   }
 
   close() {

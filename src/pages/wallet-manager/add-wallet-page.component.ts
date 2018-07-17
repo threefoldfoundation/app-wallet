@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -42,7 +42,8 @@ export class AddWalletPageComponent implements OnInit, OnDestroy {
               private translate: TranslateService,
               private alertController: AlertController,
               private store: Store<IAppState>,
-              private actions$: Actions) {
+              private actions$: Actions,
+              private cdRef: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -70,6 +71,8 @@ export class AddWalletPageComponent implements OnInit, OnDestroy {
       }
       this.store.dispatch(new ListKeyPairsAction());
     });
+    // Else the dropdown value doesn't show up due to a bug in ionic
+    setInterval(() => this.cdRef.markForCheck(), 1);
   }
 
   ngOnDestroy() {
