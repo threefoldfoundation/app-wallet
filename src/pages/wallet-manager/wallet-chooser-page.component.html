@@ -15,6 +15,7 @@
         <img [src]="keyPair.provider.logoPath" [alt]="keyPair.provider.name"/>
       </ion-thumbnail>
       <h2>{{ keyPair.provider.name }}</h2>
+      <h3>{{ keyPair.keyPair.name }}</h3>
     </ion-item>
   </ion-list>
   <div *ngIf="!(hasWallets$ | async)">
