@@ -6,7 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
 import { configuration } from '../configuration';
 import { PaymentQRCodeType } from '../interfaces';
-import { PayWidgetPageComponent, WalletPageComponent } from '../pages/wallet';
+import { PayWidgetPageComponent } from '../pages/wallet';
 import { WalletChooserPageComponent } from '../pages/wallet-manager';
 import { ErrorService, RogerthatService } from '../services';
 
@@ -58,7 +58,7 @@ export class AppComponent implements OnInit {
         }
         this.rogerthatService.getContext().subscribe(context => {
           const root = this.processContext(context);
-          if (mustUpdate && root && root.page === WalletPageComponent) {
+          if (mustUpdate) {
             const alert = this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
             alert.onDidDismiss(() => platform.exitApp());
             return;
