@@ -8,8 +8,8 @@ import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { GetAddresssAction, GetHashInfoAction, ScanQrCodeAction } from '../../actions';
 import { Provider } from '../../configuration';
 import { CreateSignatureData, CreateTransactionResult } from '../../interfaces';
-import { getAddress, getKeyPairProvider, getQrCodeContent, getSelectedKeyPair, getTransactionsStatus, IAppState } from '../../state';
-import { filterNull, isUnrecognizedHashError, parseQuery } from '../../util';
+import { getAddress, getKeyPairProvider, getQrCodeContent, getSelectedKeyPair, getTransactions, IAppState } from '../../state';
+import { filterNull, parseQuery } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 const PRECISION = 5;
@@ -53,8 +53,8 @@ export class SendPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.hasTransactions$ = this.store.pipe(
-      select(getTransactionsStatus),
-      map(s => s.error === null || !isUnrecognizedHashError(s.error.error)));
+      select(getTransactions),
+      map(transactions => transactions.length > 0));
 
     this.keyPair$ = this.store.pipe(select(getSelectedKeyPair), filterNull());
     this.currentProvider$ = this.store.pipe(select(getKeyPairProvider), filterNull());

@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { combineLatest, of } from 'rxjs';
+import { combineLatest, of, Subscription } from 'rxjs';
 import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as actions from '../actions';
 import { WalletService } from '../services';
@@ -9,7 +9,7 @@ import { getAddress, getHashInfo, getHashInfoStatus, getLatestBlock, IAppState }
 import { filterNull, handleError, isUnrecognizedHashError } from '../util';
 
 @Injectable()
-export class WalletEffects {
+export class WalletEffects implements OnDestroy {
 
   @Effect() getHashInfo$ = this.actions$.pipe(
     ofType<actions.GetHashInfoAction>(actions.WalletActionTypes.GET_HASH_INFO),
@@ -81,10 +81,12 @@ export class WalletEffects {
       catchError(err => handleError(actions.GetBlockFailedAction, err))),
     ));
 
+  private _transactionsSub: Subscription;
+
   constructor(private actions$: Actions<actions.WalletActions>,
               private store: Store<IAppState>,
               private walletService: WalletService) {
-    combineLatest(this.store.pipe(select(getHashInfoStatus)),
+    this._transactionsSub = combineLatest(this.store.pipe(select(getHashInfoStatus)),
       this.store.pipe(select(getLatestBlock)),
       this.store.pipe(select(getAddress))
     ).subscribe(([hashInfoStatus, latestBlock, address]) => {
@@ -93,5 +95,9 @@ export class WalletEffects {
         this.store.dispatch(new actions.GetTransactionsAction(address.address));
       }
     });
+  }
+
+  ngOnDestroy() {
+    this._transactionsSub.unsubscribe();
   }
 }

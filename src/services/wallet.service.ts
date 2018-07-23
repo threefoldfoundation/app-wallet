@@ -174,29 +174,29 @@ export class WalletService {
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
-    return timer(0).pipe(
-      switchMap(() => this.store.pipe(select(getKeyPairProvider), filterNull())),
-      mergeMap(provider => {
+    return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
+      switchMap(provider => {
         currentUrl = this._getUrl(provider);
-        return this.http.get<T>(`${currentUrl}${path}`, options);
-      }),
-      timeout(5000),
-      retryWhen(attempts => {
-        return attempts.pipe(mergeMap(error => {
-          if (error instanceof HttpErrorResponse && typeof error.error === 'object'
-            && isUnrecognizedHashError(error.error.message)) {
-            // Don't retry in case the hash wasn't recognized
-            return throwError(error);
-          }
-          retries++;
-          const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
-            || error instanceof TimeoutError;
-          if (retries < 5 && shouldRetry) {
-            this.unavailableExplorers.push(currentUrl);
-            return timer(0);
-          }
-          return throwError(error);
-        }));
+        return this.http.get<T>(`${currentUrl}${path}`, options).pipe(
+          timeout(5000),
+          retryWhen(attempts => {
+            return attempts.pipe(mergeMap(error => {
+              if (error instanceof HttpErrorResponse && typeof error.error === 'object'
+                && isUnrecognizedHashError(error.error.message)) {
+                // Don't retry in case the hash wasn't recognized
+                return throwError(error);
+              }
+              retries++;
+              const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
+                || error instanceof TimeoutError;
+              if (retries < 5 && shouldRetry) {
+                this.unavailableExplorers.push(currentUrl);
+                return timer(0);
+              }
+              return throwError(error);
+            }));
+          })
+        );
       }),
     );
   }
@@ -204,24 +204,24 @@ export class WalletService {
   private _post<T>(path: string, body: any | null, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
-    return timer(0).pipe(
-      switchMap(() => this.store.pipe(select(getKeyPairProvider), filterNull())),
-      mergeMap(provider => {
+    return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
+      switchMap(provider => {
         currentUrl = this._getUrl(provider);
-        return this.http.post<T>(currentUrl + path, body, options);
-      }),
-      timeout(5000),
-      retryWhen(attempts => {
-        return attempts.pipe(mergeMap(error => {
-          retries++;
-          const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
-            || error instanceof TimeoutError;
-          if (retries < 5 && shouldRetry) {
-            this.unavailableExplorers.push(currentUrl);
-            return timer(0);
-          }
-          return throwError(error);
-        }));
+        return this.http.post<T>(currentUrl + path, body, options).pipe(
+          timeout(5000),
+          retryWhen(attempts => {
+            return attempts.pipe(mergeMap(error => {
+              retries++;
+              const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
+                || error instanceof TimeoutError;
+              if (retries < 5 && shouldRetry) {
+                this.unavailableExplorers.push(currentUrl);
+                return timer(0);
+              }
+              return throwError(error);
+            }));
+          })
+        );
       }),
     );
   }
