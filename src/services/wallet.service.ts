@@ -1,9 +1,10 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { select, Store } from '@ngrx/store';
 import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
 import { Observable, of, throwError, TimeoutError, timer } from 'rxjs';
 import { map, mergeMap, retryWhen, switchMap, timeout } from 'rxjs/operators';
-import { configuration } from '../configuration';
+import { Provider } from '../configuration';
 import {
   BlockFacts,
   COIN_TO_HASTINGS,
@@ -19,21 +20,24 @@ import {
   TransactionPool,
   TranslatedError,
 } from '../interfaces';
+import { getKeyPairProvider, IAppState } from '../state';
 import {
   convertPendingTransaction,
   convertToV1RawTransaction,
   convertToV1Transaction,
   convertTransaction,
+  filterNull,
   filterTransactionsByAddress,
   getInputIds,
-  isUnrecognizedHashError
+  isUnrecognizedHashError,
 } from '../util';
 
 @Injectable()
 export class WalletService {
   unavailableExplorers: string[] = [];
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,
+              private store: Store<IAppState>) {
     const resetDelay = 5 * 60 * 1000;
     timer(resetDelay, resetDelay).subscribe(() => {
       this.unavailableExplorers = [];
@@ -90,7 +94,7 @@ export class WalletService {
       let inputIds = getInputIds(hashInfo.transactions, data.from_address, latestBlock).available;
       const pendingOutputIds = pendingTransactions
         .map(t => <CoinInput[]>(t.data.coininputs || []))
-        .reduce((total: string[], inputs) => [...total, ...inputs.map(input => input.parentid)], []);
+        .reduce((total: string[], inputs) => [ ...total, ...inputs.map(input => input.parentid) ], []);
       inputIds = inputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
       const transactionData: CryptoTransactionData[] = [];
       const required = data.amount * COIN_TO_HASTINGS / Math.pow(10, data.precision);
@@ -121,11 +125,11 @@ export class WalletService {
           break;
         }
       }
-      transactionData[0].outputs.push({value: required.toString(), unlockhash: data.to_address});
+      transactionData[ 0 ].outputs.push({ value: required.toString(), unlockhash: data.to_address });
       // Send the rest (if any) to our address
       const difference = inputValue - requiredFunds;
       if (difference > 0) {
-        transactionData[0].outputs.push({value: difference.toString(), unlockhash: data.from_address});
+        transactionData[ 0 ].outputs.push({ value: difference.toString(), unlockhash: data.from_address });
       }
       return <CryptoTransaction>{
         minerfees: minerfees.toString(),
@@ -156,8 +160,8 @@ export class WalletService {
             },
           },
         })),
-        coinoutputs: data.data.reduce((total: CryptoTransactionOutput[], d) => ([...total, ...d.outputs]), []),
-        minerfees: [data.minerfees],
+        coinoutputs: data.data.reduce((total: CryptoTransactionOutput[], d) => ([ ...total, ...d.outputs ]), []),
+        minerfees: [ data.minerfees ],
       },
     };
     return this._post<CreateTransactionResult>(`/transactionpool/transactions`, transaction);
@@ -167,65 +171,68 @@ export class WalletService {
    * Executes a GET request to one of the available explorers.
    * Should the request fail, it is retried 4 more times to different explorers.
    */
-  private _get<T>(path: string, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {
+  private _get<T>(path: string, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
-    return timer(0).pipe(
-      mergeMap(() => {
-        currentUrl = this._getUrl();
-        return this.http.get<T>(`${currentUrl}${path}`, options);
-      }),
-      timeout(5000),
-      retryWhen(attempts => {
-        return attempts.pipe(mergeMap(error => {
-          if (error instanceof HttpErrorResponse && typeof error.error === 'object'
-            && isUnrecognizedHashError(error.error.message)) {
-            // Don't retry in case the hash wasn't recognized
-            return throwError(error);
-          }
-          retries++;
-          const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
-            || error instanceof TimeoutError;
-          if (retries < 5 && shouldRetry) {
-            this.unavailableExplorers.push(currentUrl);
-            return timer(0);
-          }
-          return throwError(error);
-        }));
+    return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
+      switchMap(provider => {
+        currentUrl = this._getUrl(provider);
+        return this.http.get<T>(`${currentUrl}${path}`, options).pipe(
+          timeout(5000),
+          retryWhen(attempts => {
+            return attempts.pipe(mergeMap(error => {
+              if (error instanceof HttpErrorResponse && typeof error.error === 'object'
+                && isUnrecognizedHashError(error.error.message)) {
+                // Don't retry in case the hash wasn't recognized
+                return throwError(error);
+              }
+              retries++;
+              const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
+                || error instanceof TimeoutError;
+              if (retries < 5 && shouldRetry) {
+                this.unavailableExplorers.push(currentUrl);
+                return timer(0);
+              }
+              return throwError(error);
+            }));
+          })
+        );
       }),
     );
   }
 
-  private _post<T>(path: string, body: any | null, options?: { headers?: HttpHeaders | { [header: string]: string | string[] } }) {
+  private _post<T>(path: string, body: any | null, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
     let currentUrl: string;
     let retries = 0;
-    return timer(0).pipe(
-      mergeMap(() => {
-        currentUrl = this._getUrl();
-        return this.http.post<T>(currentUrl + path, body, options);
-      }),
-      timeout(5000),
-      retryWhen(attempts => {
-        return attempts.pipe(mergeMap(error => {
-          retries++;
-          const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
-            || error instanceof TimeoutError;
-          if (retries < 5 && shouldRetry) {
-            this.unavailableExplorers.push(currentUrl);
-            return timer(0);
-          }
-          return throwError(error);
-        }));
+    return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
+      switchMap(provider => {
+        currentUrl = this._getUrl(provider);
+        return this.http.post<T>(currentUrl + path, body, options).pipe(
+          timeout(5000),
+          retryWhen(attempts => {
+            return attempts.pipe(mergeMap(error => {
+              retries++;
+              const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
+                || error instanceof TimeoutError;
+              if (retries < 5 && shouldRetry) {
+                this.unavailableExplorers.push(currentUrl);
+                return timer(0);
+              }
+              return throwError(error);
+            }));
+          })
+        );
       }),
     );
   }
 
-  private _getUrl() {
+  private _getUrl(provider: Provider) {
     // Reset unavailable explorers when all of them are unavailable
-    if (this.unavailableExplorers.length === configuration.explorer_urls.length) {
+    let urls = provider.explorerUrls.filter(url => this.unavailableExplorers.indexOf(url) === -1);
+    if (!urls.length) {
       this.unavailableExplorers = [];
+      urls = provider.explorerUrls;
     }
-    const urls = configuration.explorer_urls.filter(url => this.unavailableExplorers.indexOf(url) === -1);
-    return urls[Math.floor(Math.random() * urls.length)];
+    return urls[ Math.floor(Math.random() * urls.length) ];
   }
 }

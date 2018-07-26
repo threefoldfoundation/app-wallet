@@ -3,9 +3,9 @@ import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, NavParams, ViewController } from 'ionic-angular';
-import { CryptoTransaction } from 'rogerthat-plugin';
+import { CryptoTransaction, KeyPair } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
-import { first, switchMap } from 'rxjs/operators';
+import { first, switchMap, withLatestFrom } from 'rxjs/operators';
 import {
   CreateSignatureDataAction,
   CreateTransactionDataAction,
@@ -14,12 +14,13 @@ import {
   GetPendingTransactionsCompleteAction,
   WalletActionTypes,
 } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, KEY_NAME, RIVINE_ALGORITHM, } from '../../interfaces';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult } from '../../interfaces';
 import {
   createTransactionStatus,
   getCreatedTransaction,
   getPendingTransaction,
   getPendingTransactionStatus,
+  getSelectedKeyPair,
   IAppState,
 } from '../../state';
 import { filterNull } from '../../util';
@@ -35,6 +36,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   pendingTransactionStatus$: Observable<ApiRequestStatus>;
   createTransactionStatus$: Observable<ApiRequestStatus>;
   transaction$: Observable<CreateTransactionResult>;
+  keyPair$: Observable<KeyPair>;
 
   private _transactionCompleteSub: Subscription;
   private _pendingTransactionSubscription: Subscription | null = null;
@@ -65,6 +67,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
     this.pendingTransactionStatus$ = this.store.pipe(select(getPendingTransactionStatus));
     this.createTransactionStatus$ = this.store.pipe(select(createTransactionStatus));
     this.transaction$ = this.store.pipe(select(getCreatedTransaction), filterNull());
+    this.keyPair$ = this.store.pipe(select(getSelectedKeyPair), filterNull());
     this._transactionCompleteSub = this.actions$.pipe(
       ofType(WalletActionTypes.CREATE_TRANSACTION_COMPLETE),
       switchMap(() => this.transaction$),
@@ -82,8 +85,11 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
 
   onConfirm() {
     const msg = this.translate.instant('enter_your_pin_to_sign_transaction');
-    this.pendingTransaction$.pipe(first()).subscribe(transaction => {
-      this.store.dispatch(new CreateTransactionDataAction(transaction, KEY_NAME, RIVINE_ALGORITHM, 0, msg));
+    this.pendingTransaction$.pipe(
+      first(),
+      withLatestFrom(this.keyPair$.pipe(first())),
+    ).subscribe(([ transaction, keyPair ]) => {
+      this.store.dispatch(new CreateTransactionDataAction(transaction, keyPair.name, keyPair.algorithm, 0, msg));
     });
   }
 }

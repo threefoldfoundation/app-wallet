@@ -1,5 +1,5 @@
 import { Action } from '@ngrx/store';
-import { CryptoTransaction, SupportedAlgorithms } from 'rogerthat-plugin';
+import { CryptoTransaction, KeyPair, SupportedAlgorithms } from 'rogerthat-plugin';
 import {
   ApiRequestStatus,
   CreateSignatureData,
@@ -11,7 +11,7 @@ import {
   PendingTransaction,
 } from '../interfaces';
 
-export const enum WalletActionTypes  {
+export const enum WalletActionTypes {
   GET_TRANSACTIONS = 'Get transactions',
   GET_TRANSACTIONS_COMPLETE = 'Get transactions complete',
   GET_TRANSACTIONS_FAILED = 'Get transactions failed',
@@ -33,6 +33,7 @@ export const enum WalletActionTypes  {
   GET_BLOCK = 'Get block',
   GET_BLOCK_COMPLETE = 'Get block complete',
   GET_BLOCK_FAILED = 'Get block failed',
+  SET_SELECTED_KEY_PAIR = 'Set selected key pair'
 }
 
 export class GetTransactionsAction implements Action {
@@ -180,6 +181,13 @@ export class GetBlockFailedAction implements Action {
   }
 }
 
+export class SetSelectedKeyPairAction implements Action {
+  readonly type = WalletActionTypes.SET_SELECTED_KEY_PAIR;
+
+  constructor(public payload: KeyPair) {
+  }
+}
+
 export type WalletActions
   = GetTransactionsAction
   | GetTransactionsCompleteAction
@@ -201,4 +209,5 @@ export type WalletActions
   | GetLatestBlockFailedAction
   | GetBlockAction
   | GetBlockCompleteAction
-  | GetBlockFailedAction;
+  | GetBlockFailedAction
+  | SetSelectedKeyPairAction;

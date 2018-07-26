@@ -1,5 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Platform } from 'ionic-angular';
+import { select, Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { getKeyPairProvider, IAppState } from '../../state';
+import { filterNull } from '../../util';
 import { ReceivePageComponent } from './receive-page.component';
 import { SendPageComponent } from './send-page.component';
 import { TransactionsListPageComponent } from './transactions-list-page.component';
@@ -16,8 +21,10 @@ export interface TabPage {
 })
 export class WalletPageComponent implements OnInit {
   tabs: TabPage[];
+  pageTitle$: Observable<string>;
 
-  constructor(private platform: Platform) {
+  constructor(private store: Store<IAppState>,
+              private translate: TranslateService) {
   }
 
   ngOnInit() {
@@ -31,9 +38,10 @@ export class WalletPageComponent implements OnInit {
       component: ReceivePageComponent,
       title: 'receive',
     }];
-  }
-
-  close() {
-    this.platform.exitApp();
+    this.pageTitle$ = this.store.pipe(
+      select(getKeyPairProvider),
+      filterNull(),
+      switchMap(keyPair => this.translate.get('wallet_name', { name: keyPair.name }))
+    );
   }
 }

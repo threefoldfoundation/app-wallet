@@ -120,6 +120,11 @@ export function walletReducer(state: IWalletState = initialWalletState, action: 
         ...state,
         blockStatus: action.payload,
       };
+    case WalletActionTypes.SET_SELECTED_KEY_PAIR:
+      return {
+        ...state,
+        selectedKeyPair: action.payload,
+      };
   }
   return state;
 }

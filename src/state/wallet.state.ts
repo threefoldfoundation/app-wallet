@@ -1,5 +1,6 @@
 import { createSelector } from '@ngrx/store';
-import { CryptoTransaction } from 'rogerthat-plugin';
+import { CryptoTransaction, KeyPair } from 'rogerthat-plugin';
+import { getProviderFromKeyPair } from '../configuration';
 import {
   apiRequestInitial,
   ApiRequestStatus,
@@ -29,6 +30,7 @@ export interface IWalletState {
   latestBlockStatus: ApiRequestStatus;
   block: ExplorerBlockGET | null;
   blockStatus: ApiRequestStatus;
+  selectedKeyPair: KeyPair | null;
 }
 
 export const getWalletState = (state: IAppState) => state.wallet;
@@ -48,6 +50,7 @@ export const initialWalletState: IWalletState = {
   latestBlockStatus: apiRequestInitial,
   block: null,
   blockStatus: apiRequestInitial,
+  selectedKeyPair: null,
 };
 
 export const getHashInfo = createSelector(getWalletState, s => s.hashInfo);
@@ -84,3 +87,5 @@ export const createTransactionStatus = createSelector(getWalletState, s => s.cre
 export const getBlock = createSelector(getWalletState, s => s.block);
 export const getBlockStatus = createSelector(getWalletState, s => s.blockStatus);
 
+export const getSelectedKeyPair = createSelector(getWalletState, s => s.selectedKeyPair);
+export const getKeyPairProvider = createSelector(getSelectedKeyPair, p => p ? getProviderFromKeyPair(p) : null);

@@ -1,6 +1,15 @@
 import { Action } from '@ngrx/store';
-import { CameraType, CryptoAddress, CryptoTransaction, QrCodeScannedContent, RogerthatError, SupportedAlgorithms, } from 'rogerthat-plugin';
-import { ApiRequestStatus, GetAddressPayload, ServiceData, UserData } from '../interfaces';
+import {
+  CameraType,
+  CreateKeyPairResult,
+  CryptoAddress,
+  CryptoTransaction,
+  KeyPair,
+  QrCodeScannedContent,
+  RogerthatError,
+  SupportedAlgorithms,
+} from 'rogerthat-plugin';
+import { ApiRequestStatus, CreateKeyPair, GetAddressPayload, ServiceData, UserData } from '../interfaces';
 
 export const enum RogerthatActionTypes {
   SET_USER_DATA = '[rogerthat] Set user data',
@@ -15,6 +24,12 @@ export const enum RogerthatActionTypes {
   CREATE_TRANSACTION_DATA = '[rogerthat] Create transaction data',
   CREATE_TRANSACTION_DATA_COMPLETE = '[rogerthat] Create transaction data complete',
   CREATE_TRANSACTION_DATA_FAILED = '[rogerthat] Create transaction data failed',
+  LIST_KEY_PAIRS = '[rogerthat] List all keys',
+  LIST_KEY_PAIRS_COMPLETE = '[rogerthat] List all keys complete',
+  LIST_KEY_PAIRS_FAILED = '[rogerthat] List all keys failed',
+  CREATE_KEYPAIR = '[rogerthat] Create keypair',
+  CREATE_KEYPAIR_COMPLETE = '[rogerthat] Create keypair complete',
+  CREATE_KEYPAIR_FAILED = '[rogerthat] Create keypair failed',
 }
 
 export class SetUserDataAction implements Action {
@@ -99,6 +114,45 @@ export class CreateTransactionDataFailedAction implements Action {
   }
 }
 
+export class ListKeyPairsAction implements Action {
+  readonly type = RogerthatActionTypes.LIST_KEY_PAIRS;
+}
+
+export class ListKeyPairsCompleteAction implements Action {
+  readonly type = RogerthatActionTypes.LIST_KEY_PAIRS_COMPLETE;
+
+  constructor(public payload: KeyPair[]) {
+  }
+}
+
+export class ListKeyPairsFailedAction implements Action {
+  readonly type = RogerthatActionTypes.LIST_KEY_PAIRS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class CreateKeyPairAction implements Action {
+  readonly type = RogerthatActionTypes.CREATE_KEYPAIR;
+
+  constructor(public payload: CreateKeyPair) {
+  }
+}
+
+export class CreateKeyPairCompleteAction implements Action {
+  readonly type = RogerthatActionTypes.CREATE_KEYPAIR_COMPLETE;
+
+  constructor(public payload: CreateKeyPairResult) {
+  }
+}
+
+export class CreateKeyPairFailedAction implements Action {
+  readonly type = RogerthatActionTypes.CREATE_KEYPAIR_FAILED;
+
+  constructor(public payload: RogerthatError) {
+  }
+}
+
 export type RogerthatActions
   = SetUserDataAction
   | SetServiceDataAction
@@ -111,5 +165,11 @@ export type RogerthatActions
   | GetAddresssFailedAction
   | CreateTransactionDataAction
   | CreateTransactionDataCompleteAction
-  | CreateTransactionDataFailedAction;
+  | CreateTransactionDataFailedAction
+  | ListKeyPairsAction
+  | ListKeyPairsCompleteAction
+  | ListKeyPairsFailedAction
+  | CreateKeyPairAction
+  | CreateKeyPairCompleteAction
+  | CreateKeyPairFailedAction;
 

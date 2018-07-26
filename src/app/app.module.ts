@@ -24,13 +24,16 @@ import {
 } from '../components';
 import { RogerthatEffects, WalletEffects } from '../effects';
 import {
+  AddWalletPageComponent,
   ConfirmSendPageComponent,
   PayWidgetPageComponent,
   PendingTransactionDetailPageComponent,
   ReceivePageComponent,
+  SeedInfoPageComponent,
   SendPageComponent,
   TransactionDetailPageComponent,
   TransactionsListPageComponent,
+  WalletChooserPageComponent,
   WalletPageComponent,
 } from '../pages';
 import { AmountPipe, LocaleDecimalPipe } from '../pipes';
@@ -43,16 +46,19 @@ export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, 'assets/i18n/');
 }
 
-const IONIC_NATIVE_PLUGINS = [InAppBrowser, StatusBar, SplashScreen];
+const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
 
 export const PAGES = [
+  AddWalletPageComponent,
   ConfirmSendPageComponent,
   PayWidgetPageComponent,
   PendingTransactionDetailPageComponent,
   ReceivePageComponent,
+  SeedInfoPageComponent,
   SendPageComponent,
   TransactionDetailPageComponent,
   TransactionsListPageComponent,
+  WalletChooserPageComponent,
   WalletPageComponent,
 ];
 
@@ -67,7 +73,7 @@ export const COMPONENTS = [
   UnlocksOnComponent,
 ];
 
-export const SERVICES = [I18nService, RogerthatService, ErrorService, WalletService];
+export const SERVICES = [ I18nService, RogerthatService, ErrorService, WalletService ];
 
 @NgModule({
   declarations: [
@@ -85,15 +91,15 @@ export const SERVICES = [I18nService, RogerthatService, ErrorService, WalletServ
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
-        deps: [HttpClient],
+        deps: [ HttpClient ],
       },
     }),
     StoreModule.forRoot(reducers),
-    EffectsModule.forRoot([WalletEffects, RogerthatEffects]),
+    EffectsModule.forRoot([ WalletEffects, RogerthatEffects ]),
     QRCodeModule,
     ClipboardModule,
   ],
-  bootstrap: [IonicApp],
+  bootstrap: [ IonicApp ],
   entryComponents: [
     AppComponent,
     PAGES,
@@ -107,8 +113,8 @@ export const SERVICES = [I18nService, RogerthatService, ErrorService, WalletServ
     I18nPluralPipe,
     SERVICES,
     IONIC_NATIVE_PLUGINS,
-    {provide: ErrorHandler, useClass: IonicErrorHandler},
-    {provide: MissingTranslationHandler, useClass: MissingTranslationWarnHandler},
+    { provide: ErrorHandler, useClass: IonicErrorHandler },
+    { provide: MissingTranslationHandler, useClass: MissingTranslationWarnHandler },
   ],
 })
 export class AppModule {

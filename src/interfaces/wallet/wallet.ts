@@ -151,14 +151,9 @@ export interface ParsedTransaction extends ExplorerTransaction1, ParsedTransacti
 export interface PendingTransaction extends Transaction1, ParsedTransactionInfo {
 }
 
-export const ADDRESS_LENGTH = 78;
 export const COIN_TO_HASTINGS_PRECISION = 9;
 export const COIN_TO_HASTINGS = Math.pow(10, COIN_TO_HASTINGS_PRECISION);
-export const CURRENCY_SYMBOL = configuration.currency_symbol;
 export const CURRENCY_DETAIL_DIGITS = `1.0-${COIN_TO_HASTINGS_PRECISION}`;
-export const KEY_NAME = configuration.key_name;
-export const PROVIDER_ID = configuration.provider_id;
-export const RIVINE_ALGORITHM = 'ed25519';
 /**
  * Starting from this number, the 'locktime' indicates a unix timestamp. Else it is a block number
  */
