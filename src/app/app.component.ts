@@ -4,18 +4,12 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
-import { CreatePaymentRequestContext, PaymentRequestContext, RogerthatContextType, MessageEmbeddedApp, PayWidgetContextData } from 'rogerthat-plugin';
+import { PayWidgetContextData, RogerthatContext, RogerthatContextType } from 'rogerthat-plugin';
 import { configuration } from '../configuration';
-import { WalletChooserPageComponent } from '../pages/wallet-manager';
-import { PayWidgetPageComponent } from '../pages/wallet';
 import { CreateTransactionResult } from '../interfaces/wallet';
-import { PaymentRequestPageComponent } from '../pages/payments';
-import {
-  CreatePaymentRequestPageComponent,
-  PayWidgetPageComponent,
-  TransactionDetailPageComponent,
-  WalletPageComponent
-} from '../pages/wallet';
+import { CreatePaymentRequestPageComponent, PaymentRequestPageComponent, PayWidgetPageComponent } from '../pages/payments';
+import { TransactionDetailPageComponent } from '../pages/wallet';
+import { WalletChooserPageComponent } from '../pages/wallet-manager';
 import { ErrorService, RogerthatService } from '../services';
 
 interface RootPage {
@@ -90,20 +84,26 @@ export class AppComponent implements OnInit {
     }
   }
 
-  private processContext(data: any): RootPage | null {
+  private processContext(data: { context: RogerthatContext | null }): RootPage | null {
     if (data.context && data.context.type) {
       switch (data.context.type) {
         case RogerthatContextType.PAY_WIDGET:
-          return { page: PayWidgetPageComponent, params: { payContext: data.context as PayWidgetContextData } };
+          return {
+            page: WalletChooserPageComponent,
+            params: { payContext: data.context.data as PayWidgetContextData, nextPage: PayWidgetPageComponent }
+          };
         case RogerthatContextType.CREATE_PAYMENT_REQUEST:
-          return { page: CreatePaymentRequestPageComponent, params: { payContext: data.context as CreatePaymentRequestContext } };
+          return {
+            page: WalletChooserPageComponent,
+            params: { nextPage: CreatePaymentRequestPageComponent }
+          };
         case RogerthatContextType.PAYMENT_REQUEST:
-          const payContext: PaymentRequestContext = data.context;
+          const payContext = data.context;
           if (payContext.data.result) {
             const parsedResult = JSON.parse(payContext.data.result) as CreateTransactionResult;
             return { page: TransactionDetailPageComponent, params: { transactionId: parsedResult.transactionid } };
           }
-          return { page: PaymentRequestPageComponent, params: { payContext } };
+          return { page: WalletChooserPageComponent, params: { payContext, nextPage: PaymentRequestPageComponent } };
         default:
             const content = {
               success: false,

@@ -1,43 +1,57 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, NgForm, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageEmbeddedApp, PaymentRequestData } from 'rogerthat-plugin';
 import { CreatePaymentRequestContext, RogerthatContextType } from 'rogerthat-plugin/www/rogerthat-payment';
+import { Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { GetAddresssAction } from '../../actions';
 import { configuration } from '../../configuration';
-import { COIN_TO_HASTINGS_PRECISION, CURRENCY_SYMBOL, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/index';
-import { getAddress, IAppState } from '../../state';
+import { COIN_TO_HASTINGS_PRECISION } from '../../interfaces/index';
+import { getAddress, getKeyPairProvider, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'create-payment-request-page.component.html'
 })
-export class CreatePaymentRequestPageComponent implements OnInit {
+export class CreatePaymentRequestPageComponent implements OnInit, OnDestroy {
   request: PaymentRequestData;
   amountControl: FormControl;
 
+  private _keyPairSubscription: Subscription;
+  private _providerSubscription: Subscription;
+
   constructor(private translate: TranslateService, private store: Store<IAppState>) {
     this.amountControl = new FormControl(0, [Validators.required, Validators.min(0.01)]);
-    this.request = {
-      amount: this.amountControl.value,
-      currency: CURRENCY_SYMBOL,
-      precision: COIN_TO_HASTINGS_PRECISION,
-      test_mode: !configuration.production,
-      to: '',
-      memo: '',
-    };
   }
 
   ngOnInit() {
-    this.store.dispatch(new GetAddresssAction({
-      algorithm: RIVINE_ALGORITHM,
-      index: 0,
-      keyName: KEY_NAME,
-      message: this.translate.instant('please_enter_your_pin'),
-    }));
+    this._keyPairSubscription = this.store.pipe(select(getSelectedKeyPair), filterNull()).subscribe(keyPair => {
+      this.store.dispatch(new GetAddresssAction({
+        algorithm: keyPair.algorithm,
+        index: 0,
+        keyName: keyPair.name,
+        message: this.translate.instant('please_enter_your_pin'),
+      }));
+    });
+
+    this._providerSubscription = this.store.pipe(select(getKeyPairProvider), filterNull()).subscribe(provider => {
+      this.request = {
+        amount: this.amountControl.value,
+        currency: provider.symbol,
+        precision: COIN_TO_HASTINGS_PRECISION,
+        test_mode: !configuration.production,
+        to: '',
+        memo: '',
+      };
+    });
+  }
+
+  ngOnDestroy() {
+    this._keyPairSubscription.unsubscribe();
+    this._providerSubscription.unsubscribe();
   }
 
   close() {

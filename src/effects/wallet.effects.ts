@@ -1,8 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
-import { combineLatest, interval, of } from 'rxjs';
+import { combineLatest, interval, of, Subscription } from 'rxjs';
 import { catchError, filter, map, startWith, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as actions from '../actions';
 import { GetLatestBlockAction } from '../actions';

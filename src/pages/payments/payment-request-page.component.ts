@@ -1,15 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Actions } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { ModalController, NavController, NavParams, Platform } from 'ionic-angular';
 import { CreatePaymentRequestContext, CryptoAddress, PaymentRequestContext, RogerthatError } from 'rogerthat-plugin';
 import { MessageEmbeddedApp, PaymentRequestData } from 'rogerthat-plugin/www/rogerthat-payment';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { GetAddresssAction } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, KEY_NAME, RIVINE_ALGORITHM, } from '../../interfaces';
-import { getAddress, getAddressStatus, IAppState } from '../../state';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult } from '../../interfaces';
+import { getAddress, getAddressStatus, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 import { ConfirmSendPageComponent } from '../wallet';
 
@@ -18,12 +18,13 @@ import { ConfirmSendPageComponent } from '../wallet';
   encapsulation: ViewEncapsulation.None,
   templateUrl: './payment-request-page.component.html'
 })
-export class PaymentRequestPageComponent implements OnInit {
+export class PaymentRequestPageComponent implements OnInit, OnDestroy {
   paymentRequest: PaymentRequestData;
   address$: Observable<CryptoAddress>;
   addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   private _embeddedApp: MessageEmbeddedApp;
   private _payContext: PaymentRequestContext;
+  private _keyPairSubscription: Subscription;
 
   constructor(private store: Store<IAppState>,
               private navParams: NavParams,
@@ -38,12 +39,14 @@ export class PaymentRequestPageComponent implements OnInit {
   ngOnInit() {
     const payContext: PaymentRequestContext = this.navParams.get('payContext');
     this._payContext = payContext;
-    this.store.dispatch(new GetAddresssAction({
-      algorithm: RIVINE_ALGORITHM,
-      index: 0,
-      keyName: KEY_NAME,
-      message: this.translate.instant('please_enter_your_pin'),
-    }));
+    this._keyPairSubscription = this.store.pipe(select(getSelectedKeyPair), filterNull()).subscribe(keyPair => {
+      this.store.dispatch(new GetAddresssAction({
+        algorithm: keyPair.algorithm,
+        index: 0,
+        keyName: keyPair.name,
+        message: this.translate.instant('please_enter_your_pin'),
+      }));
+    });
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this.address$ = this.store.pipe(select(getAddress), filterNull());
     this.address$.pipe(first()).subscribe(address => {
@@ -54,6 +57,10 @@ export class PaymentRequestPageComponent implements OnInit {
       this._embeddedApp = payContext.data;
       this.cdRef.markForCheck();
     });
+  }
+
+  ngOnDestroy() {
+    this._keyPairSubscription.unsubscribe();
   }
 
   close() {
