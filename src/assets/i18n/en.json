@@ -5,6 +5,7 @@
   "address_must_be_x_characters": "Address must be {{ amount }} characters, it currently is {{ current }} character(s) long.",
   "amount_x": "Amount: {{ amount }}",
   "cancel": "Cancel",
+  "choose_wallet_for_payment": "Please choose which wallet you want to pay with.",
   "close": "Close",
   "confirm_transaction": "Confirm transaction",
   "copy_to_clipboard": "Copy to clipboard",

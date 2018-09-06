@@ -90,12 +90,19 @@ export class AppComponent implements OnInit {
         case RogerthatContextType.PAY_WIDGET:
           return {
             page: WalletChooserPageComponent,
-            params: { payContext: data.context.data as PayWidgetContextData, nextPage: PayWidgetPageComponent }
+            params: {
+              payContext: data.context.data as PayWidgetContextData,
+              nextPage: PayWidgetPageComponent,
+              description: 'choose_wallet_for_payment',
+            }
           };
         case RogerthatContextType.CREATE_PAYMENT_REQUEST:
           return {
             page: WalletChooserPageComponent,
-            params: { nextPage: CreatePaymentRequestPageComponent }
+            params: {
+              nextPage: CreatePaymentRequestPageComponent,
+              description: 'choose_wallet_for_payment',
+            }
           };
         case RogerthatContextType.PAYMENT_REQUEST:
           const payContext = data.context;
@@ -103,7 +110,13 @@ export class AppComponent implements OnInit {
             const parsedResult = JSON.parse(payContext.data.result) as CreateTransactionResult;
             return { page: TransactionDetailPageComponent, params: { transactionId: parsedResult.transactionid } };
           }
-          return { page: WalletChooserPageComponent, params: { payContext, nextPage: PaymentRequestPageComponent } };
+          return {
+            page: WalletChooserPageComponent, params: {
+              payContext,
+              nextPage: PaymentRequestPageComponent,
+              description: 'choose_wallet_for_payment',
+            }
+          };
         default:
             const content = {
               success: false,
