@@ -18,6 +18,7 @@ import { AddWalletPageComponent } from './add-wallet-page.component';
 export class WalletChooserPageComponent implements OnInit {
   keyPairs$: Observable<{ keyPair: KeyPair, provider: Provider }[]>;
   hasWallets$: Observable<boolean>;
+  description = '';
 
   constructor(private store: Store<IAppState>,
               private navParams: NavParams,
@@ -31,6 +32,9 @@ export class WalletChooserPageComponent implements OnInit {
     this.store.dispatch(new ListKeyPairsAction());
     this.keyPairs$ = this.store.pipe(select(getKeyPairMapping));
     this.hasWallets$ = this.keyPairs$.pipe(map(pairs => pairs.length > 0));
+    if (this.navParams.get('description')) {
+      this.description = this.navParams.get('description');
+    }
   }
 
   close() {

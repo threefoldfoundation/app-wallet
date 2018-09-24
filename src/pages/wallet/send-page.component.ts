@@ -111,7 +111,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
     const modal = this.modalCtrl.create(ConfirmSendPageComponent, {
       transactionData: {
         ...data,
-        amount: Math.round(data.amount * Math.pow(10, PRECISION)),
+        amount: Math.round(data.amount * Math.pow(10, data.precision)),
       },
     });
     modal.onDidDismiss((transaction: CreateTransactionResult | null) => {

@@ -70,17 +70,30 @@ export class WalletService {
     return this._get<ExplorerHashGET>(`/explorer/hashes/${hash}`);
   }
 
-  getTransactionPool() {
-    return this._get<TransactionPool>('/transactionpool/transactions');
+  getTransactionPool(address: string) {
+    return this._get<TransactionPool>(`/transactionpool/transactions?unlockhash=${address}`);
+  }
+
+  /**
+   * Get a verified or pending transaction by its id
+   */
+  getTransaction(transactionId: string, address: string, latestBlock: ExplorerBlock): Observable<ParsedTransaction> {
+    return this.getHashInfo(transactionId).pipe(
+      map(explorerTransaction => {
+        const inputs = getInputIds([explorerTransaction.transaction], address, latestBlock).all;
+        return convertTransaction(convertToV1Transaction(explorerTransaction.transaction), address, latestBlock, inputs);
+      }));
   }
 
   /**
    * Get all transactions that are currently in the pool for a specific address
    */
   getPendingTransactions(address: string, hashInfo: ExplorerHashGET | null, latestBlock: ExplorerBlock): Observable<PendingTransaction[]> {
-    return this.getTransactionPool().pipe(
+    return this.getTransactionPool(address).pipe(
       map(pool => {
         const inputs = hashInfo ? getInputIds(hashInfo.transactions, address, latestBlock).all : [];
+        // filterTransactionByAddress shouldn't be needed anymore
+        // Transactions filtered by explorer by using the `unlockhash` query parameter, but we're doing it regardless
         return (pool.transactions || []).filter(t => filterTransactionsByAddress(address, t) && t.version <= 1)
           .map(t => convertToV1RawTransaction(t))
           .map(t => convertPendingTransaction(t, address, latestBlock, inputs));

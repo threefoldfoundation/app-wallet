@@ -9,27 +9,30 @@
   </ion-navbar>
 </ion-header>
 <ion-content padding class="selectable">
-  <h3>{{ (transaction.receiving ? 'received': 'sent') | translate }} {{ getAmount(transaction.amount) }}</h3>
-  <h4>{{ timestamp$ | async | date : 'd MMMM yyyy HH:mm:ss' }}</h4>
-  <p *ngIf="transaction.id">{{ 'transaction_id_x' | translate : { id: transaction.id } }}</p>
-  <api-request-status [status]="getLatestBlockStatus$ | async"></api-request-status>
-  <p *ngIf="(getLatestBlockStatus$ | async).success">
-    {{ 'x_confirmations' | translate : { confirmations : confirmations$ | async } }}
-  </p>
-  <h4>{{ 'inputs' | translate }}</h4>
-  <ion-list class="input-output-list">
-    <ion-item *ngFor="let input of transaction.rawtransaction.data.coininputs; let i = index;" ngxClipboard
-              [cbContent]="input.unlockhash"
-              (cbOnSuccess)="showCopiedToast($event)">
-      <coin-input [coinInput]="input"></coin-input>
-      <p>{{ transaction.coininputoutputs[i].value | amount }}</p>
-    </ion-item>
-  </ion-list>
-  <h4>{{ 'outputs' | translate }}</h4>
-  <ion-list class="input-output-list">
-    <ion-item *ngFor="let output of transaction.rawtransaction.data.coinoutputs">
-      <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
-    </ion-item>
-  </ion-list>
-  <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount } }}</p>
+  <api-request-status [status]="transactionStatus$ | async"></api-request-status>
+  <div *ngIf="transaction$ | async as transaction">
+    <h3>{{ (transaction.receiving ? 'received': 'sent') | translate }} {{ getAmount(transaction.amount) }}</h3>
+    <h4>{{ timestamp$ | async | date : 'd MMMM yyyy HH:mm:ss' }}</h4>
+    <p *ngIf="transaction.id">{{ 'transaction_id_x' | translate : { id: transaction.id } }}</p>
+    <api-request-status [status]="getLatestBlockStatus$ | async"></api-request-status>
+    <p *ngIf="(getLatestBlockStatus$ | async).success">
+      {{ 'x_confirmations' | translate : { confirmations : confirmations$ | async } }}
+    </p>
+    <h4>{{ 'inputs' | translate }}</h4>
+    <ion-list class="input-output-list">
+      <ion-item *ngFor="let input of transaction.rawtransaction.data.coininputs; let i = index;" ngxClipboard
+                [cbContent]="input.unlockhash"
+                (cbOnSuccess)="showCopiedToast($event)">
+        <coin-input [coinInput]="input"></coin-input>
+        <p>{{ transaction.coininputoutputs[i].value | amount }}</p>
+      </ion-item>
+    </ion-list>
+    <h4>{{ 'outputs' | translate }}</h4>
+    <ion-list class="input-output-list">
+      <ion-item *ngFor="let output of transaction.rawtransaction.data.coinoutputs">
+        <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
+      </ion-item>
+    </ion-list>
+    <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount } }}</p>
+  </div>
 </ion-content>

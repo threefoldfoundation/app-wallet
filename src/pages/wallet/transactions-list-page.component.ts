@@ -5,7 +5,7 @@ import { Alert, AlertController, ModalController, Refresher } from 'ionic-angula
 import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
 import { combineLatest, interval, Observable, Subscription } from 'rxjs';
 import { first, map, withLatestFrom } from 'rxjs/operators';
-import { GetAddresssAction, GetHashInfoAction, GetLatestBlockAction } from '../../actions';
+import { GetAddresssAction, GetHashInfoAction } from '../../actions';
 import { ApiRequestStatus, ExplorerBlock, ParsedTransaction, PendingTransaction } from '../../interfaces';
 import { ErrorService } from '../../services';
 import {
@@ -108,7 +108,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   }
 
   getTransactions(address: string) {
-    this.store.dispatch(new GetLatestBlockAction());
     this.store.dispatch(new GetHashInfoAction(address));
   }
 

@@ -5,6 +5,7 @@
   "address_must_be_x_characters": "Address must be {{ amount }} characters, it currently is {{ current }} character(s) long.",
   "amount_x": "Amount: {{ amount }}",
   "cancel": "Cancel",
+  "choose_wallet_for_payment": "Please choose which wallet you want to pay with.",
   "close": "Close",
   "confirm_transaction": "Confirm transaction",
   "copy_to_clipboard": "Copy to clipboard",
@@ -12,6 +13,7 @@
   "create_wallet": "Create wallet",
   "details": "Details",
   "documents": "Documents",
+  "enter_how_much_you_want_to_receive": "Enter how much you want to receive.",
   "enter_your_pin_to_sign_transaction": "Enter your pin to sign the transaction",
   "error": "Error",
   "errors": {
@@ -27,6 +29,7 @@
   "inputs": "Inputs",
   "locked_tokens_x": "Locked tokens: {{ amount }}",
   "locked_until_block_x": "Locked until block {{ block }}",
+  "memo": "Memo",
   "name": "Name",
   "no": "No",
   "no_spendable_tokens": "You don't have any tokens that you can send.",
@@ -37,6 +40,8 @@
   "outputs": "Outputs",
   "parent_id_x": "Parent id: {{ parentid }}",
   "pay": "Pay",
+  "payment": "Payment",
+  "payment_request_canceled": "Payment request canceled",
   "pending_transaction": "Pending transaction",
   "please_enter_a_pin_code_for_this_wallet": "Please enter a pin code for this wallet.",
   "please_enter_your_pin": "Please enter your pin",
@@ -54,6 +59,7 @@
   "signature_x": "Signature: {{ signature }}",
   "submit": "Submit",
   "the_transaction_has_been_canceled": "The transaction has been canceled",
+  "this_field_is_required": "This field is required",
   "to_address_x": "To: {{ address }}",
   "token_amount": "Token amount",
   "transaction_complete": "Transaction complete",
@@ -77,6 +83,7 @@
   "x_confirmations": "{{ confirmations }} confirmations",
   "x_currency_locked_until_block_y": "{{ amount }} locked until block {{ unlocktime }}",
   "x_currency_locked_until_y": "{{ amount }} locked until {{ unlocktime }}",
+  "x_requests_a_payment_of_y": "{{ user }} requests a payment of {{ amount }}",
   "yes": "Yes",
   "you_already_have_wallet_with_name": "You already have a wallet with this name, please choose another name."
 }

@@ -9,6 +9,7 @@
   </ion-navbar>
 </ion-header>
 <ion-content padding>
+  <p *ngIf="description">{{ description | translate }}</p>
   <ion-list>
     <ion-item *ngFor="let keyPair of keyPairs$ | async" (click)="nextPage(keyPair.keyPair)">
       <ion-thumbnail item-start>

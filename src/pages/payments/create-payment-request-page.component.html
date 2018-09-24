@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button="bar-button" (click)="close()" class="back-button show-back-button back-button-md">
+        <ion-icon name="arrow-back" class="back-button-icon-md"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'receive' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <p>{{ 'enter_how_much_you_want_to_receive' | translate }}</p>
+  <form (ngSubmit)="submit(form)" #form="ngForm">
+    <ion-list>
+      <ion-item>
+        <ion-label color="primary">{{ 'amount' | translate }}</ion-label>
+        <ion-input type="number" name="amount" [formControl]="amountControl" [step]="0.01"></ion-input>
+      </ion-item>
+      <ion-item *ngIf="amountControl.errors && amountControl.dirty">
+        <p *ngIf="amountControl.errors.min || amountControl.errors.required" class="color-danger">
+          {{ 'this_field_is_required' | translate }}
+        </p>
+      </ion-item>
+      <ion-item>
+        <ion-label color="primary">{{ 'memo' | translate }}</ion-label>
+        <ion-input type="text" name="memo" [(ngModel)]="request.memo" maxlength="80"></ion-input>
+      </ion-item>
+    </ion-list>
+    <button ion-button>{{ 'submit' | translate }}</button>
+  </form>
+</ion-content>

@@ -1,6 +1,7 @@
 import { CurrencyPipe, DatePipe, DecimalPipe, I18nPluralPipe } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
@@ -26,6 +27,8 @@ import { RogerthatEffects, WalletEffects } from '../effects';
 import {
   AddWalletPageComponent,
   ConfirmSendPageComponent,
+  CreatePaymentRequestPageComponent,
+  PaymentRequestPageComponent,
   PayWidgetPageComponent,
   PendingTransactionDetailPageComponent,
   ReceivePageComponent,
@@ -51,6 +54,8 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
 export const PAGES = [
   AddWalletPageComponent,
   ConfirmSendPageComponent,
+  CreatePaymentRequestPageComponent,
+  PaymentRequestPageComponent,
   PayWidgetPageComponent,
   PendingTransactionDetailPageComponent,
   ReceivePageComponent,
@@ -85,6 +90,7 @@ export const SERVICES = [ I18nService, RogerthatService, ErrorService, WalletSer
   ],
   imports: [
     BrowserModule,
+    FormsModule,
     HttpClientModule,
     IonicModule.forRoot(AppComponent),
     TranslateModule.forRoot({

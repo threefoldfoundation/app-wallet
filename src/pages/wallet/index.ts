@@ -1,5 +1,6 @@
 export * from './confirm-send-page.component';
-export * from './pay-widget-page.component';
+export * from '../payments/pay-widget-page.component';
+export * from '../payments/create-payment-request-page.component';
 export * from './pending-transaction-detail-page.component';
 export * from './receive-page.component';
 export * from './send-page.component';

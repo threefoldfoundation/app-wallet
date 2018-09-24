@@ -28,6 +28,8 @@ export interface IWalletState {
   createTransactionStatus: ApiRequestStatus;
   latestBlock: ExplorerBlock | null;
   latestBlockStatus: ApiRequestStatus;
+  transaction: ParsedTransaction | null;
+  getTransactionStatus: ApiRequestStatus;
   block: ExplorerBlockGET | null;
   blockStatus: ApiRequestStatus;
   selectedKeyPair: KeyPair | null;
@@ -48,6 +50,8 @@ export const initialWalletState: IWalletState = {
   createTransactionStatus: apiRequestInitial,
   latestBlock: null,
   latestBlockStatus: apiRequestInitial,
+  transaction: null,
+  getTransactionStatus: apiRequestInitial,
   block: null,
   blockStatus: apiRequestInitial,
   selectedKeyPair: null,
@@ -84,6 +88,8 @@ export const getPendingTransaction = createSelector(getWalletState, s => s.pendi
 export const getCreatedTransaction = createSelector(getWalletState, s => s.createdTransaction);
 export const getPendingTransactionStatus = createSelector(getWalletState, s => s.pendingTransactionStatus);
 export const createTransactionStatus = createSelector(getWalletState, s => s.createTransactionStatus);
+export const getTransaction = createSelector(getWalletState, s => s.transaction);
+export const getTransactionStatus = createSelector(getWalletState, s => s.getTransactionStatus);
 export const getBlock = createSelector(getWalletState, s => s.block);
 export const getBlockStatus = createSelector(getWalletState, s => s.blockStatus);
 

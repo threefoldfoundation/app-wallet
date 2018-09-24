@@ -21,6 +21,22 @@ export function walletReducer(state: IWalletState = initialWalletState, action: 
         ...state,
         hashInfoStatus: action.payload,
       };
+    case WalletActionTypes.GET_TRANSACTION:
+      return {
+        ...state,
+        getTransactionStatus: apiRequestLoading,
+      };
+    case WalletActionTypes.GET_TRANSACTION_COMPLETE:
+      return {
+        ...state,
+        transaction: action.payload,
+        getTransactionStatus: apiRequestSuccess,
+      };
+    case WalletActionTypes.GET_TRANSACTION_FAILED:
+      return {
+        ...state,
+        getTransactionStatus: action.payload,
+      };
     case WalletActionTypes.GET_TRANSACTIONS:
       return {
         ...state,
