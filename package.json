@@ -46,7 +46,7 @@
     "ionicons": "4.2.4",
     "minimist": "^1.2.0",
     "ngx-clipboard": "^11.1.6",
-    "rogerthat-plugin": "git+https://github.com/our-city-app/cordova-mobicage-plugin.git#pay_embedded_app",
+    "rogerthat-plugin": "git+https://github.com/our-city-app/cordova-mobicage-plugin.git#master",
     "rxjs": "^6.3.0",
     "rxjs-compat": "^6.3.0",
     "sw-toolbox": "3.6.0",
