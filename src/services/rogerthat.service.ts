@@ -2,10 +2,10 @@ import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  CameraType, CreateKeyPairResult,
+  CameraType,
+  CreateKeyPairResult,
   CryptoAddress,
   CryptoSignature,
-  CryptoTransaction,
   KeyPair,
   KeyPairList,
   PublicKey,
@@ -16,7 +16,7 @@ import {
 } from 'rogerthat-plugin';
 import { Observable, Subject } from 'rxjs';
 import { ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
-import { CreateKeyPair, GetAddressPayload } from '../interfaces';
+import { CreateKeyPair, GetAddressPayload, Transaction1 } from '../interfaces';
 import { IAppState } from '../state';
 import { I18nService } from './i18n.service';
 
@@ -113,22 +113,24 @@ export class RogerthatService {
     });
   }
 
-  createTransactionData(transaction: CryptoTransaction, algorithm: SupportedAlgorithms, keyName: string, index: number,
-                        unlockMessage: string): Observable<CryptoTransaction> {
+  createTransactionData(transaction: Transaction1, algorithm: SupportedAlgorithms, keyName: string, index: number,
+                        unlockMessage: string): Observable<Transaction1> {
     const zone = this.ngZone;
-    return Observable.create((emitter: Subject<CryptoTransaction>) => {
+    return Observable.create((emitter: Subject<Transaction1>) => {
       rogerthat.payments.getTransactionData(success, error, algorithm, keyName, index, JSON.stringify(transaction));
 
       function success(signatureData: SignatureData) {
-        const updatedTransaction: CryptoTransaction = JSON.parse(signatureData.data);
-        let signedCounter = updatedTransaction.data.length;
-        for (let i = 0; i < updatedTransaction.data.length; i++) {
+        const updatedTransaction: Transaction1 = JSON.parse(signatureData.transaction);
+        const toSign: string[] = JSON.parse(signatureData.data);
+        let signedCounter = toSign.length;
+        for (let i = 0; i < toSign.length; i++) {
           rogerthat.security.sign(signature => processSignature(signature, i), signError, algorithm, keyName, index, unlockMessage,
-            updatedTransaction.data[ i ].signature_hash, false, false);
+            toSign[i], false, false);
         }
 
         function processSignature(signature: CryptoSignature, dataIndex: number) {
-          updatedTransaction.data[ dataIndex ].signature = signature.payload_signature;
+          // Update 'signature' property so that it's signed
+          (updatedTransaction.data.coininputs || [])[dataIndex].fulfillment.data.signature = signature.payload_signature;
           signedCounter--;
           if (signedCounter === 0) {
             // Everything signed, return updated transaction with signatures
@@ -186,6 +188,22 @@ export class RogerthatService {
         zone.run(() => {
           emitter.error(err);
         });
+      }
+    });
+  }
+
+
+  getPublicKey(algorithm: SupportedAlgorithms, keyName: string): Observable<PublicKey> {
+    const zone = this.ngZone;
+    return Observable.create((emitter: Subject<PublicKey>) => {
+      rogerthat.security.getPublicKey(success, error, algorithm, keyName);
+
+      function success(result: PublicKey) {
+        zone.run(() => emitter.next(result));
+      }
+
+      function error(err: RogerthatError) {
+        zone.run(() => emitter.error(err));
       }
     });
   }

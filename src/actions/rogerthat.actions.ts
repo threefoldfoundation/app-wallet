@@ -3,13 +3,13 @@ import {
   CameraType,
   CreateKeyPairResult,
   CryptoAddress,
-  CryptoTransaction,
   KeyPair,
+  PublicKey,
   QrCodeScannedContent,
   RogerthatError,
   SupportedAlgorithms,
 } from 'rogerthat-plugin';
-import { ApiRequestStatus, CreateKeyPair, GetAddressPayload, ServiceData, UserData } from '../interfaces';
+import { ApiRequestStatus, CreateKeyPair, GetAddressPayload, ServiceData, Transaction1, UserData } from '../interfaces';
 
 export const enum RogerthatActionTypes {
   SET_USER_DATA = '[rogerthat] Set user data',
@@ -21,6 +21,9 @@ export const enum RogerthatActionTypes {
   GET_ADDRESS = '[rogerthat]Get address',
   GET_ADDRESS_COMPLETE = '[rogerthat]Get address complete',
   GET_ADDRESS_FAILED = '[rogerthat]Get address failed',
+  GET_PUBLIC_KEY = '[rogerthat]Get public key',
+  GET_PUBLIC_KEY_COMPLETE = '[rogerthat]Get public key complete',
+  GET_PUBLIC_KEY_FAILED = '[rogerthat]Get public key failed',
   CREATE_TRANSACTION_DATA = '[rogerthat] Create transaction data',
   CREATE_TRANSACTION_DATA_COMPLETE = '[rogerthat] Create transaction data complete',
   CREATE_TRANSACTION_DATA_FAILED = '[rogerthat] Create transaction data failed',
@@ -92,10 +95,31 @@ export class GetAddresssFailedAction implements Action {
   }
 }
 
+export class GetPublicKeyAction implements Action {
+  readonly type = RogerthatActionTypes.GET_PUBLIC_KEY;
+
+  constructor(public algorithm: SupportedAlgorithms, public keyName: string) {
+  }
+}
+
+export class GetPublicKeyCompleteAction implements Action {
+  readonly type = RogerthatActionTypes.GET_PUBLIC_KEY_COMPLETE;
+
+  constructor(public payload: PublicKey) {
+  }
+}
+
+export class GetPublicKeyFailedAction implements Action {
+  readonly type = RogerthatActionTypes.GET_PUBLIC_KEY_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export class CreateTransactionDataAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA;
 
-  constructor(public payload: CryptoTransaction, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
+  constructor(public payload: Transaction1, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
               public message: string) {
   }
 }
@@ -103,7 +127,7 @@ export class CreateTransactionDataAction implements Action {
 export class CreateTransactionDataCompleteAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA_COMPLETE;
 
-  constructor(public payload: CryptoTransaction) {
+  constructor(public payload: Transaction1) {
   }
 }
 
@@ -163,6 +187,9 @@ export type RogerthatActions
   | GetAddresssAction
   | GetAddresssCompleteAction
   | GetAddresssFailedAction
+  | GetPublicKeyAction
+  | GetPublicKeyCompleteAction
+  | GetPublicKeyFailedAction
   | CreateTransactionDataAction
   | CreateTransactionDataCompleteAction
   | CreateTransactionDataFailedAction

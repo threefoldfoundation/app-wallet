@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
-import { CryptoTransaction, CryptoTransactionData } from 'rogerthat-plugin';
-import { ApiRequestStatus } from '../../interfaces';
-import { getv0TransactionAmount } from '../../util/wallet';
+import { CryptoAddress } from 'rogerthat-plugin';
+import { ApiRequestStatus, Transaction1 } from '../../interfaces';
+import { calculateNewTransactionAmount, getMinerFee } from '../../util';
 
 @Component({
   selector: 'confirm-send',
@@ -10,18 +10,19 @@ import { getv0TransactionAmount } from '../../util/wallet';
   templateUrl: 'confirm-send.component.html',
 })
 export class ConfirmSendComponent {
-  @Input() transaction: CryptoTransaction;
+  @Input() transaction: Transaction1;
   @Input() pendingStatus: ApiRequestStatus;
   @Input() createStatus: ApiRequestStatus;
+  @Input() ownAddress: CryptoAddress;
   @Output() confirmTransaction = new EventEmitter();
+  getMinerFee = getMinerFee;
 
-  getAmount(transaction: CryptoTransaction): number {
-    return transaction.data
-      .reduce((total: number, data: CryptoTransactionData) => total + getv0TransactionAmount(transaction.to_address, [], data.outputs), 0);
+  getAmount(transaction: Transaction1) {
+    return calculateNewTransactionAmount(transaction, this.ownAddress.address);
   }
 
-  getTotalAmount(transaction: CryptoTransaction): number {
-    return this.getAmount(transaction) + parseInt(transaction.minerfees);
+  getTotalAmount(transaction: Transaction1): number {
+    return this.getAmount(transaction) + getMinerFee(this.transaction.data.minerfees);
   }
 
   submit() {

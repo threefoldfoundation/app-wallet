@@ -1,14 +1,15 @@
 import { Action } from '@ngrx/store';
-import { CryptoTransaction, KeyPair, SupportedAlgorithms } from 'rogerthat-plugin';
+import { KeyPair, SupportedAlgorithms } from 'rogerthat-plugin';
 import {
   ApiRequestStatus,
   CreateSignatureData,
   CreateTransactionResult,
   ExplorerBlock,
   ExplorerBlockGET,
-  ExplorerHashGET, ExplorerTransaction,
+  ExplorerHashGET,
   ParsedTransaction,
   PendingTransaction,
+  Transaction1,
 } from '../interfaces';
 
 export const enum WalletActionTypes  {
@@ -133,7 +134,7 @@ export class CreateSignatureDataAction implements Action {
 export class CreateSignatureDataCompleteAction implements Action {
   readonly type = WalletActionTypes.CREATE_SIGNATURE_DATA_COMPLETE;
 
-  constructor(public payload: CryptoTransaction) {
+  constructor(public payload: Transaction1) {
   }
 }
 
@@ -147,7 +148,7 @@ export class CreateSignatureDataFailedAction implements Action {
 export class CreateTransactionAction implements Action {
   readonly type = WalletActionTypes.CREATE_TRANSACTION;
 
-  constructor(public payload: CryptoTransaction, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
+  constructor(public payload: Transaction1, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
               public message: string) {
   }
 }

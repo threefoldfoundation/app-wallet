@@ -1,5 +1,4 @@
 import { SupportedAlgorithms } from 'rogerthat-plugin';
-import { configuration } from '../../configuration';
 import { CoinInput1 } from './input';
 import { CoinOutput1 } from './output';
 import { CoinInput0, CoinOutput0, Transaction0 } from './transactions-v1';
@@ -63,18 +62,6 @@ export interface ExplorerBlock extends BlockFacts {
   minerpayoutids: null | string[];
   rawblock: Block;
   transactions: null | ExplorerTransaction[];
-}
-
-export interface CreateTransaction {
-  data: {
-    coininputs: CoinInput0[];
-    coinoutputs: CoinOutput0[];
-    blockstakeinputs: null | CoinInput0[];
-    blockstakeoutputs: null | CoinOutput0[];
-    minerfees: string[];
-    arbitrarydata: null | string[];
-  };
-  version: 0;
 }
 
 export interface ExplorerBlockGET {

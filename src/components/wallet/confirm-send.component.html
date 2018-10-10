@@ -1,7 +1,12 @@
-<div *ngIf="transaction">
-  <p>{{ 'to_address_x' | translate : { address: transaction.to_address } }}</p>
-  <p>{{ 'amount_x' | translate : { amount: getAmount(transaction) | amount } }}</p>
-  <p>{{ 'transaction_fee_x' | translate : { fee : transaction.minerfees | amount } }}</p>
+<div *ngIf="transaction && ownAddress">
+  <h4>{{ 'outputs' | translate }}</h4>
+  <ion-list class="input-output-list">
+    <ion-item *ngFor="let output of transaction.data.coinoutputs">
+      <coin-output [coinOutput]="output"></coin-output>
+    </ion-item>
+  </ion-list>
+  <p>{{ 'amount_x' | translate : {amount: getAmount(transaction) | amount} }}</p>
+  <p>{{ 'transaction_fee_x' | translate : {fee: getMinerFee(transaction.data.minerfees) | amount} }}</p>
   <p>{{ 'transaction_total_x' | translate : { amount : getTotalAmount(transaction) | amount } }}</p>
 </div>
 <api-request-status [status]="pendingStatus"></api-request-status>
