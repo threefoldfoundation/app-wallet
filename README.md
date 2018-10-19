@@ -15,7 +15,7 @@ Run `npm run build:zip`. A `wallet.zip` file will be generated in this folder.
 
 ## Testing
 
-To test it, either upload it as a branding on your rogerthat server or add this to index.html above main.js to test it in the browser:
+To test it, either upload it as an embedded app on your rogerthat server or add this to index.html above main.js to test it in the browser:
 
 ```html
 <script>
