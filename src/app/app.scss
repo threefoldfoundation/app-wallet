@@ -46,3 +46,13 @@ body {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+ion-item.smaller-thumbnail > ion-thumbnail > img {
+  width: 60px;
+  height: 60px;
+}
+
+ion-item.smaller-thumbnail > ion-thumbnail {
+  min-height: 60px;
+  min-width: 60px;
+}

@@ -1,7 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { CryptoTransaction, CryptoTransactionData, CryptoTransactionOutput } from 'rogerthat-plugin';
 import { Observable, of, throwError, TimeoutError, timer } from 'rxjs';
 import { map, mergeMap, retryWhen, switchMap, timeout } from 'rxjs/operators';
 import { Provider } from '../configuration';
@@ -9,14 +8,18 @@ import {
   BlockFacts,
   COIN_TO_HASTINGS,
   CoinInput,
+  CoinInput1,
+  CoinOutput1,
   CreateSignatureData,
-  CreateTransaction,
   CreateTransactionResult,
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
+  InputType,
+  OutputType,
   ParsedTransaction,
   PendingTransaction,
+  Transaction1,
   TransactionPool,
   TranslatedError,
 } from '../interfaces';
@@ -101,15 +104,14 @@ export class WalletService {
   }
 
   createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[],
-                      latestBlock: ExplorerBlock): Observable<CryptoTransaction> {
+                      latestBlock: ExplorerBlock): Observable<Transaction1> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
       let inputIds = getInputIds(hashInfo.transactions, data.from_address, latestBlock).available;
       const pendingOutputIds = pendingTransactions
-        .map(t => <CoinInput[]>(t.data.coininputs || []))
+        .map(transaction => <CoinInput[]>(transaction.data.coininputs || []))
         .reduce((total: string[], inputs) => [ ...total, ...inputs.map(input => input.parentid) ], []);
       inputIds = inputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
-      const transactionData: CryptoTransactionData[] = [];
       const required = data.amount * COIN_TO_HASTINGS / Math.pow(10, data.precision);
       const requiredFunds = required + minerfees;
       const totalFunds = inputIds.reduce((total, output) => total + parseInt(output.amount), 0);
@@ -117,66 +119,60 @@ export class WalletService {
         throw new TranslatedError('insufficient_funds');
       }
       let inputValue = 0;
+      const transactionInputs: CoinInput1[] = [];
+      const transactionOutputs: CoinOutput1[] = [];
       for (const inputId of inputIds) {
-        const d: CryptoTransactionData = {
-          timelock: 0,
-          outputs: [],
-          algorithm: 'ed25519',
-          public_key: '',
-          public_key_index: 0,
-          signature: '',
-          signature_hash: '',
-          input: {
-            parent_id: inputId.id,
-            timelock: 0,
-          },
-        };
-        transactionData.push(d);
+        transactionInputs.push({
+          parentid: inputId.id,
+          fulfillment: {
+            type: InputType.SINGLE_SIGNATURE,
+            data: {
+              publickey: 'ed25519:',  // Will be set via the golang lib
+              signature: ''  // Will be set later when we know what to sign
+            }
+          }
+        });
         inputValue += parseInt(inputId.amount);
         if (inputValue >= requiredFunds) {
           // done
           break;
         }
       }
-      transactionData[ 0 ].outputs.push({ value: required.toString(), unlockhash: data.to_address });
+      transactionOutputs.push({
+        condition: {
+          type: OutputType.UNLOCKHASH,
+          data: {
+            unlockhash: data.to_address
+          }
+        },
+        value: required.toString()
+      });
       // Send the rest (if any) to our address
       const difference = inputValue - requiredFunds;
       if (difference > 0) {
-        transactionData[ 0 ].outputs.push({ value: difference.toString(), unlockhash: data.from_address });
+        transactionOutputs.push({
+          condition: {
+            type: OutputType.UNLOCKHASH,
+            data: {
+              unlockhash: data.from_address
+            }
+          },
+          value: difference.toString()
+        });
       }
-      return <CryptoTransaction>{
-        minerfees: minerfees.toString(),
-        from_address: data.from_address,
-        to_address: data.to_address,
-        data: transactionData,
+      const t = <Transaction1>{
+        version: 1,
+        data: {
+          coininputs: transactionInputs,
+          coinoutputs: transactionOutputs,
+          minerfees: [minerfees.toString()],
+        }
       };
+      return t;
     }));
   }
 
-  // TODO update to version 1. App needs to be updated for that.
-  createTransaction(data: CryptoTransaction) {
-    const transaction: CreateTransaction = {
-      version: 0,
-      data: {
-        arbitrarydata: null,
-        blockstakeinputs: null,
-        blockstakeoutputs: null,
-        coininputs: data.data.map(d => ({
-          parentid: d.input.parent_id,
-          unlocker: {
-            type: 1,
-            condition: {
-              publickey: `${d.algorithm}:${d.public_key}`,
-            },
-            fulfillment: {
-              signature: d.signature,
-            },
-          },
-        })),
-        coinoutputs: data.data.reduce((total: CryptoTransactionOutput[], d) => ([ ...total, ...d.outputs ]), []),
-        minerfees: [ data.minerfees ],
-      },
-    };
+  createTransaction(transaction: Transaction1) {
     return this._post<CreateTransactionResult>(`/transactionpool/transactions`, transaction);
   }
 

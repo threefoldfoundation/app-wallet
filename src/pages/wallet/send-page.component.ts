@@ -13,7 +13,7 @@ import { filterNull, parseQuery } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 const PRECISION = 5;
-const DEFAULT_FORM_DATA = {
+const DEFAULT_FORM_DATA: CreateSignatureData = {
   amount: 0,
   precision: PRECISION,
   from_address: '',

@@ -24,6 +24,13 @@ export class RogerthatEffects {
       catchError(err => of(new actions.GetAddresssFailedAction(err)))),
     ));
 
+  @Effect() getPublicKey$ = this.actions$.pipe(
+    ofType<actions.GetPublicKeyAction>(actions.RogerthatActionTypes.GET_PUBLIC_KEY),
+    switchMap(action => this.rogerthatService.getPublicKey(action.algorithm, action.keyName).pipe(
+      map(address => new actions.GetPublicKeyCompleteAction(address)),
+      catchError(err => of(new actions.GetPublicKeyFailedAction(err)))),
+    ));
+
   @Effect() createTransactionData$ = this.actions$.pipe(
     ofType<actions.CreateTransactionDataAction>(actions.RogerthatActionTypes.CREATE_TRANSACTION_DATA),
     switchMap(action => this.rogerthatService.createTransactionData(action.payload, action.algorithm, action.keyName,

@@ -3,8 +3,7 @@ import { NgForm } from '@angular/forms';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { AlertController, NavController, NavParams } from 'ionic-angular';
-import { AlertButton } from 'ionic-angular/components/alert/alert-options';
+import { AlertButton, AlertController, NavController, NavParams } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 import {
   CreateKeyPairAction,

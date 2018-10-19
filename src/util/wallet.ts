@@ -1,7 +1,6 @@
 import {
   CoinInput0,
   CoinInput1,
-  CoinOutput,
   CoinOutput0,
   CoinOutput1,
   ExplorerBlock,
@@ -19,19 +18,6 @@ import {
   Transaction0,
   Transaction1,
 } from '../interfaces';
-
-export function outputReducer(total: number, output: CoinOutput) {
-  return total + parseInt(output.value);
-}
-
-export function getv0TransactionAmount(address: string, inputs: CoinOutput0[], outputs: CoinOutput0[]): number {
-  const isReceiving = !inputs.some(input => input.unlockhash === address);
-  const outputTotal = outputs.filter(output => output.unlockhash === address).reduce(outputReducer, 0);
-  if (isReceiving) {
-    return outputTotal;
-  }
-  return outputTotal - inputs.reduce(outputReducer, 0);
-}
 
 export function getMinerFee(minerfees: string[] | null): number {
   return (minerfees || []).reduce((total: number, fee: string) => total + parseInt(fee), 0);
@@ -181,7 +167,7 @@ export function filterTransactionsByAddress(address: string, transaction: Transa
   if (transaction.version === 0) {
     return (transaction.data.coinoutputs || []).some(o => o.unlockhash === address);
     }
-  return (transaction.data.coinoutputs || []).some(output => filterOutputCondition(address, output.condition));
+  return (transaction.data.coinoutputs || []).some(output => filterSendOutputCondition(address, output.condition));
 }
 
 
@@ -227,7 +213,7 @@ export function getTransactionAmount(transaction: Transaction1, latestBlock: Exp
   return { locked, unlocked };
 }
 
-export function filterOutputCondition(address: string, condition: OutputCondition): boolean {
+export function filterSendOutputCondition(address: string, condition: OutputCondition): boolean {
   switch (condition.type) {
     case OutputType.UNLOCKHASH:
       return condition.data.unlockhash === address;
@@ -263,15 +249,26 @@ export function filterReceivingOutputCondition(address: string, condition: Outpu
   }
 }
 
-export function filterSendOutputCondition(address: string, condition: OutputCondition): boolean {
-  switch (condition.type) {
-    case OutputType.UNLOCKHASH:
-      return condition.data.unlockhash !== address;
-    case OutputType.ATOMIC_SWAP:
-      return condition.data.sender === address;
-    case OutputType.TIMELOCKED:
-      return condition.data.condition.data.unlockhash === address;
-    default:
-      return false;
+export function calculateNewTransactionAmount(transaction: Transaction1, ownAddress: string) {
+  let total = 0;
+  for (const output of transaction.data.coinoutputs || []) {
+    switch (output.condition.type) {
+      case OutputType.UNLOCKHASH:
+        if (output.condition.data.unlockhash !== ownAddress) {
+          total += parseInt(output.value);
+        }
+        break;
+      case OutputType.ATOMIC_SWAP:
+        if (output.condition.data.receiver !== ownAddress) {
+          total += parseInt(output.value);
+        }
+        break;
+      case OutputType.TIMELOCKED:
+        if (output.condition.data.condition.data.unlockhash !== ownAddress) {
+          total += parseInt(output.value);
+        }
+        break;
+    }
   }
+  return total;
 }

@@ -3,7 +3,7 @@ import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, NavParams, ViewController } from 'ionic-angular';
-import { CryptoTransaction, KeyPair } from 'rogerthat-plugin';
+import { CryptoAddress, KeyPair } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
 import { first, switchMap, withLatestFrom } from 'rxjs/operators';
 import {
@@ -13,9 +13,10 @@ import {
   GetPendingTransactionsCompleteAction,
   WalletActionTypes,
 } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult } from '../../interfaces';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, Transaction1 } from '../../interfaces';
 import {
   createTransactionStatus,
+  getAddress,
   getCreatedTransaction,
   getPendingTransaction,
   getPendingTransactionStatus,
@@ -31,11 +32,12 @@ import { filterNull } from '../../util';
 })
 export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   data: CreateSignatureData;
-  pendingTransaction$: Observable<CryptoTransaction>;
+  pendingTransaction$: Observable<Transaction1>;
   pendingTransactionStatus$: Observable<ApiRequestStatus>;
   createTransactionStatus$: Observable<ApiRequestStatus>;
   transaction$: Observable<CreateTransactionResult>;
   keyPair$: Observable<KeyPair>;
+  address$: Observable<CryptoAddress>;
 
   private _transactionCompleteSub: Subscription;
   private _pendingTransactionSubscription: Subscription | null = null;
@@ -66,6 +68,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
     this.createTransactionStatus$ = this.store.pipe(select(createTransactionStatus));
     this.transaction$ = this.store.pipe(select(getCreatedTransaction), filterNull());
     this.keyPair$ = this.store.pipe(select(getSelectedKeyPair), filterNull());
+    this.address$ = this.store.pipe(select(getAddress), filterNull());
     this._transactionCompleteSub = this.actions$.pipe(
       ofType(WalletActionTypes.CREATE_TRANSACTION_COMPLETE),
       switchMap(() => this.transaction$),

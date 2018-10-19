@@ -50,10 +50,12 @@ export class AppComponent implements OnInit {
         const version = this.rogerthatService.getVersion();
         let mustUpdate = false;
         if (rogerthat.system.os === 'ios') {
+          // TODO update to latest app version
           if (version.patch < 2947) {
             mustUpdate = true;
           }
         } else {
+          // TODO update to latest app version
           if (version.patch < 4235) {
             mustUpdate = true;
           }

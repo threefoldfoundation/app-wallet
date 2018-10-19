@@ -10,5 +10,6 @@
   <confirm-send [transaction]="pendingTransaction$ | async"
                 [createStatus]="createTransactionStatus$ | async"
                 [pendingStatus]="pendingTransactionStatus$ | async"
+                [ownAddress]="address$ | async"
                 (confirmTransaction)="onConfirm()"></confirm-send>
 </ion-content>

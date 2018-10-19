@@ -48,6 +48,23 @@ export function rogerthatReducer(state = initialRogerthatState, action: Rogertha
         ...state,
         addressStatus: action.payload,
       };
+    case RogerthatActionTypes.GET_PUBLIC_KEY:
+      return {
+        ...state,
+        publicKey: null,
+        getPublicKeyStatus: apiRequestLoading,
+      };
+    case RogerthatActionTypes.GET_PUBLIC_KEY_COMPLETE:
+      return {
+        ...state,
+        publicKey: action.payload,
+        getPublicKeyStatus: apiRequestSuccess,
+      };
+    case RogerthatActionTypes.GET_PUBLIC_KEY_FAILED:
+      return {
+        ...state,
+        getPublicKeyStatus: action.payload,
+      };
     case RogerthatActionTypes.LIST_KEY_PAIRS:
       return {
         ...state,
