@@ -1,7 +1,6 @@
 <div *ngIf="transaction && ownAddress">
-  <h4>{{ 'outputs' | translate }}</h4>
   <ion-list class="input-output-list">
-    <ion-item *ngFor="let output of transaction.data.coinoutputs">
+    <ion-item *ngFor="let output of visibleOutputs">
       <coin-output [coinOutput]="output"></coin-output>
     </ion-item>
   </ion-list>

@@ -249,26 +249,20 @@ export function filterReceivingOutputCondition(address: string, condition: Outpu
   }
 }
 
-export function calculateNewTransactionAmount(transaction: Transaction1, ownAddress: string) {
-  let total = 0;
-  for (const output of transaction.data.coinoutputs || []) {
+export function getNewTransactionOtherOutputs(transaction: Transaction1, ownAddress: string): CoinOutput1[] {
+  return (transaction.data.coinoutputs || []).filter(output => {
     switch (output.condition.type) {
       case OutputType.UNLOCKHASH:
-        if (output.condition.data.unlockhash !== ownAddress) {
-          total += parseInt(output.value);
-        }
-        break;
+        return output.condition.data.unlockhash !== ownAddress;
       case OutputType.ATOMIC_SWAP:
-        if (output.condition.data.receiver !== ownAddress) {
-          total += parseInt(output.value);
-        }
-        break;
+        return output.condition.data.receiver !== ownAddress;
       case OutputType.TIMELOCKED:
-        if (output.condition.data.condition.data.unlockhash !== ownAddress) {
-          total += parseInt(output.value);
-        }
-        break;
+        return output.condition.data.condition.data.unlockhash !== ownAddress;
     }
-  }
-  return total;
+    return false;
+  });
+}
+
+export function calculateNewTransactionAmount(transaction: Transaction1, ownAddress: string) {
+  return getNewTransactionOtherOutputs(transaction, ownAddress).reduce((acc, output) => acc + parseInt(output.value), 0);
 }

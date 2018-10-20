@@ -1,7 +1,16 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewEncapsulation
+} from '@angular/core';
 import { CryptoAddress } from 'rogerthat-plugin';
-import { ApiRequestStatus, Transaction1 } from '../../interfaces';
-import { calculateNewTransactionAmount, getMinerFee } from '../../util';
+import { ApiRequestStatus, CoinOutput1, Transaction1 } from '../../interfaces';
+import { calculateNewTransactionAmount, getMinerFee, getNewTransactionOtherOutputs } from '../../util';
 
 @Component({
   selector: 'confirm-send',
@@ -9,13 +18,20 @@ import { calculateNewTransactionAmount, getMinerFee } from '../../util';
   encapsulation: ViewEncapsulation.None,
   templateUrl: 'confirm-send.component.html',
 })
-export class ConfirmSendComponent {
+export class ConfirmSendComponent implements OnChanges {
   @Input() transaction: Transaction1;
   @Input() pendingStatus: ApiRequestStatus;
   @Input() createStatus: ApiRequestStatus;
   @Input() ownAddress: CryptoAddress;
   @Output() confirmTransaction = new EventEmitter();
   getMinerFee = getMinerFee;
+  visibleOutputs: CoinOutput1[] = [];
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.transaction && this.ownAddress) {
+      this.visibleOutputs = getNewTransactionOtherOutputs(changes.transaction.currentValue, this.ownAddress.address);
+    }
+  }
 
   getAmount(transaction: Transaction1) {
     return calculateNewTransactionAmount(transaction, this.ownAddress.address);
