@@ -29,7 +29,7 @@ export class ConfirmSendComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.transaction && this.ownAddress) {
-      this.visibleOutputs = getNewTransactionOtherOutputs(changes.transaction.currentValue, this.ownAddress.address);
+      this.visibleOutputs = getNewTransactionOtherOutputs(this.transaction, this.ownAddress.address);
     }
   }
 
