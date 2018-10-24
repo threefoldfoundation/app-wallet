@@ -14,9 +14,10 @@ import {
   SignatureData,
   SupportedAlgorithms,
 } from 'rogerthat-plugin';
-import { Observable, Subject } from 'rxjs';
+import { forkJoin, Observable, Subject } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
-import { CreateKeyPair, GetAddressPayload, Transaction1 } from '../interfaces';
+import { AddressKeyPair, CreateKeyPair, GetAddressPayload, Transaction1 } from '../interfaces';
 import { IAppState } from '../state';
 import { I18nService } from './i18n.service';
 
@@ -111,6 +112,19 @@ export class RogerthatService {
       };
       rogerthat.security.getAddress(success, error, payload.algorithm, payload.keyName, payload.index, payload.message);
     });
+  }
+
+  listAddresses(): Observable<AddressKeyPair[]> {
+    return this.listKeyPairs().pipe(
+      switchMap(keyPairs => {
+        const observableList = keyPairs.map(keyPair => this.getAddress({
+          algorithm: keyPair.algorithm,
+          index: 0,
+          keyName: keyPair.name,
+          message: ''
+        }).pipe(map(addressResult => ({ address: addressResult, keyPair: keyPair }))));
+        return forkJoin(observableList);
+      }));
   }
 
   createTransactionData(transaction: Transaction1, algorithm: SupportedAlgorithms, keyName: string, index: number,

@@ -12,7 +12,7 @@ import {
   ListKeyPairsAction,
   RogerthatActionTypes
 } from '../../actions';
-import { configuration, defaultProvider, Provider } from '../../configuration';
+import { configuration, getDefaultProvider, Provider } from '../../configuration';
 import { CreateKeyPair } from '../../interfaces';
 import { IAppState } from '../../state';
 import { SeedInfoPageComponent } from './seed-info-page.component';
@@ -22,14 +22,14 @@ import { SeedInfoPageComponent } from './seed-info-page.component';
   templateUrl: 'add-wallet-page.component.html',
 })
 export class AddWalletPageComponent implements OnInit, OnDestroy {
+  selectedProvider: Provider = getDefaultProvider();
   newKeyPair: CreateKeyPair = {
-    algorithm: defaultProvider.algorithm,
-    name: defaultProvider.name,
+    algorithm: this.selectedProvider.algorithm,
+    name: this.selectedProvider.name,
     seed: null,
     arbitrary_data: null,
   };
   providers = configuration.providers;
-  selectedProvider: Provider = defaultProvider;
   importing: boolean;
   buttonText: string;
 

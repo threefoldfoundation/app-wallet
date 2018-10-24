@@ -21,6 +21,13 @@ export interface CreateTransactionResult {
   transactionid: string;
 }
 
+export interface PayChatTransactionResult {
+  transaction: CreateTransactionResult;
+  provider_id: string;
+  from_address: string;
+  to_address: string;
+}
+
 export type CoinInput = CoinInput0 | CoinInput1;
 export type CoinOutput = CoinOutput0 | CoinOutput1;
 

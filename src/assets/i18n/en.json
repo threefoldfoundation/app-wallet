@@ -7,6 +7,7 @@
   "cancel": "Cancel",
   "choose_wallet_for_payment": "Please choose which wallet you want to pay with.",
   "close": "Close",
+  "completed_payment_of_x": "{{ amount }} payment completed",
   "confirm_transaction": "Confirm transaction",
   "copy_to_clipboard": "Copy to clipboard",
   "create": "Create",
@@ -41,7 +42,8 @@
   "parent_id_x": "Parent id: {{ parentid }}",
   "pay": "Pay",
   "payment": "Payment",
-  "payment_request_canceled": "Payment request canceled",
+  "payment_request_to_x": "Do you want to proceed with the payment of {{ amount }} to address {{ address }}?",
+  "pending_payment_request_to_self": "Pending {{ amount }} payment request to you",
   "pending_transaction": "Pending transaction",
   "please_enter_a_pin_code_for_this_wallet": "Please enter a pin code for this wallet.",
   "please_enter_your_pin": "Please enter your pin",
@@ -83,7 +85,7 @@
   "x_confirmations": "{{ confirmations }} confirmations",
   "x_currency_locked_until_block_y": "{{ amount }} locked until block {{ unlocktime }}",
   "x_currency_locked_until_y": "{{ amount }} locked until {{ unlocktime }}",
-  "x_requests_a_payment_of_y": "{{ user }} requests a payment of {{ amount }}",
+  "x_payment_to_user": "{{ amount }} payment to {{ user }}",
   "yes": "Yes",
   "you_already_have_wallet_with_name": "You already have a wallet with this name, please choose another name."
 }

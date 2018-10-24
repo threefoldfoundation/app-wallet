@@ -4,20 +4,18 @@ import { TranslateService } from '@ngx-translate/core';
 import { NavParams, Platform, ToastController, ViewController } from 'ionic-angular';
 import { CryptoAddress } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
-import { first, map, withLatestFrom } from 'rxjs/operators';
-import { GetAddresssAction, GetBlockAction, GetTransactionAction, GetTransactionCompleteAction } from '../../actions';
-import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, ParsedTransaction } from '../../interfaces';
-import { AmountPipe } from '../../pipes';
+import { map, withLatestFrom } from 'rxjs/operators';
 import {
-  getAddress,
-  getBlock,
-  getLatestBlock,
-  getLatestBlockStatus,
-  getSelectedKeyPair,
-  getTransaction,
-  getTransactionStatus,
-  IAppState
-} from '../../state';
+  GetBlockAction,
+  GetHashInfoAction,
+  GetTransactionAction,
+  GetTransactionCompleteAction,
+  SetSelectedKeyPairAction
+} from '../../actions';
+import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, ParsedTransaction, PayChatTransactionResult } from '../../interfaces';
+import { AmountPipe } from '../../pipes';
+import { RogerthatService } from '../../services';
+import { getBlock, getLatestBlock, getLatestBlockStatus, getTransaction, getTransactionStatus, IAppState } from '../../state';
 import { filterNull } from '../../util';
 
 @Component({
@@ -30,27 +28,26 @@ export class TransactionDetailPageComponent implements OnInit, OnDestroy {
   transactionStatus$: Observable<ApiRequestStatus>;
   latestBlock$: Observable<ExplorerBlock>;
   transactionBlock$: Observable<ExplorerBlockGET>;
-  address$: Observable<CryptoAddress>;
   getLatestBlockStatus$: Observable<ApiRequestStatus>;
   timestamp$: Observable<Date>;
   confirmations$: Observable<number>;
 
   private _transactionSub: Subscription;
-  private _keyPairSubscription: Subscription;
+
   constructor(private params: NavParams,
               private translate: TranslateService,
               private amountPipe: AmountPipe,
               private viewCtrl: ViewController,
               private toastCtrl: ToastController,
               private store: Store<IAppState>,
-              private platform: Platform) {
+              private platform: Platform,
+              private rtService: RogerthatService) {
   }
 
   ngOnInit() {
     this.transaction$ = this.store.pipe(select(getTransaction), filterNull());
     this.transactionStatus$ = this.store.pipe(select(getTransactionStatus));
     this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());
-    this.address$ = this.store.pipe(select(getAddress), filterNull());
     this.confirmations$ = this.latestBlock$.pipe(
       withLatestFrom(this.transaction$),
       map(([block, transaction]) => block.height - transaction.height),
@@ -61,27 +58,36 @@ export class TransactionDetailPageComponent implements OnInit, OnDestroy {
       map(block => new Date(block.block.rawblock.timestamp * 1000)),
     );
     this._transactionSub = this.transaction$.subscribe(transaction => this.store.dispatch(new GetBlockAction(transaction.height)));
-    this._keyPairSubscription = this.store.pipe(select(getSelectedKeyPair), filterNull()).subscribe(keyPair => {
-      this.store.dispatch(new GetAddresssAction({
-        algorithm: keyPair.algorithm,
-        index: 0,
-        keyName: keyPair.name,
-        message: this.translate.instant('please_enter_your_pin'),
-      }));
-    });
     // 2 supported options, first one is the transaction being supplied as parameter, second one only the transaction id.
     // In case we only know the transaction id, get the address & the transaction first.
     if (this.params.get('transaction')) {
       this.store.dispatch(new GetTransactionCompleteAction(this.params.get('transaction') as ParsedTransaction));
     } else {
-      const transactionId = this.params.get('transactionId');
-      this.address$.pipe(first()).subscribe(address => this.store.dispatch(new GetTransactionAction(transactionId, address.address)));
+      const transactionInfo: PayChatTransactionResult = this.params.get('appTransaction');
+      this.rtService.listAddresses().subscribe((addresses) => {
+        const from = addresses.find(a => a.address.address === transactionInfo.from_address);
+        const to = addresses.find(a => a.address.address === transactionInfo.to_address);
+        let ownAddress: CryptoAddress | null = null;
+        if (from) {
+          this.store.dispatch(new SetSelectedKeyPairAction(from.keyPair));
+          ownAddress = from.address;
+        }
+        if (to) {
+          this.store.dispatch(new SetSelectedKeyPairAction(to.keyPair));
+          ownAddress = to.address;
+        }
+        if (ownAddress) {
+          this.store.dispatch(new GetHashInfoAction(ownAddress.address));
+          this.store.dispatch(new GetTransactionAction(transactionInfo.transaction.transactionid, ownAddress.address));
+        } else {
+          // TODO "It looks like this transaction was made using a wallet that is not present on this phone yet, do you want to import it?"
+        }
+      });
     }
   }
 
   ngOnDestroy() {
     this._transactionSub.unsubscribe();
-    this._keyPairSubscription.unsubscribe();
   }
 
   getAmount(amount: number) {

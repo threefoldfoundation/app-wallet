@@ -1,4 +1,4 @@
-import { KeyPair, PaymentProviderId } from 'rogerthat-plugin';
+import { CryptoAddress, KeyPair, PaymentProviderId } from 'rogerthat-plugin';
 
 export type UserData = Readonly<Partial<any>>;
 export type ServiceData = Readonly<Partial<any>>;
@@ -13,4 +13,9 @@ export interface CreateKeyPair extends KeyPair {
 
 export interface KeyPairArbitraryData {
   provider_id: PaymentProviderId;
+}
+
+export interface AddressKeyPair {
+  address: CryptoAddress;
+  keyPair: KeyPair;
 }
