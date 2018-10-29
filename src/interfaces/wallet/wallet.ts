@@ -141,6 +141,7 @@ export interface ParsedTransactionInfo {
   lockedAmount: number;
   minerfee: number;
   receiving: boolean;
+  confirmed: boolean;
 }
 
 export interface ParsedTransaction extends ExplorerTransaction1, ParsedTransactionInfo {

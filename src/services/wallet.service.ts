@@ -65,7 +65,7 @@ export class WalletService {
       return info.transactions
         .filter(t => t.rawtransaction.version <= 1)
         .map(t => convertToV1Transaction(t))
-        .map(t => convertTransaction(t, address, latestBlock, inputs))
+        .map(t => convertTransaction(t, address, latestBlock, inputs, true))
         .sort((t1, t2) => t2.height - t1.height);
     }));
   }
@@ -88,7 +88,8 @@ export class WalletService {
     return this.getHashInfo(transactionId).pipe(
       map(explorerTransaction => {
         const inputs = getInputIds(transactions, address, latestBlock).all;
-        return convertTransaction(convertToV1Transaction(explorerTransaction.transaction), address, latestBlock, inputs);
+        return convertTransaction(convertToV1Transaction(explorerTransaction.transaction), address, latestBlock, inputs,
+          !explorerTransaction.unconfirmed);
       }));
   }
 
