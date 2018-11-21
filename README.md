@@ -4,6 +4,29 @@
 
 Run `npm start -- --configuration_file "/path/to/config_file.json"`
 
+Example config file:
+
+```json
+{
+  "defaultProviderId": "threefold_testnet",
+  "production": false,
+  "providers": [
+    {
+      "explorerUrls": [
+        "https://explorer.testnet.threefoldtoken.com",
+        "https://explorer2.testnet.threefoldtoken.com"
+      ],
+      "symbol": "TFT",
+      "providerId": "threefold_testnet",
+      "name": "ThreeFold testnet",
+      "algorithm": "ed25519",
+      "addressLength": 78,
+      "logoPath": "assets/token-icons/threefold.svg"
+    }
+  ]
+}
+```
+
 ## Production build
 
 Run `npm run build:zip`. A `wallet.zip` file will be generated in this folder.
