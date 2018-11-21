@@ -17,9 +17,9 @@ import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, Transac
 import {
   createTransactionStatus,
   getAddress,
+  getConfirmSendTransactionStatus,
   getCreatedTransaction,
   getPendingTransaction,
-  getPendingTransactionStatus,
   getSelectedKeyPair,
   IAppState,
 } from '../../state';
@@ -40,7 +40,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   address$: Observable<CryptoAddress>;
 
   private _transactionCompleteSub: Subscription;
-  private _pendingTransactionSubscription: Subscription | null = null;
+  private _pendingTransactionSubscription: Subscription;
 
   constructor(private store: Store<IAppState>,
               private viewCtrl: ViewController,
@@ -64,7 +64,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
       this.store.dispatch(new CreateSignatureDataAction(this.data, action.payload));
     });
     this.pendingTransaction$ = this.store.pipe(select(getPendingTransaction), filterNull());
-    this.pendingTransactionStatus$ = this.store.pipe(select(getPendingTransactionStatus));
+    this.pendingTransactionStatus$ = this.store.pipe(select(getConfirmSendTransactionStatus));
     this.createTransactionStatus$ = this.store.pipe(select(createTransactionStatus));
     this.transaction$ = this.store.pipe(select(getCreatedTransaction), filterNull());
     this.keyPair$ = this.store.pipe(select(getSelectedKeyPair), filterNull());
@@ -79,9 +79,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this._transactionCompleteSub.unsubscribe();
-    if (this._pendingTransactionSubscription) {
-      this._pendingTransactionSubscription.unsubscribe();
-    }
+    this._pendingTransactionSubscription.unsubscribe();
   }
 
   onConfirm() {

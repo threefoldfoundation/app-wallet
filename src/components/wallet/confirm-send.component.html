@@ -1,4 +1,4 @@
-<div *ngIf="transaction && ownAddress">
+<div *ngIf="pendingStatus.success && ownAddress">
   <ion-list class="input-output-list">
     <ion-item *ngFor="let output of visibleOutputs">
       <coin-output [coinOutput]="output"></coin-output>

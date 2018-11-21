@@ -181,25 +181,28 @@ export class WalletService {
    * Should the request fail, it is retried 4 more times to different explorers.
    */
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
-    let currentUrl: string;
+    let currentHost: string;
     let retries = 0;
     return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
       switchMap(provider => {
-        currentUrl = this._getUrl(provider);
-        return this.http.get<T>(`${currentUrl}${path}`, options).pipe(
+        currentHost = this._getUrl(provider);
+        const fullUrl = currentHost + path;
+        console.info(`GET ${fullUrl}`);
+        return this.http.get<T>(fullUrl, options).pipe(
           timeout(5000),
           retryWhen(attempts => {
             return attempts.pipe(mergeMap(error => {
+              retries++;
+              console.warn(`GET ${fullUrl} failed (attempt ${retries})`);
               if (error instanceof HttpErrorResponse && typeof error.error === 'object'
                 && isUnrecognizedHashError(error.error.message)) {
                 // Don't retry in case the hash wasn't recognized
                 return throwError(error);
               }
-              retries++;
               const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
                 || error instanceof TimeoutError;
               if (retries < 5 && shouldRetry) {
-                this.unavailableExplorers.push(currentUrl);
+                this.unavailableExplorers.push(currentHost);
                 return timer(0);
               }
               return throwError(error);
@@ -211,20 +214,23 @@ export class WalletService {
   }
 
   private _post<T>(path: string, body: any | null, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
-    let currentUrl: string;
+    let currentHost: string;
     let retries = 0;
     return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
       switchMap(provider => {
-        currentUrl = this._getUrl(provider);
-        return this.http.post<T>(currentUrl + path, body, options).pipe(
+        currentHost = this._getUrl(provider);
+        const fullUrl = currentHost + path;
+        console.info(`POST ${fullUrl}`);
+        return this.http.post<T>(fullUrl, body, options).pipe(
           timeout(5000),
           retryWhen(attempts => {
             return attempts.pipe(mergeMap(error => {
               retries++;
+              console.warn(`POST ${fullUrl} failed (attempt ${retries})`);
               const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
                 || error instanceof TimeoutError;
               if (retries < 5 && shouldRetry) {
-                this.unavailableExplorers.push(currentUrl);
+                this.unavailableExplorers.push(currentHost);
                 return timer(0);
               }
               return throwError(error);
