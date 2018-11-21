@@ -48,19 +48,17 @@ export class AppComponent implements OnInit {
         splashScreen.hide();
         this.rogerthatService.initialize();
         const version = this.rogerthatService.getVersion();
-        let mustUpdate = false;
+        let neededVersion: number;
         if (rogerthat.system.os === 'ios') {
-          if (version.patch < 3073) {
-            mustUpdate = true;
-          }
+          neededVersion = 3073;
         } else {
-          if (version.patch < 4344) {
-            mustUpdate = true;
-          }
+          neededVersion = 4344;
         }
+        console.log(`Version: ${version.major}.${version.minor}.${version.patch}`);
         this.rogerthatService.getContext().subscribe(context => {
           const root = this.processContext(context);
-          if (mustUpdate) {
+          if (neededVersion > version.patch) {
+            console.log(`Update required, got version ${version.patch}, need ${neededVersion}`);
             const alert = this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
             alert.onDidDismiss(() => platform.exitApp());
             return;
