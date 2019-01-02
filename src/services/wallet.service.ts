@@ -19,6 +19,7 @@ import {
   OutputType,
   ParsedTransaction,
   PendingTransaction,
+  Transaction0,
   Transaction1,
   TransactionPool,
   TranslatedError,
@@ -98,7 +99,7 @@ export class WalletService {
         // filterTransactionByAddress shouldn't be needed anymore
         // Transactions filtered by explorer by using the `unlockhash` query parameter, but we're doing it regardless
         return (pool.transactions || []).filter(t => filterTransactionsByAddress(address, t) && t.version <= 1)
-          .map(t => convertToV1RawTransaction(t))
+          .map(t => convertToV1RawTransaction(t as Transaction0 | Transaction1))
           .map(t => convertPendingTransaction(t, address, latestBlock, inputs));
       }));
   }
@@ -182,63 +183,67 @@ export class WalletService {
    */
   private _get<T>(path: string, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
     let currentHost: string;
+    let fullUrl: string;
     let retries = 0;
     return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
       switchMap(provider => {
-        currentHost = this._getUrl(provider);
-        const fullUrl = currentHost + path;
-        console.info(`GET ${fullUrl}`);
-        return this.http.get<T>(fullUrl, options).pipe(
-          timeout(5000),
-          retryWhen(attempts => {
-            return attempts.pipe(mergeMap(error => {
-              retries++;
-              console.warn(`GET ${fullUrl} failed (attempt ${retries})`);
-              if (error instanceof HttpErrorResponse && typeof error.error === 'object'
-                && isUnrecognizedHashError(error.error.message)) {
-                // Don't retry in case the hash wasn't recognized
-                return throwError(error);
-              }
-              const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
-                || error instanceof TimeoutError;
-              if (retries < 5 && shouldRetry) {
-                this.unavailableExplorers.push(currentHost);
-                return timer(0);
-              }
-              return throwError(error);
-            }));
-          })
-        );
-      }),
+          currentHost = this._getUrl(provider);
+          fullUrl = currentHost + path;
+          console.log(`GET ${fullUrl}`);
+          return this.http.get<T>(fullUrl, options).pipe(timeout(5000));
+        }
+      ),
+      retryWhen(attempts => {
+        return attempts.pipe(mergeMap(error => {
+          retries++;
+          console.warn(`GET ${fullUrl} failed (attempt ${retries})`);
+          if (error instanceof HttpErrorResponse && typeof error.error === 'object'
+            && isUnrecognizedHashError(error.error.message)) {
+            // Don't retry in case the hash wasn't recognized
+            return throwError(error);
+          }
+          const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
+            || error instanceof TimeoutError;
+          if (retries < 5 && shouldRetry) {
+            this.setExplorerUnavailable(currentHost);
+            return timer(0);
+          }
+          return throwError(error);
+        }));
+      })
     );
   }
 
   private _post<T>(path: string, body: any | null, options?: { headers?: HttpHeaders | { [ header: string ]: string | string[] } }) {
     let currentHost: string;
+    let fullUrl: string;
     let retries = 0;
     return this.store.pipe(select(getKeyPairProvider), filterNull()).pipe(
       switchMap(provider => {
         currentHost = this._getUrl(provider);
-        const fullUrl = currentHost + path;
-        console.info(`POST ${fullUrl}`);
-        return this.http.post<T>(fullUrl, body, options).pipe(
-          timeout(5000),
-          retryWhen(attempts => {
-            return attempts.pipe(mergeMap(error => {
-              retries++;
-              console.warn(`POST ${fullUrl} failed (attempt ${retries})`);
-              const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
-                || error instanceof TimeoutError;
-              if (retries < 5 && shouldRetry) {
-                this.unavailableExplorers.push(currentHost);
-                return timer(0);
-              }
-              return throwError(error);
-            }));
-          })
-        );
+        fullUrl = currentHost + path;
+        console.log(`POST ${fullUrl}`);
+        return this.http.post<T>(fullUrl, body, options).pipe(timeout(5000));
+      }),
+      retryWhen(attempts => {
+        return attempts.pipe(mergeMap(error => {
+          retries++;
+          console.warn(`POST ${fullUrl} failed (attempt ${retries})`);
+          const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
+            || error instanceof TimeoutError;
+          if (retries < 5 && shouldRetry) {
+            this.setExplorerUnavailable(currentHost);
+            return timer(0);
+          }
+          return throwError(error);
+        }));
       }),
     );
+  }
+
+  private setExplorerUnavailable(url: string) {
+    console.log(`Marking explorer ${url} as unavailable`);
+    this.unavailableExplorers.push(url);
   }
 
   private _getUrl(provider: Provider) {
