@@ -4,12 +4,12 @@ import {
   ApiRequestStatus,
   CreateSignatureData,
   CreateTransactionResult,
+  CreateTransactionType,
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
   ParsedTransaction,
   PendingTransaction,
-  Transaction1,
 } from '../interfaces';
 
 export const enum WalletActionTypes  {
@@ -37,7 +37,7 @@ export const enum WalletActionTypes  {
   GET_BLOCK = 'Get block',
   GET_BLOCK_COMPLETE = 'Get block complete',
   GET_BLOCK_FAILED = 'Get block failed',
-  SET_SELECTED_KEY_PAIR = 'Set selected key pair'
+  SET_SELECTED_KEY_PAIR = 'Set selected key pair',
 }
 
 export class GetTransactionAction implements Action {
@@ -134,7 +134,7 @@ export class CreateSignatureDataAction implements Action {
 export class CreateSignatureDataCompleteAction implements Action {
   readonly type = WalletActionTypes.CREATE_SIGNATURE_DATA_COMPLETE;
 
-  constructor(public payload: Transaction1) {
+  constructor(public payload: CreateTransactionType) {
   }
 }
 
@@ -148,7 +148,7 @@ export class CreateSignatureDataFailedAction implements Action {
 export class CreateTransactionAction implements Action {
   readonly type = WalletActionTypes.CREATE_TRANSACTION;
 
-  constructor(public payload: Transaction1, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
+  constructor(public payload: CreateTransactionType, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
               public message: string) {
   }
 }

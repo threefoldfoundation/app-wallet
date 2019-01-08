@@ -12,6 +12,9 @@ import {
   CoinOutput1,
   CreateSignatureData,
   CreateTransactionResult,
+  CreateTransactionType,
+  ERC20AddressRegistrationTransaction,
+  ERC20ConvertTransaction,
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
@@ -19,9 +22,9 @@ import {
   OutputType,
   ParsedTransaction,
   PendingTransaction,
-  Transaction0,
   Transaction1,
   TransactionPool,
+  TransactionVersion,
   TranslatedError,
 } from '../interfaces';
 import { getKeyPairProvider, IAppState } from '../state';
@@ -98,19 +101,19 @@ export class WalletService {
         const inputs = hashInfo ? getInputIds(hashInfo.transactions, address, latestBlock).all : [];
         // filterTransactionByAddress shouldn't be needed anymore
         // Transactions filtered by explorer by using the `unlockhash` query parameter, but we're doing it regardless
-        return (pool.transactions || []).filter(t => filterTransactionsByAddress(address, t) && t.version <= 1)
-          .map(t => convertToV1RawTransaction(t as Transaction0 | Transaction1))
-          .map(t => convertPendingTransaction(t, address, latestBlock, inputs));
+        return (pool.transactions || []).filter(t => filterTransactionsByAddress(address, t))
+          .map(t => t.version === TransactionVersion.ZERO ? convertToV1RawTransaction(t) : t)
+          .map(t => convertPendingTransaction(<CreateTransactionType>t, address, latestBlock, inputs));
       }));
   }
 
   createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[],
-                      latestBlock: ExplorerBlock): Observable<Transaction1> {
+                      latestBlock: ExplorerBlock): Observable<CreateTransactionType> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
       let inputIds = getInputIds(hashInfo.transactions, data.from_address, latestBlock).available;
       const pendingOutputIds = pendingTransactions
-        .map(transaction => <CoinInput[]>(transaction.data.coininputs || []))
+        .map(transaction => <CoinInput[]>(transaction.transaction.data.coininputs || []))
         .reduce((total: string[], inputs) => [ ...total, ...inputs.map(input => input.parentid) ], []);
       inputIds = inputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
       const required = data.amount * COIN_TO_HASTINGS / Math.pow(10, data.precision);
@@ -150,8 +153,9 @@ export class WalletService {
       });
       // Send the rest (if any) to our address
       const difference = inputValue - requiredFunds;
+      let restOutput: CoinOutput1 | null = null;
       if (difference > 0) {
-        transactionOutputs.push({
+        restOutput = {
           condition: {
             type: OutputType.UNLOCKHASH,
             data: {
@@ -159,21 +163,47 @@ export class WalletService {
             }
           },
           value: difference.toString()
-        });
+        };
+        transactionOutputs.push(restOutput);
       }
-      const t = <Transaction1>{
-        version: 1,
-        data: {
-          coininputs: transactionInputs,
-          coinoutputs: transactionOutputs,
-          minerfees: [minerfees.toString()],
-        }
-      };
-      return t;
+      switch (data.version) {
+        case TransactionVersion.ERC20Conversion:
+          return <ERC20ConvertTransaction>{
+            version: TransactionVersion.ERC20Conversion,
+            data: {
+              address: data.to_address,
+              value: required.toString(),
+              txfee: minerfees.toString(),
+              coininputs: transactionInputs,
+              refundcoinoutput: restOutput,
+            }
+          };
+        case TransactionVersion.ERC20AddressRegistration:
+          return <ERC20AddressRegistrationTransaction>{
+            version: TransactionVersion.ERC20AddressRegistration,
+            data: {
+              pubkey: 'ed25519:',  // Will be set via the golang lib
+              signature: '',  // will be set later
+              regfee: '10000000000',
+              txfee: minerfees.toString(),
+              coininputs: transactionInputs,
+              refundcoinoutput: restOutput,
+            }
+          };
+        default:
+          return <Transaction1>{
+            version: TransactionVersion.ONE,
+            data: {
+              coininputs: transactionInputs,
+              coinoutputs: transactionOutputs,
+              minerfees: [minerfees.toString()],
+            }
+          };
+      }
     }));
   }
 
-  createTransaction(transaction: Transaction1) {
+  createTransaction(transaction: CreateTransactionType) {
     return this._post<CreateTransactionResult>(`/transactionpool/transactions`, transaction);
   }
 

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { CryptoAddress } from 'rogerthat-plugin';
-import { CreateSignatureData } from '../../interfaces';
+import { CreateSignatureData, ERC20_ADDRESS_LENGTH, SUPPORTED_TOKENS, TransactionVersion } from '../../interfaces';
 
 @Component({
   selector: 'send',
@@ -22,10 +22,19 @@ export class SendComponent {
     return this._data;
   }
 
+  get addressLengthValidation() {
+    if (this.data.version === TransactionVersion.ERC20Conversion) {
+      return ERC20_ADDRESS_LENGTH;
+    }
+    return this.addressLength;
+  }
+
   @Output() createSignatureData = new EventEmitter<CreateSignatureData>();
   @Output() scanQr = new EventEmitter();
 
   private _data: CreateSignatureData;
+
+  versions = SUPPORTED_TOKENS;
 
   submitForm(form: NgForm) {
     if (!form.form.valid) {

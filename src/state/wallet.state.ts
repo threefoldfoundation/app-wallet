@@ -5,12 +5,12 @@ import {
   apiRequestInitial,
   ApiRequestStatus,
   CreateTransactionResult,
+  CreateTransactionType,
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
   ParsedTransaction,
   PendingTransaction,
-  Transaction1,
 } from '../interfaces';
 import { getInputIds, getTransactionAmount } from '../util';
 import { IAppState } from './app.state';
@@ -24,7 +24,7 @@ export interface IWalletState {
   pendingTransactionsStatus: ApiRequestStatus;
   createdTransaction: CreateTransactionResult | null;
   transactionsStatus: ApiRequestStatus;
-  pendingTransaction: Transaction1 | null;
+  pendingTransaction: CreateTransactionType | null;
   pendingTransactionStatus: ApiRequestStatus;
   createTransactionStatus: ApiRequestStatus;
   latestBlock: ExplorerBlock | null;

@@ -20,7 +20,7 @@ export class RogerthatEffects {
   @Effect() getAddress$ = this.actions$.pipe(
     ofType<actions.GetAddresssAction>(actions.RogerthatActionTypes.GET_ADDRESS),
     switchMap(action => this.rogerthatService.getAddress(action.payload).pipe(
-      map(address => new actions.GetAddresssCompleteAction(address)),
+      map(address => new actions.GetAddressCompleteAction(address)),
       catchError(err => of(new actions.GetAddresssFailedAction(err)))),
     ));
 

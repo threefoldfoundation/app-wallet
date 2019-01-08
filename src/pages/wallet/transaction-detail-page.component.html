@@ -33,6 +33,6 @@
         <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
       </ion-item>
     </ion-list>
-    <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount } }}</p>
+    <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.fee | amount } }}</p>
   </div>
 </ion-content>

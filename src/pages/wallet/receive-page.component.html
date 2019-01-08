@@ -1,4 +1,10 @@
 <ion-content>
+  <ion-item>
+    <ion-label color="primary" floating>{{ 'currency' | translate }}</ion-label>
+    <ion-select name="version" required [(ngModel)]="version">
+      <ion-option *ngFor="let version of versions" [value]="version.version">{{ version.name }}</ion-option>
+    </ion-select>
+  </ion-item>
   <ion-row justify-content-center ngxClipboard [cbContent]="address$ | async" (cbOnSuccess)="showCopiedToast($event)">
     <p>{{ 'receive_address_info' | translate }}</p>
   </ion-row>
@@ -17,4 +23,12 @@
       <ion-input type="number" [formControl]="amountControl"></ion-input>
     </ion-item>
   </ion-row>
+  <hr>
+  <div *ngIf="version !== 1">
+    <p>{{ 'withdraw_explanation' | translate }}</p>
+    <ion-row>
+      <button ion-button color="primary"
+              (click)="registerWithdrawAddress()">{{ 'register_erc20_withdraw_address' | translate }}</button>
+    </ion-row>
+  </div>
 </ion-content>

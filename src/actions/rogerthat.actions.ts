@@ -9,7 +9,7 @@ import {
   RogerthatError,
   SupportedAlgorithms,
 } from 'rogerthat-plugin';
-import { ApiRequestStatus, CreateKeyPair, GetAddressPayload, ServiceData, Transaction1, UserData } from '../interfaces';
+import { ApiRequestStatus, CreateKeyPair, CreateTransactionType, GetAddressPayload, ServiceData, UserData } from '../interfaces';
 
 export const enum RogerthatActionTypes {
   SET_USER_DATA = '[rogerthat] Set user data',
@@ -81,7 +81,7 @@ export class GetAddresssAction implements Action {
   }
 }
 
-export class GetAddresssCompleteAction implements Action {
+export class GetAddressCompleteAction implements Action {
   readonly type = RogerthatActionTypes.GET_ADDRESS_COMPLETE;
 
   constructor(public payload: CryptoAddress) {
@@ -119,7 +119,7 @@ export class GetPublicKeyFailedAction implements Action {
 export class CreateTransactionDataAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA;
 
-  constructor(public payload: Transaction1, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
+  constructor(public payload: CreateTransactionType, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
               public message: string) {
   }
 }
@@ -127,7 +127,7 @@ export class CreateTransactionDataAction implements Action {
 export class CreateTransactionDataCompleteAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA_COMPLETE;
 
-  constructor(public payload: Transaction1) {
+  constructor(public payload: CreateTransactionType) {
   }
 }
 
@@ -185,7 +185,7 @@ export type RogerthatActions
   | ScanQrCodeUpdateAction
   | ScanQrCodeFailedAction
   | GetAddresssAction
-  | GetAddresssCompleteAction
+  | GetAddressCompleteAction
   | GetAddresssFailedAction
   | GetPublicKeyAction
   | GetPublicKeyCompleteAction

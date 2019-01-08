@@ -16,7 +16,7 @@ import {
 } from 'rogerthat-plugin';
 import { Observable, Subject } from 'rxjs';
 import { ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
-import { CreateKeyPair, GetAddressPayload, Transaction1 } from '../interfaces';
+import { CreateKeyPair, CreateTransactionType, GetAddressPayload, TransactionVersion } from '../interfaces';
 import { IAppState } from '../state';
 import { I18nService } from './i18n.service';
 
@@ -113,14 +113,14 @@ export class RogerthatService {
     });
   }
 
-  createTransactionData(transaction: Transaction1, algorithm: SupportedAlgorithms, keyName: string, index: number,
-                        unlockMessage: string): Observable<Transaction1> {
+  createTransactionData(transaction: CreateTransactionType, algorithm: SupportedAlgorithms, keyName: string, index: number,
+                        unlockMessage: string): Observable<CreateTransactionType> {
     const zone = this.ngZone;
-    return Observable.create((emitter: Subject<Transaction1>) => {
+    return Observable.create((emitter: Subject<CreateTransactionType>) => {
       rogerthat.payments.getTransactionData(success, error, algorithm, keyName, index, JSON.stringify(transaction));
 
       function success(signatureData: SignatureData) {
-        const updatedTransaction: Transaction1 = JSON.parse(signatureData.transaction);
+        const updatedTransaction: CreateTransactionType = JSON.parse(signatureData.transaction);
         const toSign: string[] = JSON.parse(signatureData.data);
         let signedCounter = toSign.length;
         for (let i = 0; i < toSign.length; i++) {
@@ -130,13 +130,28 @@ export class RogerthatService {
 
         function processSignature(signature: CryptoSignature, dataIndex: number) {
           // Update 'signature' property so that it's signed
-          (updatedTransaction.data.coininputs || [])[dataIndex].fulfillment.data.signature = signature.payload_signature;
+          if (updatedTransaction.version === TransactionVersion.ONE
+            || updatedTransaction.version === TransactionVersion.ERC20Conversion
+            || updatedTransaction.version === TransactionVersion.ERC20AddressRegistration) {
+            (updatedTransaction.data.coininputs || [])[dataIndex].fulfillment.data.signature = signature.payload_signature;
+          } else {
+            throw Error('not sure what to do here');
+          }
           signedCounter--;
           if (signedCounter === 0) {
             // Everything signed, return updated transaction with signatures
             zone.run(() => {
-              emitter.next(updatedTransaction);
-              emitter.complete();
+              // Must sign transaction itself in case of erc20 address registration
+              if (updatedTransaction.version === TransactionVersion.ERC20AddressRegistration) {
+                rogerthat.security.sign(sig => {
+                  updatedTransaction.data.signature = sig.payload_signature;
+                  emitter.next(updatedTransaction);
+                  emitter.complete();
+                }, signError, algorithm, keyName, index, unlockMessage, signatureData.transactionHash, false, false);
+              } else {
+                emitter.next(updatedTransaction);
+                emitter.complete();
+              }
             });
           }
         }

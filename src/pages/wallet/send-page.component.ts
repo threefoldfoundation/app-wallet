@@ -7,13 +7,14 @@ import { Observable, Subscription } from 'rxjs';
 import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { GetAddresssAction, GetHashInfoAction, ScanQrCodeAction } from '../../actions';
 import { Provider } from '../../configuration';
-import { CreateSignatureData, CreateTransactionResult } from '../../interfaces';
+import { CreateSignatureData, CreateTransactionResult, TransactionVersion } from '../../interfaces';
 import { getAddress, getKeyPairProvider, getQrCodeContent, getSelectedKeyPair, getTransactions, IAppState } from '../../state';
 import { filterNull, parseQuery } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 const PRECISION = 5;
 const DEFAULT_FORM_DATA: CreateSignatureData = {
+  version: TransactionVersion.ONE,
   amount: 0,
   precision: PRECISION,
   from_address: '',

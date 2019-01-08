@@ -5,7 +5,7 @@ import { ModalController, NavParams } from 'ionic-angular';
 import { CreateTransactionBaseResult, PaymentProvider, PayMethod, PayWidgetContextData, RogerthatError } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
 import { GetAddresssAction } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult } from '../../interfaces';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, TransactionVersion } from '../../interfaces';
 import { getAddress, getAddressStatus, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 import { ConfirmSendPageComponent } from '../wallet';
@@ -34,6 +34,7 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
     this._addressSubscription = this.store.pipe(select(getAddress)).subscribe(address => {
       if (address) {
         const data: CreateSignatureData = {
+          version: TransactionVersion.ONE,
           amount: this.selectedMethod.amount,
           precision: this.selectedMethod.precision,
           to_address: this.selectedMethod.target || payContext.target,  // target is our destination address

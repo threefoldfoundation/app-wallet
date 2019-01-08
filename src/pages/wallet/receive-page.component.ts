@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, View
 import { FormControl } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { ToastController } from 'ionic-angular';
+import { AlertController, ModalController, ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs';
-import { map, startWith, withLatestFrom } from 'rxjs/operators';
+import { first, map, startWith, withLatestFrom } from 'rxjs/operators';
+import { COIN_TO_HASTINGS_PRECISION, CreateTransactionResult, SUPPORTED_TOKENS, TransactionVersion } from '../../interfaces/wallet';
 import { getAddress, getKeyPairProvider, IAppState } from '../../state';
 import { filterNull } from '../../util';
+import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,10 +23,14 @@ export class ReceivePageComponent implements OnInit {
   amountControl: FormControl;
   address$: Observable<string>;
   qrContent$: Observable<string>;
+  version: TransactionVersion = TransactionVersion.ONE;
+  versions = SUPPORTED_TOKENS;
 
   constructor(private store: Store<IAppState>,
               private translate: TranslateService,
-              private toastCtrl: ToastController) {
+              private toastCtrl: ToastController,
+              private alertCtrl: AlertController,
+              private modalCtrl: ModalController) {
     this.amountControl = new FormControl();
   }
 
@@ -51,5 +57,33 @@ export class ReceivePageComponent implements OnInit {
         closeButtonText: this.translate.instant('ok'),
       }).present();
     }
+  }
+
+  registerWithdrawAddress() {
+    this.address$.pipe(first()).subscribe(address => {
+      const transactionData = {
+        amount: 0,
+        to_address: '',
+        from_address: address,
+        version: TransactionVersion.ERC20AddressRegistration,
+        precision: COIN_TO_HASTINGS_PRECISION
+      };
+      const modal = this.modalCtrl.create(ConfirmSendPageComponent, { transactionData });
+      modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
+        if (transaction) {
+          const config = {
+            title: this.translate.instant('erc_address_registration_complete'),
+            message: this.translate.instant('erc_address_registration_complete_message'),
+            buttons: [{ text: this.translate.instant('ok') }],
+          };
+          const alert = this.alertCtrl.create(config);
+          alert.present();
+          alert.onDidDismiss(() => {
+            // guess we're done
+          });
+        }
+      });
+      modal.present();
+    });
   }
 }

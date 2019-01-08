@@ -13,7 +13,7 @@ import {
   GetPendingTransactionsCompleteAction,
   WalletActionTypes,
 } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, Transaction1 } from '../../interfaces';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, CreateTransactionType } from '../../interfaces';
 import {
   createTransactionStatus,
   getAddress,
@@ -32,7 +32,7 @@ import { filterNull } from '../../util';
 })
 export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   data: CreateSignatureData;
-  pendingTransaction$: Observable<Transaction1>;
+  pendingTransaction$: Observable<CreateTransactionType>;
   pendingTransactionStatus$: Observable<ApiRequestStatus>;
   createTransactionStatus$: Observable<ApiRequestStatus>;
   transaction$: Observable<CreateTransactionResult>;
