@@ -13,7 +13,7 @@
 <ion-row *ngIf="showAddressRegistrationInfo">
   <p>{{ 'create_address_registration_info' | translate }}</p>
 </ion-row>
-<ion-row justify-content-end>
+<ion-row justify-content-end *ngIf="!pendingStatus.error">
   <form (ngSubmit)="submit()">
     <button ion-button color="primary" [disabled]="pendingStatus.loading || createStatus.loading">
       {{ 'confirm_transaction' | translate }}

@@ -1,21 +1,21 @@
 import { createSelector } from '@ngrx/store';
 import { CreateKeyPairResult, CryptoAddress, KeyPair, PublicKey, QrCodeScannedContent, RogerthatError } from 'rogerthat-plugin';
 import { getProviderFromKeyPair } from '../configuration';
-import { apiRequestInitial, ApiRequestStatus, ServiceData, UserData } from '../interfaces';
+import { ServiceData, UserData } from '../interfaces';
 import { IAppState } from './app.state';
 
 export interface IRogerthatState<UserDataType = any, ServiceDataType = any> {
   userData: UserDataType;
   serviceData: ServiceDataType;
   address: CryptoAddress | null;
-  addressStatus: ApiRequestStatus<RogerthatError>;
+  addressStatus: RogerthatError | null;
   qrCodeContent: QrCodeScannedContent | null;
   qrCodeError: RogerthatError | null;
   securityKeys: KeyPair[];
   keyPair: CreateKeyPairResult | null;
-  createKeyPairStatus: ApiRequestStatus<RogerthatError>;
+  createKeyPairStatus: RogerthatError | null;
   publicKey: PublicKey | null;
-  getPublicKeyStatus: ApiRequestStatus<RogerthatError>;
+  getPublicKeyStatus: RogerthatError | null;
 }
 
 export const getRogerthatState = (state: IAppState) => state.rogerthat;
@@ -24,14 +24,14 @@ export const initialRogerthatState: IRogerthatState<UserData, ServiceData> = {
   userData: {},
   serviceData: {},
   address: null,
-  addressStatus: apiRequestInitial,
+  addressStatus: null,
   qrCodeContent: null,
   qrCodeError: null,
   securityKeys: [],
   keyPair: null,
-  createKeyPairStatus: apiRequestInitial,
+  createKeyPairStatus: null,
   publicKey: null,
-  getPublicKeyStatus: apiRequestInitial
+  getPublicKeyStatus: null,
 };
 
 export const getQrCodeContent = createSelector(getRogerthatState, s => s.qrCodeContent);

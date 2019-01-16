@@ -17,7 +17,6 @@ import { ConfirmSendPageComponent } from '../wallet';
   templateUrl: 'pay-widget-page.component.html',
 })
 export class PayWidgetPageComponent implements OnInit, OnDestroy {
-  addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   selectedMethod: PayMethod;
   private _addressSubscription: Subscription = Subscription.EMPTY;
   private _keyPairSubscription: Subscription;
@@ -51,7 +50,6 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
         message: this.translate.instant('please_enter_your_pin'),
       })),
     );
-    this.addressStatus$ = this.store.pipe(select(getAddressStatus));
   }
 
   ngOnDestroy() {

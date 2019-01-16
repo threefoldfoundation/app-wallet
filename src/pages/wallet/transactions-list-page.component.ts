@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewE
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
-import { CryptoAddress, RogerthatError } from 'rogerthat-plugin';
+import { CryptoAddress } from 'rogerthat-plugin';
 import { combineLatest, interval, Observable, Subscription } from 'rxjs';
 import { first, map, withLatestFrom } from 'rxjs/operators';
 import { GetAddresssAction, GetHashInfoAction } from '../../actions';
@@ -10,7 +10,6 @@ import { ApiRequestStatus, ExplorerBlock, ParsedTransaction, PendingTransaction 
 import { ErrorService } from '../../services';
 import {
   getAddress,
-  getAddressStatus,
   getLatestBlock,
   getLatestBlockStatus,
   getPendingTransactions,
@@ -39,7 +38,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   totalUnlockedAmount$: Observable<number>;
   totalLocked$: Observable<number>;
   address$: Observable<CryptoAddress>;
-  addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   transactions$: Observable<ParsedTransaction[]>;
   pendingTransactions$: Observable<PendingTransaction[]>;
   loadingStatus$: Observable<ApiRequestStatus>;
@@ -66,24 +64,16 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
       })),
     ));
     this.address$ = this.store.pipe(select(getAddress), filterNull());
-    this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this.transactions$ = this.store.pipe(select(getTransactions));
     this.pendingTransactions$ = this.store.pipe(select(getPendingTransactions));
     this.loadingStatus$ = combineLatest(
       this.store.pipe(select(getTransactionsStatus)),
-      this.store.pipe(select(getAddressStatus)),
       this.store.pipe(select(getLatestBlockStatus)),
-    ).pipe(map(([ s1, s2, s3 ]) => combineRequestStatuses(s1, s2, s3)));
+    ).pipe(map(([s1, s2]) => combineRequestStatuses(s1, s2)));
     this.totalUnlockedAmount$ = this.store.pipe(select(getTotalUnlockedAmount));
     this.totalLocked$ = this.store.pipe(select(getTotalLockedAmount));
     this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());
-    this._subscriptions.push(this.addressStatus$.pipe(withLatestFrom(this.address$)).subscribe(([ s, address ]) => {
-      if (!s.success && !s.loading && s.error !== null) {
-        return this._showErrorDialog(s.error.error);
-      } else if (s.success) {
-        this.getTransactions(address.address);
-      }
-    }));
+    this._subscriptions.push(this.address$.subscribe((address) => this.getTransactions(address.address)));
     this._subscriptions.push(this.loadingStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null && !isUnrecognizedHashError(s.error.error)) {
         this._showErrorDialog(s.error.error);

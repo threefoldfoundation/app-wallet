@@ -91,7 +91,7 @@ export class GetAddressCompleteAction implements Action {
 export class GetAddresssFailedAction implements Action {
   readonly type = RogerthatActionTypes.GET_ADDRESS_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 
@@ -112,7 +112,7 @@ export class GetPublicKeyCompleteAction implements Action {
 export class GetPublicKeyFailedAction implements Action {
   readonly type = RogerthatActionTypes.GET_PUBLIC_KEY_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 
@@ -134,7 +134,7 @@ export class CreateTransactionDataCompleteAction implements Action {
 export class CreateTransactionDataFailedAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 
@@ -152,7 +152,7 @@ export class ListKeyPairsCompleteAction implements Action {
 export class ListKeyPairsFailedAction implements Action {
   readonly type = RogerthatActionTypes.LIST_KEY_PAIRS_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 

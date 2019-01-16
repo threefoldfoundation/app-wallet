@@ -21,7 +21,6 @@ import { ConfirmSendPageComponent } from '../wallet';
 export class PaymentRequestPageComponent implements OnInit, OnDestroy {
   paymentRequest: PaymentRequestData;
   address$: Observable<CryptoAddress>;
-  addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   private _embeddedApp: MessageEmbeddedApp;
   private _payContext: PaymentRequestContext;
   private _keyPairSubscription: Subscription;
@@ -47,7 +46,6 @@ export class PaymentRequestPageComponent implements OnInit, OnDestroy {
         message: this.translate.instant('please_enter_your_pin'),
       }));
     });
-    this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this.address$ = this.store.pipe(select(getAddress), filterNull());
     this.address$.pipe(first()).subscribe(address => {
       this.paymentRequest = JSON.parse(payContext.data.context).data;
