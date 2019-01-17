@@ -3,6 +3,7 @@
   "address": "Address",
   "address_copied_to_clipboard": "Address copied to clipboard",
   "address_must_be_x_characters": "Address must be {{ amount }} characters, it currently is {{ current }} character(s) long.",
+  "address_registered_info": "Your address has been registered as ERC20 withdrawal address, allowing you to withdraw ERC20 funds into your TFT wallet.",
   "amount_x": "Amount: {{ amount }}",
   "cancel": "Cancel",
   "choose_wallet_for_payment": "Please choose which wallet you want to pay with.",
@@ -22,8 +23,8 @@
   "error": "Error",
   "errors": {
     "address_not_found": "Address not found, please import your seed before continuing.",
-    "provided unlock hash has an invalid checksum": "Invalid address, please verify if you entered it correctly.",
     "insufficient_funds": "You don't have enough tokens to complete this transaction or have another transaction pending.",
+    "provided unlock hash has an invalid checksum": "Invalid address, please verify if you have entered it correctly.",
     "unknown": "An unknown error has occurred, please try again later"
   },
   "fee_x": "{{ fee }} fee",
@@ -92,5 +93,6 @@
   "x_currency_locked_until_y": "{{ amount }} locked until {{ unlocktime }}",
   "x_requests_a_payment_of_y": "{{ user }} requests a payment of {{ amount }}",
   "yes": "Yes",
-  "you_already_have_wallet_with_name": "You already have a wallet with this name, please choose another name."
+  "you_already_have_wallet_with_name": "You already have a wallet with this name, please choose another name.",
+  "your_current_address_is": "Your current address is {{ address }}"
 }

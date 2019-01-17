@@ -134,8 +134,6 @@ export class RogerthatService {
             || updatedTransaction.version === TransactionVersion.ERC20Conversion
             || updatedTransaction.version === TransactionVersion.ERC20AddressRegistration) {
             (updatedTransaction.data.coininputs || [])[dataIndex].fulfillment.data.signature = signature.payload_signature;
-          } else {
-            throw Error('not sure what to do here');
           }
           signedCounter--;
           if (signedCounter === 0) {

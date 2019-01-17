@@ -8,10 +8,10 @@ import {
   ExplorerTransaction,
   ExplorerTransaction0,
   ExplorerTransaction1,
+  InputMapping,
   InputType,
   LOCKTIME_BLOCK_LIMIT,
   OutputCondition,
-  OutputMapping,
   OutputType,
   ParsedTransaction,
   PendingTransaction,
@@ -39,7 +39,7 @@ export function isUnrecognizedHashError(err: string | null | undefined): boolean
 }
 
 export function convertTransaction(transaction: ExplorerTransaction1, address: string, latestBlock: ExplorerBlock,
-                                   coinInputs: OutputMapping[]): ParsedTransaction {
+                                   coinInputs: InputMapping[]): ParsedTransaction {
   const { locked, unlocked } = getTransactionAmount(transaction.rawtransaction, latestBlock, address, coinInputs);
   return {
     ...transaction,
@@ -75,9 +75,12 @@ export function convertToV1Transaction(transaction: ExplorerTransaction): Explor
       parent: transaction.parent,
       coinoutputids: transaction.coinoutputids,
       coininputoutputs: (transaction.coininputoutputs || []).map(i => (convertToV1Output(i))),
+      coinoutputunlockhashes: transaction.coinoutputunlockhashes,
       blockstakeinputoutputs: (transaction.blockstakeinputoutputs || []).map(i => convertToV1Output(i)),
       blockstakeoutputids: transaction.blockstakeoutputids,
+      blockstackeunlockhashes: transaction.blockstackeunlockhashes,
       rawtransaction: convertToV1RawTransaction(transaction.rawtransaction) as Transaction1,
+      unconfirmed: transaction.unconfirmed,
     };
   }
   return transaction;
@@ -109,7 +112,7 @@ export function convertToV1Input(input: CoinInput0): CoinInput1 {
 }
 
 export function convertPendingTransaction(transaction: CreateTransactionType, address: string, latestBlock: ExplorerBlock,
-                                          coinInputs: OutputMapping[]): PendingTransaction {
+                                          coinInputs: InputMapping[]): PendingTransaction {
   const { locked, unlocked } = getTransactionAmount(transaction, latestBlock, address, coinInputs);
   return {
     receiving: (unlocked + locked) > 0,
@@ -121,61 +124,78 @@ export function convertPendingTransaction(transaction: CreateTransactionType, ad
 }
 
 export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: ExplorerBlock) {
-  const allCoinOutputs: OutputMapping[] = [];
-  let spentOutputs: OutputMapping[] = [];
+  const allCoinInputs: InputMapping[] = [];
+  let outputIds: string[] = [];
+  // TODO validate if this is working properly
   for (const t of transactions) {
-    const coinOutputIds: string[] = t.coinoutputids || [];
-    if (t.rawtransaction.version === TransactionVersion.ZERO || t.rawtransaction.version === TransactionVersion.ONE) {
-      const coinOutputs = t.rawtransaction.data.coinoutputs || [];
-      const isv0 = isv0RawTransaction(t.rawtransaction);
-      for (let i = 0; i < coinOutputIds.length; i++) {
-        const outputId = coinOutputIds[i];
-        let coinOutput;
-        if (isv0) {
-          coinOutput = <CoinOutput0>coinOutputs[i];
-          if (coinOutput.unlockhash === unlockhash) {
-            allCoinOutputs.push({ id: outputId, amount: coinOutput.value });
+    if (t.coinoutputids) {
+      switch (t.rawtransaction.version) {
+        case TransactionVersion.ZERO:
+          if (t.rawtransaction.data.coinoutputs) {
+            for (let i = 0; i < t.coinoutputids.length; i++) {
+              const outputId = t.coinoutputids[i];
+              const coinOutput = t.rawtransaction.data.coinoutputs[i];
+              if (coinOutput.unlockhash === unlockhash) {
+                allCoinInputs.push({ id: outputId, amount: coinOutput.value });
+              }
+              outputIds.push(outputId);
+            }
           }
-        } else {
-          coinOutput = <CoinOutput1>coinOutputs[i];
+          break;
+        case TransactionVersion.ONE:
+          if (t.rawtransaction.data.coinoutputs) {
+            for (let i = 0; i < t.coinoutputids.length; i++) {
+              const outputId = t.coinoutputids[i];
+              const coinOutput = t.rawtransaction.data.coinoutputs[i];
+              if (filterReceivingOutputCondition(unlockhash, coinOutput.condition, latestBlock)) {
+                allCoinInputs.push({ id: outputId, amount: coinOutput.value });
+              }
+              outputIds.push(outputId);
+            }
+          }
+          break;
+        case TransactionVersion.ERC20AddressRegistration:
+        case TransactionVersion.ERC20Conversion:
+          // Should always only be one output id for the refund address, if null it will have been filtered out above
+          const outputId = t.coinoutputids[0];
+          const coinOutput = <CoinOutput1>t.rawtransaction.data.refundcoinoutput;
           if (filterReceivingOutputCondition(unlockhash, coinOutput.condition, latestBlock)) {
-            allCoinOutputs.push({ id: outputId, amount: coinOutput.value });
+            allCoinInputs.push({ id: outputId, amount: coinOutput.value });
           }
-        }
-        spentOutputs = [...spentOutputs, ...getSpentOutputs(outputId, coinOutput.value, transactions)];
-      }
-    } else if (t.rawtransaction.version === TransactionVersion.ERC20Conversion || t.rawtransaction.version === TransactionVersion.ERC20AddressRegistration) {
-      console.assert(t.coinoutputids!.length === 1, 'Expected t.coinoutputids to only contain one element');
-      if (t.rawtransaction.data.refundcoinoutput && t.coinoutputids) {
-        allCoinOutputs.push({ id: t.coinoutputids[0], amount: t.rawtransaction.data.refundcoinoutput.value });
-      }
-    } else if (t.rawtransaction.version === TransactionVersion.ERC20CoinCreation) {
-      if (t.coinoutputids) {
-        allCoinOutputs.push({ id: t.coinoutputids[0], amount: t.rawtransaction.data.value });
-      } else {
-        throw Error(`No coinoutputids for ERC20CoinCreation transaction ${JSON.stringify(t)}`);
+          outputIds.push(outputId);
+          break;
+        case TransactionVersion.ERC20CoinCreation:
+          if (t.rawtransaction.data.address === unlockhash) {
+            for (const outputId of t.coinoutputids) {
+              const value = t.rawtransaction.data.value;
+              allCoinInputs.push({ id: outputId, amount: value });
+              outputIds.push(outputId);
+            }
+          }
+          break;
       }
     }
   }
+  const spentInputIds = getSpentInputs(outputIds, transactions);
   return {
-    all: allCoinOutputs,
-    available: allCoinOutputs.filter(output => !spentOutputs.some(o => o.id === output.id)),
+    all: allCoinInputs,
+    available: allCoinInputs.filter(output => !spentInputIds.includes(output.id)),
   };
 }
 
-export function getSpentOutputs(outputId: string, outputValue: string, transactions: ExplorerTransaction[]): OutputMapping[] {
-  const spentOutputs = [];
+export function getSpentInputs(outputIds: string[], transactions: ExplorerTransaction[]): string[] {
+  const spentIds: string[] = [];
   for (const transaction of transactions) {
     // Filter out only transaction type that cannot have coininputs
-    if (transaction.rawtransaction.version !== TransactionVersion.ERC20CoinCreation) {
-      for (const input of transaction.rawtransaction.data.coininputs || []) {
-        if (input.parentid === outputId) {
-          spentOutputs.push({ id: outputId, amount: outputValue });
+    if (transaction.rawtransaction.version !== TransactionVersion.ERC20CoinCreation && transaction.rawtransaction.data.coininputs) {
+      for (const input of transaction.rawtransaction.data.coininputs) {
+        if (outputIds.includes(input.parentid)) {
+          spentIds.push(input.parentid);
         }
       }
     }
   }
-  return spentOutputs;
+  return spentIds;
 }
 
 export function isPendingTransaction(trans: PendingTransaction | ParsedTransaction): trans is PendingTransaction {
@@ -197,8 +217,9 @@ export function filterTransactionsByAddress(address: string, transaction: Transa
     case TransactionVersion.ONE:
       return (transaction.data.coinoutputs || []).some(output => filterSendOutputCondition(address, output.condition));
     case TransactionVersion.ERC20Conversion:
-    case TransactionVersion.ERC20AddressRegistration:
       return transaction.data.refundcoinoutput && filterSendOutputCondition(address, transaction.data.refundcoinoutput.condition);
+    case TransactionVersion.ERC20AddressRegistration:
+      return transaction.data.tftaddress === address;
     case TransactionVersion.ERC20CoinCreation:
       return transaction.data.address === address;
   }
@@ -207,7 +228,7 @@ export function filterTransactionsByAddress(address: string, transaction: Transa
 
 
 export function getTransactionAmount(transaction: Transaction, latestBlock: ExplorerBlock, address: string,
-                                     allInputIds: OutputMapping[]) {
+                                     allInputIds: InputMapping[]) {
   let locked = 0;
   let unlocked = 0;
   if (transaction.version === TransactionVersion.ONE || transaction.version === TransactionVersion.ERC20Conversion) {
@@ -320,4 +341,8 @@ export function calculateNewTransactionAmount(transaction: CreateTransactionType
     case TransactionVersion.ERC20Conversion:
       return parseInt(transaction.data.value);
   }
+}
+
+export function filterAddressRegistrationTransaction(transaction: Transaction, address: string) {
+  return transaction.version === TransactionVersion.ERC20AddressRegistration && transaction.data.tftaddress === address;
 }

@@ -106,7 +106,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.address$.pipe(first()).subscribe(address => this.getTransactions(address.address));
   }
 
-  getColor(transaction: ParsedTransaction) {
+  getColor(transaction: ParsedTransaction | PendingTransaction) {
     return transaction.receiving ? 'default' : 'danger';
   }
 
@@ -115,7 +115,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.modalController.create(page, { transaction }).present();
   }
 
-  getColorClass(transaction: ParsedTransaction) {
+  getColorClass(transaction: ParsedTransaction | PendingTransaction) {
     return `color-${this.getColor(transaction)} send-receive-text`;
   }
 

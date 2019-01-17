@@ -5,6 +5,7 @@ import { Observable, of, throwError, TimeoutError, timer } from 'rxjs';
 import { map, mergeMap, retryWhen, switchMap, timeout } from 'rxjs/operators';
 import { Provider } from '../configuration';
 import {
+  ADDRESS_REGISTRATION_FEE,
   BlockFacts,
   COIN_TO_HASTINGS,
   CoinInput,
@@ -117,7 +118,10 @@ export class WalletService {
         .reduce((total: string[], inputs) => [ ...total, ...inputs.map(input => input.parentid) ], []);
       inputIds = inputIds.filter(o => pendingOutputIds.indexOf(o.id) === -1);
       const required = data.amount * COIN_TO_HASTINGS / Math.pow(10, data.precision);
-      const requiredFunds = required + minerfees;
+      let requiredFunds = required + minerfees;
+      if (data.version === TransactionVersion.ERC20AddressRegistration) {
+        requiredFunds += ADDRESS_REGISTRATION_FEE;
+      }
       const totalFunds = inputIds.reduce((total, output) => total + parseInt(output.amount), 0);
       if (requiredFunds > totalFunds) {
         throw new TranslatedError('insufficient_funds');
@@ -184,7 +188,7 @@ export class WalletService {
             data: {
               pubkey: 'ed25519:',  // Will be set via the golang lib
               signature: '',  // will be set later
-              regfee: '10000000000',
+              regfee: ADDRESS_REGISTRATION_FEE.toString(),
               txfee: minerfees.toString(),
               coininputs: transactionInputs,
               refundcoinoutput: restOutput,

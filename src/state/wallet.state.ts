@@ -12,7 +12,7 @@ import {
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
-import { getInputIds, getTransactionAmount } from '../util';
+import { filterAddressRegistrationTransaction, getInputIds, getTransactionAmount } from '../util';
 import { IAppState } from './app.state';
 import { getAddress } from './rogerthat.state';
 
@@ -63,6 +63,13 @@ export const getHashInfoStatus = createSelector(getWalletState, s => s.hashInfoS
 
 export const getTransactions = createSelector(getWalletState, s => s.transactions);
 export const getPendingTransactions = createSelector(getWalletState, s => s.pendingTransactions);
+export const hasRegisteredErc20Address = createSelector(getTransactions, getPendingTransactions, getAddress, (transactions, pendingTransactions, address) => {
+  if (!address) {
+    return false;
+  }
+  return transactions.filter(transaction => filterAddressRegistrationTransaction(transaction.rawtransaction, address.address)).length > 0
+    || pendingTransactions.filter(t => filterAddressRegistrationTransaction(t.transaction, address.address)).length > 0;
+});
 
 export const getLatestBlock = createSelector(getWalletState, s => s.latestBlock);
 export const getLatestBlockStatus = createSelector(getWalletState, s => s.latestBlockStatus);

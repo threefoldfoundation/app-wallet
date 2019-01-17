@@ -22,13 +22,6 @@ export class SendComponent {
     return this._data;
   }
 
-  get addressLengthValidation() {
-    if (this.data.version === TransactionVersion.ERC20Conversion) {
-      return ERC20_ADDRESS_LENGTH;
-    }
-    return this.addressLength;
-  }
-
   @Output() createSignatureData = new EventEmitter<CreateSignatureData>();
   @Output() scanQr = new EventEmitter();
 

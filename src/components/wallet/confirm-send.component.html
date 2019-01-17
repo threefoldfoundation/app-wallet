@@ -11,7 +11,8 @@
 <api-request-status [status]="pendingStatus"></api-request-status>
 <api-request-status [status]="createStatus"></api-request-status>
 <ion-row *ngIf="showAddressRegistrationInfo">
-  <p>{{ 'create_address_registration_info' | translate }}</p>
+  <p style="width: 100%;">{{ 'create_address_registration_info' | translate }}</p>
+  <p style="width: 100%;">{{ 'your_current_address_is' | translate : {address: ownAddress?.address} }}</p>
 </ion-row>
 <ion-row justify-content-end *ngIf="!pendingStatus.error">
   <form (ngSubmit)="submit()">

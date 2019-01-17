@@ -7,7 +7,7 @@ import { Observable, Subscription } from 'rxjs';
 import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { GetAddresssAction, GetHashInfoAction, ScanQrCodeAction } from '../../actions';
 import { Provider } from '../../configuration';
-import { CreateSignatureData, CreateTransactionResult, TransactionVersion } from '../../interfaces';
+import { CreateSignatureData, CreateTransactionResult, ERC20_ADDRESS_LENGTH, TransactionVersion } from '../../interfaces';
 import { getAddress, getKeyPairProvider, getQrCodeContent, getSelectedKeyPair, getTransactions, IAppState } from '../../state';
 import { filterNull, parseQuery } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
@@ -59,7 +59,9 @@ export class SendPageComponent implements OnInit, OnDestroy {
 
     this.keyPair$ = this.store.pipe(select(getSelectedKeyPair), filterNull());
     this.currentProvider$ = this.store.pipe(select(getKeyPairProvider), filterNull());
-    this.addressLength$ = this.currentProvider$.pipe(map(p => p.addressLength));
+    this.addressLength$ = this.currentProvider$.pipe(
+      map(p => this.data.version === TransactionVersion.ERC20Conversion ? ERC20_ADDRESS_LENGTH : p.addressLength)
+    );
     this._keyPairSubscription = this.keyPair$.subscribe(keyPair =>
       this.store.dispatch(new GetAddresssAction({
         algorithm: keyPair.algorithm,

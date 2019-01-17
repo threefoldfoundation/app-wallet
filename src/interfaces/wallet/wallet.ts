@@ -49,6 +49,8 @@ export const enum TransactionVersion {
   ERC20AddressRegistration = 210,
 }
 
+export const ADDRESS_REGISTRATION_FEE = 10000000000;  // 10 tokens
+
 export const TRANSACTION_VERSIONS_WITH_COIN_INPUTS = [TransactionVersion.ZERO, TransactionVersion.ONE, TransactionVersion.ERC20Conversion];
 
 export const ERC20_ADDRESS_LENGTH = 20;  // duh
@@ -211,25 +213,31 @@ export type NonDeprecatedTransactionType = Transaction1
   | ERC20AddressRegistrationTransaction;
 
 export interface ExplorerTransaction0 {
-  id: string;
-  height: number;
-  parent: string;
-  rawtransaction: Transaction0;
-  coininputoutputs: null | CoinOutput0[];
-  coinoutputids: null | string[];
   blockstakeinputoutputs: null | CoinOutput0[];
   blockstakeoutputids: null | string[];
+  blockstackeunlockhashes: null | string[];
+  coininputoutputs: null | CoinOutput0[];
+  coinoutputids: null | string[];
+  coinoutputunlockhashes: null | string[];
+  height: number;
+  id: string;
+  parent: string;
+  rawtransaction: Transaction0;
+  unconfirmed: boolean;
 }
 
 export interface ExplorerTransaction1 {
-  id: string;
-  height: number;
-  parent: string;
-  rawtransaction: NonDeprecatedTransactionType;
-  coininputoutputs: null | CoinOutput1[];
-  coinoutputids: null | string[];
   blockstakeinputoutputs: null | CoinOutput1[];
   blockstakeoutputids: null | string[];
+  blockstackeunlockhashes: null | string[];
+  coininputoutputs: null | CoinOutput1[];
+  coinoutputids: null | string[];
+  coinoutputunlockhashes: null | string[];
+  height: number;
+  id: string;
+  parent: string;
+  rawtransaction: NonDeprecatedTransactionType;
+  unconfirmed: boolean;
 }
 
 export type ExplorerTransaction = ExplorerTransaction0 | ExplorerTransaction1;
@@ -256,7 +264,7 @@ export interface TransactionPool {
   transactions: null | Transaction[];
 }
 
-export interface OutputMapping {
+export interface InputMapping {
   id: string;
   amount: string;
 }
