@@ -207,10 +207,9 @@ export type CreateTransactionType =
   | ERC20ConvertTransaction
   | ERC20AddressRegistrationTransaction;
 
-export type NonDeprecatedTransactionType = Transaction1
+export type ExplorerTransactionTypes = Transaction1
   | ERC20ConvertTransaction
   | ERC20CoinCreationTransaction
-  | ERC20AddressRegistrationTransaction;
 
 export interface ExplorerTransaction0 {
   blockstakeinputoutputs: null | CoinOutput0[];
@@ -236,7 +235,7 @@ export interface ExplorerTransaction1 {
   height: number;
   id: string;
   parent: string;
-  rawtransaction: NonDeprecatedTransactionType;
+  rawtransaction: ExplorerTransactionTypes;
   unconfirmed: boolean;
 }
 
@@ -247,9 +246,16 @@ export interface UnlockHash {
   hash: string;
 }
 
+export interface ExplorerHashERC20Info {
+  tftaddress: string;
+  erc20address: string;
+  confirmations: number
+}
+
 export interface ExplorerHashGET {
   block: ExplorerBlock;
   blocks: null | ExplorerBlock[];
+  erc20info?: ExplorerHashERC20Info
   hashtype: 'unlockhash' | 'transactionid' | 'coinoutputid' | 'blockstakeoutputid';
   multisigaddresses: UnlockHash[] | null;
   transaction: ExplorerTransaction;

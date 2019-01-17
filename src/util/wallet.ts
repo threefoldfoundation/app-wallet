@@ -154,7 +154,6 @@ export function getInputIds(transactions: ExplorerTransaction[], unlockhash: str
             }
           }
           break;
-        case TransactionVersion.ERC20AddressRegistration:
         case TransactionVersion.ERC20Conversion:
           // Should always only be one output id for the refund address, if null it will have been filtered out above
           const outputId = t.coinoutputids[0];

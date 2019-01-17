@@ -5,8 +5,14 @@ import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController, ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 import { first, map, startWith, withLatestFrom } from 'rxjs/operators';
-import { COIN_TO_HASTINGS_PRECISION, CreateTransactionResult, SUPPORTED_TOKENS, TransactionVersion } from '../../interfaces/wallet';
-import { getAddress, getKeyPairProvider, hasRegisteredErc20Address, IAppState } from '../../state';
+import {
+  COIN_TO_HASTINGS_PRECISION,
+  CreateTransactionResult,
+  ExplorerHashERC20Info,
+  SUPPORTED_TOKENS,
+  TransactionVersion
+} from '../../interfaces/wallet';
+import { getAddress, getErc20Info, getKeyPairProvider, IAppState } from '../../state';
 import { filterNull } from '../../util';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
@@ -23,7 +29,7 @@ export class ReceivePageComponent implements OnInit {
   amountControl: FormControl;
   address$: Observable<string>;
   qrContent$: Observable<string>;
-  hasRegisteredAddress$: Observable<boolean>;
+  erc20Info$: Observable<ExplorerHashERC20Info | null>;
   version: TransactionVersion = TransactionVersion.ONE;
   versions = SUPPORTED_TOKENS;
 
@@ -41,7 +47,7 @@ export class ReceivePageComponent implements OnInit {
       filterNull(),
       map(address => address.address),
     );
-    this.hasRegisteredAddress$ = this.store.pipe(select(hasRegisteredErc20Address));
+    this.erc20Info$ = this.store.pipe(select(getErc20Info));
     this.qrContent$ = this.amountControl.valueChanges.pipe(
       startWith(''),
       withLatestFrom(this.address$, this.store.pipe(select(getKeyPairProvider), filterNull())),
