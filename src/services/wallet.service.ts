@@ -23,6 +23,7 @@ import {
   OutputType,
   ParsedTransaction,
   PendingTransaction,
+  SUPPORTED_TRANSACTION_TYPES,
   Transaction1,
   TransactionPool,
   TransactionVersion,
@@ -35,7 +36,6 @@ import {
   convertToV1Transaction,
   convertTransaction,
   filterNull,
-  filterTransactionsByAddress,
   getInputIds,
   isUnrecognizedHashError,
 } from '../util';
@@ -67,7 +67,7 @@ export class WalletService {
     return of(hashInfo).pipe(map(info => {
       const inputs = getInputIds(info.transactions, address, latestBlock).all;
       return info.transactions
-        .filter(t => t.rawtransaction.version <= 1)
+        .filter(t => SUPPORTED_TRANSACTION_TYPES.includes(t.rawtransaction.version))
         .map(t => convertToV1Transaction(t))
         .map(t => convertTransaction(t, address, latestBlock, inputs))
         .sort((t1, t2) => t2.height - t1.height);
@@ -100,9 +100,7 @@ export class WalletService {
     return this.getTransactionPool(address).pipe(
       map(pool => {
         const inputs = hashInfo ? getInputIds(hashInfo.transactions, address, latestBlock).all : [];
-        // filterTransactionByAddress shouldn't be needed anymore
-        // Transactions filtered by explorer by using the `unlockhash` query parameter, but we're doing it regardless
-        return (pool.transactions || []).filter(t => filterTransactionsByAddress(address, t))
+        return (pool.transactions || [])
           .map(t => t.version === TransactionVersion.ZERO ? convertToV1RawTransaction(t) : t)
           .map(t => convertPendingTransaction(<CreateTransactionType>t, address, latestBlock, inputs));
       }));

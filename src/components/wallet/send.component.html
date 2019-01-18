@@ -8,25 +8,31 @@
     <ion-list>
       <ion-item>
         <ion-label color="primary" floating>{{ 'currency' | translate }}</ion-label>
-        <ion-select name="version" [(ngModel)]="data.version" required>
+        <ion-select name="version" [(ngModel)]="data.version" required (ngModelChange)="setAmount()">
           <ion-option *ngFor="let version of versions" [value]="version.version">{{ version.name }}</ion-option>
         </ion-select>
       </ion-item>
       <ion-item>
         <ion-label color="primary" floating>{{ 'address' | translate }}</ion-label>
         <ion-textarea type="text" name="to_address" #toAddress="ngModel" [(ngModel)]="data.to_address" rows="3"
-                      required [minlength]="addressLength" [maxlength]="addressLength"></ion-textarea>
+                      required [minlength]="addressLengthValidation"
+                      [maxlength]="addressLengthValidation"></ion-textarea>
       </ion-item>
       <ion-item *ngIf="toAddress.errors && toAddress.dirty">
         <p *ngIf="toAddress.errors.minlength || toAddress.errors.maxlength || toAddress.errors.required"
            class="color-danger">
-          {{ 'address_must_be_x_characters' | translate : { amount: addressLength, current:
+          {{ 'address_must_be_x_characters' | translate : {
+          amount: addressLengthValidation, current:
           toAddress.errors.minlength?.actualLength || toAddress.errors.maxlength?.actualLength || 0 } }}</p>
       </ion-item>
       <ion-item>
         <ion-label color="primary" floating>{{ 'token_amount' | translate }}</ion-label>
-        <ion-input type="number" name="amount" [(ngModel)]="data.amount" required [min]="0.01"
+        <ion-input #amount="ngModel" type="number" name="amount" [(ngModel)]="data.amount" required [min]="getMinimum()"
                    [step]="0.01"></ion-input>
+      </ion-item>
+      <ion-item *ngIf="amount.errors">
+        <p *ngIf="amount.errors.min" class="color-danger">
+          {{ 'minimum_required_tokens_for_transaction' | translate : {minimum: getMinimum()} }}</p>
       </ion-item>
     </ion-list>
     <button ion-button>{{ 'send' | translate }}</button>

@@ -126,7 +126,6 @@ export function convertPendingTransaction(transaction: CreateTransactionType, ad
 export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: ExplorerBlock) {
   const allCoinInputs: InputMapping[] = [];
   const outputIds: string[] = [];
-  // TODO validate if this is working properly
   for (const t of transactions) {
     if (t.coinoutputids) {
       switch (t.rawtransaction.version) {
@@ -172,6 +171,14 @@ export function getInputIds(transactions: ExplorerTransaction[], unlockhash: str
             }
           }
           break;
+        case TransactionVersion.ERC20AddressRegistration:
+          const output = t.rawtransaction.data.refundcoinoutput;
+          if (output && filterReceivingOutputCondition(unlockhash, output.condition, latestBlock)) {
+            const outputId = t.coinoutputids[0]; // will always have one element since there can only be one refund address
+            allCoinInputs.push({ id: outputId, amount: output.value });
+            outputIds.push(outputId);
+          }
+          break;
       }
     }
   }
@@ -208,23 +215,6 @@ export function isv0Transaction(transaction: ExplorerTransaction): transaction i
 export function isv0RawTransaction(transaction: Transaction): transaction is Transaction0 {
   return transaction.version === TransactionVersion.ZERO;
 }
-
-export function filterTransactionsByAddress(address: string, transaction: Transaction) {
-  switch (transaction.version) {
-    case TransactionVersion.ZERO:
-      return (transaction.data.coinoutputs || []).some(o => o.unlockhash === address);
-    case TransactionVersion.ONE:
-      return (transaction.data.coinoutputs || []).some(output => filterSendOutputCondition(address, output.condition));
-    case TransactionVersion.ERC20Conversion:
-      return transaction.data.refundcoinoutput && filterSendOutputCondition(address, transaction.data.refundcoinoutput.condition);
-    case TransactionVersion.ERC20AddressRegistration:
-      return transaction.data.tftaddress === address;
-    case TransactionVersion.ERC20CoinCreation:
-      return transaction.data.address === address;
-  }
-  return false;
-}
-
 
 export function getTransactionAmount(transaction: Transaction, latestBlock: ExplorerBlock, address: string,
                                      allInputIds: InputMapping[]) {
@@ -272,20 +262,10 @@ export function getTransactionAmount(transaction: Transaction, latestBlock: Expl
   if (transaction.version === TransactionVersion.ERC20CoinCreation) {
     unlocked = parseInt(transaction.data.value);
   }
-  return { locked, unlocked };
-}
-
-export function filterSendOutputCondition(address: string, condition: OutputCondition): boolean {
-  switch (condition.type) {
-    case OutputType.UNLOCKHASH:
-      return condition.data.unlockhash === address;
-    case OutputType.ATOMIC_SWAP:
-      return condition.data.sender === address || condition.data.receiver === address;
-    case OutputType.TIMELOCKED:
-      return condition.data.condition.data.unlockhash === address;
-    default:
-      return false;
+  if (transaction.version === TransactionVersion.ERC20Conversion && transaction.data.refundcoinoutput) {
+    unlocked += parseInt(transaction.data.refundcoinoutput.value);
   }
+  return { locked, unlocked };
 }
 
 export function filterReceivingOutputCondition(address: string, condition: OutputCondition, latestBlock?: ExplorerBlock): boolean {
@@ -340,8 +320,4 @@ export function calculateNewTransactionAmount(transaction: CreateTransactionType
     case TransactionVersion.ERC20Conversion:
       return parseInt(transaction.data.value);
   }
-}
-
-export function filterAddressRegistrationTransaction(transaction: Transaction, address: string) {
-  return transaction.version === TransactionVersion.ERC20AddressRegistration && transaction.data.tftaddress === address;
 }

@@ -4,6 +4,9 @@
       <coin-output [coinOutput]="output"></coin-output>
     </ion-item>
   </ion-list>
+  <div *ngIf="isConvertTransaction">
+    <p>{{ 'receiver_address_x' | translate: {address: transaction.data.address} }}</p>
+  </div>
   <p>{{ 'amount_x' | translate : {amount: amount | amount} }}</p>
   <p>{{ 'transaction_fee_x' | translate : {fee: fee | amount} }}</p>
   <p>{{ 'transaction_total_x' | translate : {amount: totalAmount | amount} }}</p>

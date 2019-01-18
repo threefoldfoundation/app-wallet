@@ -26,6 +26,7 @@ export class ConfirmSendComponent implements OnChanges {
   @Output() confirmTransaction = new EventEmitter();
   visibleOutputs: CoinOutput1[] = [];
   showAddressRegistrationInfo = false;
+  isConvertTransaction = false;
   fee = 0;
   amount = 0;
   totalAmount = 0;
@@ -37,6 +38,7 @@ export class ConfirmSendComponent implements OnChanges {
       this.totalAmount = this.amount + this.fee;
       this.visibleOutputs = getNewTransactionOtherOutputs(this.transaction, this.ownAddress.address);
       this.showAddressRegistrationInfo = this.transaction.version === TransactionVersion.ERC20AddressRegistration;
+      this.isConvertTransaction = this.transaction.version === TransactionVersion.ERC20Conversion;
     }
   }
 

@@ -47,6 +47,8 @@ export class TransactionDetailPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // TODO: explain address registration transaction a bit
+    // TODO: show erc20 address in case of coin creation
     this.transaction$ = this.store.pipe(select(getTransaction), filterNull());
     this.transactionStatus$ = this.store.pipe(select(getTransactionStatus));
     this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());

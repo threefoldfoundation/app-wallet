@@ -5,11 +5,12 @@ import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController, ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 import { first, map, startWith, withLatestFrom } from 'rxjs/operators';
+import { GetHashInfoAction } from '../../actions';
 import {
   COIN_TO_HASTINGS_PRECISION,
   CreateTransactionResult,
   ExplorerHashERC20Info,
-  SUPPORTED_TOKENS,
+  SUPPORTED_CURRENCIES,
   TransactionVersion
 } from '../../interfaces/wallet';
 import { getAddress, getErc20Info, getKeyPairProvider, IAppState } from '../../state';
@@ -31,7 +32,7 @@ export class ReceivePageComponent implements OnInit {
   qrContent$: Observable<string>;
   erc20Info$: Observable<ExplorerHashERC20Info | null>;
   version: TransactionVersion = TransactionVersion.ONE;
-  versions = SUPPORTED_TOKENS;
+  versions = SUPPORTED_CURRENCIES;
 
   constructor(private store: Store<IAppState>,
               private translate: TranslateService,
@@ -79,6 +80,8 @@ export class ReceivePageComponent implements OnInit {
       const modal = this.modalCtrl.create(ConfirmSendPageComponent, { transactionData });
       modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
         if (transaction) {
+          // Reload transactions so we can update this page to show that the address has been registered
+          this.store.dispatch(new GetHashInfoAction(address));
           const config = {
             title: this.translate.instant('erc_address_registration_complete'),
             message: this.translate.instant('erc_address_registration_complete_message'),
@@ -86,9 +89,6 @@ export class ReceivePageComponent implements OnInit {
           };
           const alert = this.alertCtrl.create(config);
           alert.present();
-          alert.onDidDismiss(() => {
-            // guess we're done
-          });
         }
       });
       modal.present();

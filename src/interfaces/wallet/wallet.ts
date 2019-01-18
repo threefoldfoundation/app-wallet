@@ -51,11 +51,13 @@ export const enum TransactionVersion {
 
 export const ADDRESS_REGISTRATION_FEE = 10000000000;  // 10 tokens
 
-export const TRANSACTION_VERSIONS_WITH_COIN_INPUTS = [TransactionVersion.ZERO, TransactionVersion.ONE, TransactionVersion.ERC20Conversion];
+export const SUPPORTED_TRANSACTION_TYPES = [TransactionVersion.ZERO, TransactionVersion.ONE, TransactionVersion.ERC20Conversion,
+  TransactionVersion.ERC20CoinCreation, TransactionVersion.ERC20AddressRegistration];
 
-export const ERC20_ADDRESS_LENGTH = 20;  // duh
+export const ERC20_ADDRESS_LENGTH = 42;
+export const MIN_TFT_CONVERSION = 1000;  // required minimum of 1000 tft to convert tft to erc20 tokens
 
-export const SUPPORTED_TOKENS = [{
+export const SUPPORTED_CURRENCIES = [{
   name: 'ThreeFold Token',
   version: TransactionVersion.ONE
 }, {
@@ -209,7 +211,8 @@ export type CreateTransactionType =
 
 export type ExplorerTransactionTypes = Transaction1
   | ERC20ConvertTransaction
-  | ERC20CoinCreationTransaction;
+  | ERC20CoinCreationTransaction
+  | ERC20AddressRegistrationTransaction;
 
 export interface ExplorerTransaction0 {
   blockstakeinputoutputs: null | CoinOutput0[];
