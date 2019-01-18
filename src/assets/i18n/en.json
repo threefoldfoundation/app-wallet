@@ -18,6 +18,7 @@
   "error": "Error",
   "errors": {
     "address_not_found": "Address not found, please import your seed before continuing.",
+    "explorers_unavailable": "The ThreeFold servers could not be reached. Please contact ThreeFold Support if the problem remains",
     "insufficient_funds": "You don't have enough tokens to complete this transaction or have another transaction pending.",
     "unknown": "An unknown error has occurred, please try again later"
   },
