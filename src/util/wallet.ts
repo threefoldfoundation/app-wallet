@@ -125,7 +125,7 @@ export function convertPendingTransaction(transaction: CreateTransactionType, ad
 
 export function getInputIds(transactions: ExplorerTransaction[], unlockhash: string, latestBlock: ExplorerBlock) {
   const allCoinInputs: InputMapping[] = [];
-  let outputIds: string[] = [];
+  const outputIds: string[] = [];
   // TODO validate if this is working properly
   for (const t of transactions) {
     if (t.coinoutputids) {
