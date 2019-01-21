@@ -240,6 +240,9 @@ export class WalletService {
             this.setExplorerUnavailable(currentHost);
             return timer(0);
           }
+          if (shouldRetry) {
+            throw new TranslatedError('explorers_unavailable');
+          }
           return throwError(error);
         }));
       })
@@ -266,6 +269,9 @@ export class WalletService {
           if (retries < 5 && shouldRetry) {
             this.setExplorerUnavailable(currentHost);
             return timer(0);
+          }
+          if (shouldRetry) {
+            throw new TranslatedError('explorers_unavailable');
           }
           return throwError(error);
         }));
