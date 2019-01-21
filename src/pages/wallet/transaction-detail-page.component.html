@@ -18,15 +18,17 @@
     <p *ngIf="(getLatestBlockStatus$ | async).success">
       {{ 'x_confirmations' | translate : { confirmations : confirmations$ | async } }}
     </p>
-    <h4>{{ 'inputs' | translate }}</h4>
-    <ion-list class="input-output-list">
-      <ion-item *ngFor="let input of transaction.rawtransaction.data.coininputs; let i = index;" ngxClipboard
-                [cbContent]="input.unlockhash"
-                (cbOnSuccess)="showCopiedToast($event)">
-        <coin-input [coinInput]="input"></coin-input>
-        <p>{{ transaction.coininputoutputs[i].value | amount }}</p>
-      </ion-item>
-    </ion-list>
+    <ng-container *ngIf="transaction.rawtransaction.data.coininputs">
+      <h4>{{ 'inputs' | translate }}</h4>
+      <ion-list class="input-output-list">
+        <ion-item *ngFor="let input of transaction.rawtransaction.data.coininputs; let i = index;" ngxClipboard
+                  [cbContent]="input.unlockhash"
+                  (cbOnSuccess)="showCopiedToast($event)">
+          <coin-input [coinInput]="input"></coin-input>
+          <p>{{ transaction.coininputoutputs[i].value | amount }}</p>
+        </ion-item>
+      </ion-list>
+    </ng-container>
     <ng-container *ngIf="transaction.rawtransaction.data.coinoutputs">
       <h4>{{ 'outputs' | translate }}</h4>
       <ion-list class="input-output-list">
@@ -59,6 +61,13 @@
       <p class="address-line">
         <code>{{ (erc20Info$ | async).erc20address }}</code>
       </p>
+    </ng-container>
+    <ng-container *ngIf="transaction.rawtransaction.version === TransactionVersion.ERC20CoinCreation">
+      <p>{{ 'receiver_address_x' | translate: {address: transaction.rawtransaction.data.address} }}</p>
+      <h5>{{ 'erc20_block_id' | translate }}</h5>
+      <p>{{ transaction.rawtransaction.data.blockid }}</p>
+      <h5>{{ 'erc20_transaction_id' | translate }}</h5>
+      <p>{{ transaction.rawtransaction.data.txid }}</p>
     </ng-container>
   </div>
 </ion-content>
