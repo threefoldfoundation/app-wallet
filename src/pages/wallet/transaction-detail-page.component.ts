@@ -6,11 +6,18 @@ import { CryptoAddress } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
 import { first, map, withLatestFrom } from 'rxjs/operators';
 import { GetAddresssAction, GetBlockAction, GetTransactionAction, GetTransactionCompleteAction } from '../../actions';
-import { ApiRequestStatus, ExplorerBlock, ExplorerBlockGET, ParsedTransaction } from '../../interfaces';
+import {
+  ApiRequestStatus,
+  ExplorerBlock,
+  ExplorerBlockGET,
+  ExplorerHashERC20Info,
+  ParsedTransaction,
+  TransactionVersion
+} from '../../interfaces';
 import { AmountPipe } from '../../pipes';
 import {
   getAddress,
-  getBlock,
+  getBlock, getErc20Info,
   getLatestBlock,
   getLatestBlockStatus,
   getSelectedKeyPair,
@@ -32,8 +39,10 @@ export class TransactionDetailPageComponent implements OnInit, OnDestroy {
   transactionBlock$: Observable<ExplorerBlockGET>;
   address$: Observable<CryptoAddress>;
   getLatestBlockStatus$: Observable<ApiRequestStatus>;
+  erc20Info$: Observable<ExplorerHashERC20Info>;
   timestamp$: Observable<Date>;
   confirmations$: Observable<number>;
+  TransactionVersion = TransactionVersion;
 
   private _transactionSub: Subscription;
   private _keyPairSubscription: Subscription;
@@ -53,6 +62,7 @@ export class TransactionDetailPageComponent implements OnInit, OnDestroy {
     this.transactionStatus$ = this.store.pipe(select(getTransactionStatus));
     this.latestBlock$ = this.store.pipe(select(getLatestBlock), filterNull());
     this.address$ = this.store.pipe(select(getAddress), filterNull());
+    this.erc20Info$ = this.store.pipe(select(getErc20Info), filterNull());
     this.confirmations$ = this.latestBlock$.pipe(
       withLatestFrom(this.transaction$),
       map(([block, transaction]) => block.height - transaction.height),

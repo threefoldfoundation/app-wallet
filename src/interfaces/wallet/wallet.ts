@@ -41,7 +41,7 @@ export interface CoinOutput0 {
 }
 
 
-export const enum TransactionVersion {
+export enum TransactionVersion {
   ZERO = 0,
   ONE = 1,
   ERC20Conversion = 208,

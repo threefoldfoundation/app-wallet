@@ -21,9 +21,6 @@ import { ConfirmSendPageComponent } from './confirm-send-page.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   templateUrl: 'receive-page.component.html',
-  styles: [ `.address-line {
-    max-width: 100%;
-  }` ],
 })
 export class ReceivePageComponent implements OnInit {
   @ViewChild('address') address: ElementRef;

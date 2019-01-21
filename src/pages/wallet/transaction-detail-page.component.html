@@ -27,12 +27,38 @@
         <p>{{ transaction.coininputoutputs[i].value | amount }}</p>
       </ion-item>
     </ion-list>
-    <h4>{{ 'outputs' | translate }}</h4>
-    <ion-list class="input-output-list">
-      <ion-item *ngFor="let output of transaction.rawtransaction.data.coinoutputs">
-        <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
-      </ion-item>
-    </ion-list>
+    <ng-container *ngIf="transaction.rawtransaction.data.coinoutputs">
+      <h4>{{ 'outputs' | translate }}</h4>
+      <ion-list class="input-output-list">
+        <ion-item *ngFor="let output of transaction.rawtransaction.data.coinoutputs">
+          <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+    <ng-container *ngIf="transaction.rawtransaction.version === TransactionVersion.ERC20Conversion">
+      <h4>{{ 'receiver' | translate }}</h4>
+      <p ngxClipboard [cbContent]="transaction.rawtransaction.data.address"
+         (cbOnSuccess)="showCopiedToast($event)">{{ transaction.rawtransaction.data.address }}</p>
+      <p>{{ transaction.rawtransaction.data.value | amount }}</p>
+    </ng-container>
+    <ng-container *ngIf="transaction.rawtransaction.version === TransactionVersion.ERC20Conversion
+    || transaction.rawtransaction.version === TransactionVersion.ERC20AddressRegistration">
+      <h4>{{ 'refund_output' | translate }}</h4>
+      <ion-list class="input-output-list">
+        <ion-item>
+          <coin-output [coinOutput]="transaction.rawtransaction.data.refundcoinoutput"
+                       (copied)="showCopiedToast($event)"></coin-output>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+    <h4>{{ 'additional_info' | translate }}</h4>
     <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.fee | amount } }}</p>
+    <ng-container *ngIf="transaction.rawtransaction.version === TransactionVersion.ERC20AddressRegistration">
+      <p>{{ 'address_registration_transaction_info' | translate }}</p>
+      <p>{{ 'your_erc20_address' | translate }}:</p>
+      <p class="address-line">
+        <code>{{ (erc20Info$ | async).erc20address }}</code>
+      </p>
+    </ng-container>
   </div>
 </ion-content>
