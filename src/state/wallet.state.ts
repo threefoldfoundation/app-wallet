@@ -12,7 +12,7 @@ import {
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
-import { getInputIds, getTransactionAmount } from '../util';
+import { combineRequestStatuses, getInputIds, getTransactionAmount } from '../util';
 import { IAppState } from './app.state';
 import { getAddress } from './rogerthat.state';
 
@@ -85,15 +85,13 @@ export const getTotalAmount = createSelector(getTransactions, getLatestBlock, ge
 
 export const getTotalLockedAmount = createSelector(getTotalAmount, total => total.locked);
 export const getTotalUnlockedAmount = createSelector(getTotalAmount, total => total.unlocked);
-export const getTransactionsStatus = createSelector(getWalletState, s => s.transactionsStatus);
+export const getTransactionsStatus = createSelector(getWalletState, s => combineRequestStatuses(s.hashInfoStatus, s.transactionsStatus));
 export const getPendingTransaction = createSelector(getWalletState, s => s.pendingTransaction);
 export const getCreatedTransaction = createSelector(getWalletState, s => s.createdTransaction);
 export const getPendingTransactionStatus = createSelector(getWalletState, s => s.pendingTransactionStatus);
-export const getConfirmSendTransactionStatus = createSelector(getHashInfoStatus, getPendingTransactionStatus, (s1, s2) => ({
-  success: s1.success && s2.success,
-  loading: s1.loading || s2.loading,
-  error: s1.error || s2.error
-}));
+export const getConfirmSendTransactionStatus = createSelector(getHashInfoStatus, getPendingTransactionStatus, (s1, s2) => {
+  return combineRequestStatuses(s1, s2);
+});
 export const createTransactionStatus = createSelector(getWalletState, s => s.createTransactionStatus);
 export const getTransaction = createSelector(getWalletState, s => s.transaction);
 export const getTransactionStatus = createSelector(getWalletState, s => s.getTransactionStatus);
