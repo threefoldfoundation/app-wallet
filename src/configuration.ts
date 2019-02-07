@@ -25,7 +25,9 @@ export const providerMapping = configuration.providers.reduce((acc, provider) =>
   return acc;
 }, providers);
 
-export const defaultProvider = providerMapping[ configuration.defaultProviderId ];
+export function getDefaultProvider() {
+  return providerMapping[configuration.defaultProviderId];
+}
 
 export function getProviderFromKeyPair(keyPair: KeyPair): Provider {
   if (keyPair.arbitrary_data) {
@@ -35,6 +37,6 @@ export function getProviderFromKeyPair(keyPair: KeyPair): Provider {
   return getProviderById(configuration.defaultProviderId);
 }
 
-export function getProviderById(providerId: PaymentProviderId | null): Provider {
-  return providerId ? providerMapping[ providerId ] : defaultProvider;
+function getProviderById(providerId: PaymentProviderId | null): Provider {
+  return providerMapping[providerId || configuration.defaultProviderId];
 }

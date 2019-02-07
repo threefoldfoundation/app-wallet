@@ -7,8 +7,8 @@ import { CreatePaymentRequestContext, RogerthatContextType } from 'rogerthat-plu
 import { Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { GetAddresssAction } from '../../actions';
-import { configuration } from '../../configuration';
 import { COIN_TO_HASTINGS_PRECISION } from '../../interfaces/index';
+import { AmountPipe } from '../../pipes';
 import { getAddress, getKeyPairProvider, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 
@@ -23,7 +23,9 @@ export class CreatePaymentRequestPageComponent implements OnInit, OnDestroy {
   private _keyPairSubscription: Subscription;
   private _providerSubscription: Subscription;
 
-  constructor(private translate: TranslateService, private store: Store<IAppState>) {
+  constructor(private translate: TranslateService,
+              private store: Store<IAppState>,
+              private amountPipe: AmountPipe) {
     this.amountControl = new FormControl(0, [Validators.required, Validators.min(0.01)]);
   }
 
@@ -42,7 +44,7 @@ export class CreatePaymentRequestPageComponent implements OnInit, OnDestroy {
         amount: this.amountControl.value,
         currency: provider.symbol,
         precision: COIN_TO_HASTINGS_PRECISION,
-        test_mode: !configuration.production,
+        test_mode: false,
         to: '',
         memo: '',
       };
@@ -52,14 +54,6 @@ export class CreatePaymentRequestPageComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this._keyPairSubscription.unsubscribe();
     this._providerSubscription.unsubscribe();
-  }
-
-  close() {
-    this.exitWithResult({
-      success: false,
-      code: 'canceled',
-      message: this.translate.instant('payment_request_canceled'),
-    });
   }
 
   private exitWithResult(result: any) {
@@ -77,9 +71,10 @@ export class CreatePaymentRequestPageComponent implements OnInit, OnDestroy {
             to: address.address
           },
         };
+        const amountStr = this.amountPipe.transform(context.data.amount);
         const messageEmbeddedApp: MessageEmbeddedApp = {
           context: JSON.stringify(context),
-          title: this.translate.instant(`Payment to ${rogerthat.user.name}`),
+          title: this.translate.instant('x_payment_to_user', { amount: amountStr, user: rogerthat.user.name }),
           description: this.request.memo,
         };
         this.exitWithResult(messageEmbeddedApp);

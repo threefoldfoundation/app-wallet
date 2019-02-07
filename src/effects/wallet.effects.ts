@@ -26,13 +26,15 @@ export class WalletEffects implements OnDestroy {
     switchMap(([action, address]) => of(new actions.GetTransactionsAction(address.address)))
   );
 
-  @Effect() getTransaction$ = this.actions$.pipe(
-    ofType<actions.GetTransactionAction>(actions.WalletActionTypes.GET_TRANSACTION),
-    withLatestFrom(this.store.pipe(select(getLatestBlock), filterNull())),
-    switchMap(([action, latestBlock]) => {
-        return this.walletService.getTransaction(action.transactionId, action.unlockhash, latestBlock).pipe(
-          map(transaction => new actions.GetTransactionCompleteAction(transaction)),
-          catchError(err => handleError(actions.GetTransactionFailedAction, err)));
+  @Effect() getTransaction$ = combineLatest(
+    this.actions$.pipe(ofType<actions.GetTransactionAction>(actions.WalletActionTypes.GET_TRANSACTION)),
+    this.store.pipe(select(getLatestBlock), filterNull()),
+    this.store.pipe(select(getHashInfo), filterNull())
+  ).pipe(
+    switchMap(([action, latestBlock, hashInfo]) => {
+      return this.walletService.getTransaction(action.transactionId, action.unlockhash, hashInfo.transactions, latestBlock).pipe(
+        map(transaction => new actions.GetTransactionCompleteAction(transaction)),
+        catchError(err => handleError(actions.GetTransactionFailedAction, err)));
       },
     ));
 
@@ -79,8 +81,8 @@ export class WalletEffects implements OnDestroy {
   );
 
   @Effect() getLatestBlock$ = this.actions$.pipe(
-    ofType<actions.GetLatestBlockAction>(actions.WalletActionTypes.GET_LATEST_BLOCK),
     startWith(new GetLatestBlockAction()),
+    ofType<actions.GetLatestBlockAction>(actions.WalletActionTypes.GET_LATEST_BLOCK),
     switchMap(() => this.walletService.getLatestBlock().pipe(
       map(result => new actions.GetLatestBlockCompleteAction(result.block)),
       catchError(err => handleError(actions.GetLatestBlockFailedAction, err))),

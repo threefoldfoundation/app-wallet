@@ -6,7 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
 import { PayWidgetContextData, RogerthatContext, RogerthatContextType } from 'rogerthat-plugin';
 import { configuration } from '../configuration';
-import { CreateTransactionResult } from '../interfaces/wallet';
+import { PayChatTransactionResult } from '../interfaces/wallet';
 import { CreatePaymentRequestPageComponent, PaymentRequestPageComponent, PayWidgetPageComponent } from '../pages/payments';
 import { TransactionDetailPageComponent } from '../pages/wallet';
 import { WalletChooserPageComponent } from '../pages/wallet-manager';
@@ -105,8 +105,8 @@ export class AppComponent implements OnInit {
         case RogerthatContextType.PAYMENT_REQUEST:
           const payContext = data.context;
           if (payContext.data.result) {
-            const parsedResult = JSON.parse(payContext.data.result) as CreateTransactionResult;
-            return { page: TransactionDetailPageComponent, params: { transactionId: parsedResult.transactionid } };
+            const parsedResult = JSON.parse(payContext.data.result) as PayChatTransactionResult;
+            return { page: TransactionDetailPageComponent, params: { appTransaction: parsedResult } };
           }
           return {
             page: WalletChooserPageComponent, params: {

@@ -28,7 +28,7 @@ export function isUnrecognizedHashError(err: string | null | undefined): boolean
 }
 
 export function convertTransaction(transaction: ExplorerTransaction1, address: string, latestBlock: ExplorerBlock,
-                                   coinInputs: OutputMapping[]): ParsedTransaction {
+                                   coinInputs: OutputMapping[], confirmed: boolean): ParsedTransaction {
   const { locked, unlocked } = getTransactionAmount(transaction.rawtransaction, latestBlock, address, coinInputs);
   return {
     ...transaction,
@@ -36,6 +36,7 @@ export function convertTransaction(transaction: ExplorerTransaction1, address: s
     amount: unlocked + locked,
     lockedAmount: locked,
     minerfee: getMinerFee(transaction.rawtransaction.data.minerfees),
+    confirmed: confirmed,
   };
 }
 
@@ -106,6 +107,7 @@ export function convertPendingTransaction(transaction: Transaction1, address: st
     amount: unlocked + locked,
     lockedAmount: locked,
     minerfee: getMinerFee(transaction.data.minerfees),
+    confirmed: false,
   };
 }
 

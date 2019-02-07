@@ -15,6 +15,7 @@ import {
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
+  ExplorerTransaction,
   InputType,
   OutputType,
   ParsedTransaction,
@@ -65,7 +66,7 @@ export class WalletService {
       return info.transactions
         .filter(t => t.rawtransaction.version <= 1)
         .map(t => convertToV1Transaction(t))
-        .map(t => convertTransaction(t, address, latestBlock, inputs))
+        .map(t => convertTransaction(t, address, latestBlock, inputs, true))
         .sort((t1, t2) => t2.height - t1.height);
     }));
   }
@@ -79,13 +80,17 @@ export class WalletService {
   }
 
   /**
-   * Get a verified or pending transaction by its id
+   * Get a verified or pending transaction by its id.
+   * This needs a history of all transactions for the user his address so we can know which inputs belong to the user, which in turn
+   * makes it possible to know if a transaction was 'send' or 'received'.
    */
-  getTransaction(transactionId: string, address: string, latestBlock: ExplorerBlock): Observable<ParsedTransaction> {
+  getTransaction(transactionId: string, address: string, transactions: ExplorerTransaction[],
+                 latestBlock: ExplorerBlock): Observable<ParsedTransaction> {
     return this.getHashInfo(transactionId).pipe(
       map(explorerTransaction => {
-        const inputs = getInputIds([explorerTransaction.transaction], address, latestBlock).all;
-        return convertTransaction(convertToV1Transaction(explorerTransaction.transaction), address, latestBlock, inputs);
+        const inputs = getInputIds(transactions, address, latestBlock).all;
+        return convertTransaction(convertToV1Transaction(explorerTransaction.transaction), address, latestBlock, inputs,
+          !explorerTransaction.unconfirmed);
       }));
   }
 

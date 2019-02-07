@@ -13,12 +13,14 @@ import {
   GetPendingTransactionsCompleteAction,
   WalletActionTypes,
 } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, Transaction1 } from '../../interfaces';
+import { Provider } from '../../configuration';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, PayChatTransactionResult, Transaction1 } from '../../interfaces';
 import {
   createTransactionStatus,
   getAddress,
   getConfirmSendTransactionStatus,
   getCreatedTransaction,
+  getKeyPairProvider,
   getPendingTransaction,
   getSelectedKeyPair,
   IAppState,
@@ -38,6 +40,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   transaction$: Observable<CreateTransactionResult>;
   keyPair$: Observable<KeyPair>;
   address$: Observable<CryptoAddress>;
+  keyPairProvider$: Observable<Provider>;
 
   private _transactionCompleteSub: Subscription;
   private _pendingTransactionSubscription: Subscription;
@@ -68,12 +71,20 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
     this.createTransactionStatus$ = this.store.pipe(select(createTransactionStatus));
     this.transaction$ = this.store.pipe(select(getCreatedTransaction), filterNull());
     this.keyPair$ = this.store.pipe(select(getSelectedKeyPair), filterNull());
+    this.keyPairProvider$ = this.store.pipe(select(getKeyPairProvider), filterNull());
     this.address$ = this.store.pipe(select(getAddress), filterNull());
     this._transactionCompleteSub = this.actions$.pipe(
       ofType(WalletActionTypes.CREATE_TRANSACTION_COMPLETE),
       switchMap(() => this.transaction$),
-    ).subscribe(transaction => {
-      this.viewCtrl.dismiss(transaction);
+      withLatestFrom(this.keyPairProvider$)
+    ).subscribe(([transaction, provider]) => {
+      const result: PayChatTransactionResult = {
+        transaction,
+        provider_id: provider.providerId,
+        from_address: this.data.from_address,
+        to_address: this.data.to_address
+      };
+      this.viewCtrl.dismiss(result);
     });
   }
 
