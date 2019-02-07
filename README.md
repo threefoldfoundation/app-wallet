@@ -1,5 +1,10 @@
 # Rivine wallet
 
+Product owners
+--------------
+
+* Sabrina Sadik ([@sabrinasadik](https://github.com/sabrinasadik)
+
 ## Development
 
 Run `npm start -- --configuration_file "/path/to/config_file.json"`
@@ -134,3 +139,5 @@ caddy -conf Caddyfile.local
 ```
 
 if prompted for a password enter `test123`
+
+
