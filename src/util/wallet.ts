@@ -226,7 +226,7 @@ export function getTransactionAmount(transaction: Transaction, latestBlock: Expl
   let unlocked = 0;
   if (transaction.version === TransactionVersion.ONE
     || transaction.version === TransactionVersion.ERC20Conversion
-    || transaction.version == TransactionVersion.ERC20AddressRegistration) {
+    || transaction.version === TransactionVersion.ERC20AddressRegistration) {
     for (const input of (transaction.data.coininputs || [])) {
       const spentInput = allInputIds.find(i => i.id === input.parentid);
       if (spentInput) {

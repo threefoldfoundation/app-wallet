@@ -1,4 +1,5 @@
 import { SupportedAlgorithms } from 'rogerthat-plugin';
+import { configuration } from '../../configuration';
 import { CoinInput1, Fulfillment } from './input';
 import { CoinOutput1, OutputType } from './output';
 
@@ -67,10 +68,15 @@ export const MIN_TFT_CONVERSION = 1000;  // required minimum of 1000 tft to conv
 export const SUPPORTED_CURRENCIES = [{
   name: 'ThreeFold Token',
   version: TransactionVersion.ONE
-}, {
-  name: 'ERC20 Token',
-  version: TransactionVersion.ERC20Conversion
 }];
+
+// Hide erc20 stuff until production net supports it
+if (configuration.providers.every(p => p.name.toLowerCase().includes('test'))) {
+  SUPPORTED_CURRENCIES.push({
+    name: 'ERC20 Token',
+    version: TransactionVersion.ERC20Conversion
+  });
+}
 
 export interface Transaction0 {
   data: {
