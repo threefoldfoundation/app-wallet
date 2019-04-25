@@ -291,7 +291,7 @@ export interface ExplorerHashERC20Info {
   confirmations: number;
 }
 
-export interface ExplorerHashGET {
+export interface ExplorerHashGETResult {
   block: ExplorerBlock;
   blocks: null | ExplorerBlock[];
   erc20info?: ExplorerHashERC20Info;
@@ -304,6 +304,8 @@ export interface ExplorerHashGET {
    */
   unconfirmed: boolean;
 }
+
+export type ExplorerHashGET = ExplorerHashGETResult | '';
 
 export interface TransactionPool {
   transactions: null | Transaction[];

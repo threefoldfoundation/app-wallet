@@ -19,6 +19,7 @@ import {
   ExplorerBlock,
   ExplorerBlockGET,
   ExplorerHashGET,
+  ExplorerHashGETResult,
   InputType,
   OutputType,
   ParsedTransaction,
@@ -86,7 +87,8 @@ export class WalletService {
    * Get a verified or pending transaction by its id
    */
   getTransaction(transactionId: string, address: string, latestBlock: ExplorerBlock): Observable<ParsedTransaction> {
-    return this.getHashInfo(transactionId).pipe(
+    // force type as we're sure the transaction exists
+    return (this.getHashInfo(transactionId) as Observable<ExplorerHashGETResult>).pipe(
       map(explorerTransaction => {
         const inputs = getInputIds([explorerTransaction.transaction], address, latestBlock).all;
         return convertTransaction(convertToV1Transaction(explorerTransaction.transaction), address, latestBlock, inputs);
@@ -109,6 +111,9 @@ export class WalletService {
   createSignatureData(data: CreateSignatureData, pendingTransactions: PendingTransaction[],
                       latestBlock: ExplorerBlock): Observable<CreateTransactionType> {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
+      if (!hashInfo) {
+        throw new TranslatedError('insufficient_funds');
+      }
       const minerfees = (COIN_TO_HASTINGS / 10);
       let inputIds = getInputIds(hashInfo.transactions, data.from_address, latestBlock).available;
       const pendingOutputIds = pendingTransactions
