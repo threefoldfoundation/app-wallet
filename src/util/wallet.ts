@@ -25,6 +25,7 @@ export function getFee(transaction: Transaction): number {
   switch (transaction.version) {
     case TransactionVersion.ZERO:
     case TransactionVersion.ONE:
+    case TransactionVersion.CoinCreation:
       return (transaction.data.minerfees || []).reduce((total: number, fee: string) => total + parseInt(fee), 0);
     case TransactionVersion.ERC20Conversion:
     case TransactionVersion.ERC20CoinCreation:
@@ -142,6 +143,7 @@ export function getInputIds(transactions: ExplorerTransaction[], unlockhash: str
           }
           break;
         case TransactionVersion.ONE:
+        case TransactionVersion.CoinCreation:
           if (t.rawtransaction.data.coinoutputs) {
             for (let i = 0; i < t.coinoutputids.length; i++) {
               const outputId = t.coinoutputids[i];
@@ -193,7 +195,9 @@ export function getSpentInputs(outputIds: string[], transactions: ExplorerTransa
   const spentIds: string[] = [];
   for (const transaction of transactions) {
     // Filter out only transaction type that cannot have coininputs
-    if (transaction.rawtransaction.version !== TransactionVersion.ERC20CoinCreation && transaction.rawtransaction.data.coininputs) {
+    if (transaction.rawtransaction.version !== TransactionVersion.ERC20CoinCreation
+      && transaction.rawtransaction.version !== TransactionVersion.CoinCreation
+      && transaction.rawtransaction.data.coininputs) {
       for (const input of transaction.rawtransaction.data.coininputs) {
         if (outputIds.includes(input.parentid)) {
           spentIds.push(input.parentid);
@@ -228,8 +232,13 @@ export function getTransactionAmount(transaction: Transaction, latestBlock: Expl
       }
     }
   }
-  if (transaction.version === TransactionVersion.ONE) {
-    const coinOutputs = <CoinOutput1[]>transaction.data.coinoutputs || [];
+  if (transaction.version === TransactionVersion.ONE || transaction.version === TransactionVersion.CoinCreation) {
+    let coinOutputs: CoinOutput1[];
+    if (transaction.version === TransactionVersion.CoinCreation) {
+      coinOutputs = transaction.data.coinoutputs;
+    } else {
+      coinOutputs = <CoinOutput1[]>transaction.data.coinoutputs || [];
+    }
     for (const output of coinOutputs) {
       const value = parseInt(output.value);
       switch (output.condition.type) {

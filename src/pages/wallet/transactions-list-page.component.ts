@@ -20,7 +20,7 @@ import {
   getTransactionsStatus,
   IAppState,
 } from '../../state';
-import { combineRequestStatuses, filterNull, isPendingTransaction, isUnrecognizedHashError, getInputIds } from '../../util';
+import { combineRequestStatuses, filterNull, isPendingTransaction, isUnrecognizedHashError } from '../../util';
 import { PendingTransactionDetailPageComponent } from './pending-transaction-detail-page.component';
 import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 

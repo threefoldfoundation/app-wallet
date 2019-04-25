@@ -17,7 +17,8 @@ import {
 import { AmountPipe } from '../../pipes';
 import {
   getAddress,
-  getBlock, getErc20Info,
+  getBlock,
+  getErc20Info,
   getLatestBlock,
   getLatestBlockStatus,
   getSelectedKeyPair,

@@ -1,5 +1,5 @@
 import { SupportedAlgorithms } from 'rogerthat-plugin';
-import { CoinInput1 } from './input';
+import { CoinInput1, Fulfillment } from './input';
 import { CoinOutput1, OutputType } from './output';
 
 // Only used in this wallet internally - not in explorer or the android/ios apps
@@ -44,6 +44,7 @@ export interface CoinOutput0 {
 export enum TransactionVersion {
   ZERO = 0,
   ONE = 1,
+  CoinCreation = 129,
   ERC20Conversion = 208,
   ERC20CoinCreation = 209,
   ERC20AddressRegistration = 210,
@@ -51,8 +52,14 @@ export enum TransactionVersion {
 
 export const ADDRESS_REGISTRATION_FEE = 10000000000;  // 10 tokens
 
-export const SUPPORTED_TRANSACTION_TYPES = [TransactionVersion.ZERO, TransactionVersion.ONE, TransactionVersion.ERC20Conversion,
-  TransactionVersion.ERC20CoinCreation, TransactionVersion.ERC20AddressRegistration];
+export const SUPPORTED_TRANSACTION_TYPES = [
+  TransactionVersion.ZERO,
+  TransactionVersion.ONE,
+  TransactionVersion.CoinCreation,
+  TransactionVersion.ERC20Conversion,
+  TransactionVersion.ERC20CoinCreation,
+  TransactionVersion.ERC20AddressRegistration
+];
 
 export const ERC20_ADDRESS_LENGTH = 42;
 export const MIN_TFT_CONVERSION = 1000;  // required minimum of 1000 tft to convert tft to erc20 tokens
@@ -136,6 +143,33 @@ export interface Transaction1 {
   version: TransactionVersion.ONE;
 }
 
+export interface CoinCreationTransaction {
+  data: {
+    /**
+     * Crypto-random 8-byte array (base64-encoded to a string) to ensure the uniqueness of this transaction's ID
+     */
+    nonce: string;
+    /**
+     * Fulfillment which fulfills the MintCondition, can be any type of fulfillment as long as it is valid AND fulfills the MintCondition
+     */
+    mintfulfillment: Fulfillment;
+    /**
+     * Defines the recipients (as conditions) who are to receive the paired (newly created) coin values
+     */
+    coinoutputs: CoinOutput1[];
+    /**
+     * The transaction fees to be paid, also paid in newly created) coins, rather than inputs
+     */
+    minerfees: string[];
+    /**
+     * Arbitrary data, can contain anything as long as it fits within 83 bytes, but is in practice used to link the capacity added/created
+     * with as a consequence the creation of these transaction and its coin outputs
+     */
+    arbitrarydata?: string;
+  };
+  version: TransactionVersion.CoinCreation;
+}
+
 export interface ERC20ConvertTransaction {
   data: {
     /**
@@ -200,6 +234,7 @@ export interface ERC20AddressRegistrationTransaction {
 export type Transaction =
   Transaction0
   | Transaction1
+  | CoinCreationTransaction
   | ERC20ConvertTransaction
   | ERC20CoinCreationTransaction
   | ERC20AddressRegistrationTransaction;
@@ -210,6 +245,7 @@ export type CreateTransactionType =
   | ERC20AddressRegistrationTransaction;
 
 export type ExplorerTransactionTypes = Transaction1
+  | CoinCreationTransaction
   | ERC20ConvertTransaction
   | ERC20CoinCreationTransaction
   | ERC20AddressRegistrationTransaction;
