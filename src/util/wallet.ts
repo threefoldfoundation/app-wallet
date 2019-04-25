@@ -224,7 +224,9 @@ export function getTransactionAmount(transaction: Transaction, latestBlock: Expl
                                      allInputIds: InputMapping[]) {
   let locked = 0;
   let unlocked = 0;
-  if (transaction.version === TransactionVersion.ONE || transaction.version === TransactionVersion.ERC20Conversion) {
+  if (transaction.version === TransactionVersion.ONE
+    || transaction.version === TransactionVersion.ERC20Conversion
+    || transaction.version == TransactionVersion.ERC20AddressRegistration) {
     for (const input of (transaction.data.coininputs || [])) {
       const spentInput = allInputIds.find(i => i.id === input.parentid);
       if (spentInput) {
@@ -272,6 +274,9 @@ export function getTransactionAmount(transaction: Transaction, latestBlock: Expl
     unlocked = parseInt(transaction.data.value);
   }
   if (transaction.version === TransactionVersion.ERC20Conversion && transaction.data.refundcoinoutput) {
+    unlocked += parseInt(transaction.data.refundcoinoutput.value);
+  }
+  if (transaction.version === TransactionVersion.ERC20AddressRegistration && transaction.data.refundcoinoutput) {
     unlocked += parseInt(transaction.data.refundcoinoutput.value);
   }
   return { locked, unlocked };

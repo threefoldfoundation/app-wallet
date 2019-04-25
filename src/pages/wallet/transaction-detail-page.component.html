@@ -60,7 +60,7 @@
         <p>{{ 'address_registration_transaction_info' | translate }}</p>
         <p>{{ 'your_erc20_address' | translate }}:</p>
         <p class="address-line">
-          <code>{{ (erc20Info$ | async).erc20address }}</code>
+          <code>{{ (erc20Info$ | async)?.erc20address }}</code>
         </p>
       </ng-container>
       <ng-container *ngSwitchCase="TransactionVersion.ERC20CoinCreation">

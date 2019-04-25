@@ -42,7 +42,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   pendingTransactions$: Observable<PendingTransaction[]>;
   loadingStatus$: Observable<ApiRequestStatus>;
   latestBlock$: Observable<ExplorerBlock>;
-  digits = '1.0-2';
+  digits = '1.0-9';
 
   private _subscriptions: Subscription[] = [];
   private errorAlert: Alert | null;
