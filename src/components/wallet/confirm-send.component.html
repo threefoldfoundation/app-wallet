@@ -4,13 +4,20 @@
       <coin-output [coinOutput]="output"></coin-output>
     </ion-item>
   </ion-list>
-  <p>{{ 'amount_x' | translate : {amount: getAmount(transaction) | amount} }}</p>
-  <p>{{ 'transaction_fee_x' | translate : {fee: getMinerFee(transaction.data.minerfees) | amount} }}</p>
-  <p>{{ 'transaction_total_x' | translate : { amount : getTotalAmount(transaction) | amount } }}</p>
+  <div *ngIf="isConvertTransaction">
+    <p>{{ 'receiver_address_x' | translate: {address: transaction.data.address} }}</p>
+  </div>
+  <p>{{ 'amount_x' | translate : {amount: amount | amount} }}</p>
+  <p>{{ 'transaction_fee_x' | translate : {fee: fee | amount} }}</p>
+  <p>{{ 'transaction_total_x' | translate : {amount: totalAmount | amount} }}</p>
 </div>
 <api-request-status [status]="pendingStatus"></api-request-status>
 <api-request-status [status]="createStatus"></api-request-status>
-<ion-row justify-content-end>
+<ion-row *ngIf="showAddressRegistrationInfo">
+  <p style="width: 100%;">{{ 'create_address_registration_info' | translate }}</p>
+  <p style="width: 100%;">{{ 'your_current_address_is' | translate : {address: ownAddress?.address} }}</p>
+</ion-row>
+<ion-row justify-content-end *ngIf="!pendingStatus.error">
   <form (ngSubmit)="submit()">
     <button ion-button color="primary" [disabled]="pendingStatus.loading || createStatus.loading">
       {{ 'confirm_transaction' | translate }}

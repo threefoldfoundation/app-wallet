@@ -13,13 +13,13 @@ export function walletReducer(state: IWalletState = initialWalletState, action: 
     case WalletActionTypes.GET_HASH_INFO_COMPLETE:
       return {
         ...state,
-        hashInfo: action.payload,
+        hashInfo: action.payload || null,
         hashInfoStatus: apiRequestSuccess,
       };
     case WalletActionTypes.GET_HASH_INFO_FAILED:
       return {
         ...state,
-        hashInfoStatus: action.payload,
+        hashInfoStatus: action.payload ,
       };
     case WalletActionTypes.GET_TRANSACTION:
       return {

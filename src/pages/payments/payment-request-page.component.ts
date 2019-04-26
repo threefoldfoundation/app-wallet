@@ -8,7 +8,7 @@ import { MessageEmbeddedApp, PaymentRequestData } from 'rogerthat-plugin/www/rog
 import { Observable, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { GetAddresssAction } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult } from '../../interfaces';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, TransactionVersion } from '../../interfaces';
 import { getAddress, getAddressStatus, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 import { ConfirmSendPageComponent } from '../wallet';
@@ -21,7 +21,6 @@ import { ConfirmSendPageComponent } from '../wallet';
 export class PaymentRequestPageComponent implements OnInit, OnDestroy {
   paymentRequest: PaymentRequestData;
   address$: Observable<CryptoAddress>;
-  addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   private _embeddedApp: MessageEmbeddedApp;
   private _payContext: PaymentRequestContext;
   private _keyPairSubscription: Subscription;
@@ -47,7 +46,6 @@ export class PaymentRequestPageComponent implements OnInit, OnDestroy {
         message: this.translate.instant('please_enter_your_pin'),
       }));
     });
-    this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this.address$ = this.store.pipe(select(getAddress), filterNull());
     this.address$.pipe(first()).subscribe(address => {
       this.paymentRequest = JSON.parse(payContext.data.context).data;
@@ -83,6 +81,7 @@ export class PaymentRequestPageComponent implements OnInit, OnDestroy {
     this.store.pipe(select(getAddress), first()).subscribe(address => {
       if (address) {
         const transactionData: CreateSignatureData = {
+          version: TransactionVersion.ONE,
           amount: parsedContext.data.amount,
           from_address: address.address,
           to_address: parsedContext.data.to,

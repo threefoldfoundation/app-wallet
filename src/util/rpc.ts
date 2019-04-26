@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { RogerthatError } from 'rogerthat-plugin';
 import { of } from 'rxjs';
 import { ApiError, ApiRequestStatus, TranslatedError } from '../interfaces';
 
@@ -49,6 +50,18 @@ export function transformErrorResponse<T = any>(response: HttpErrorResponse | Tr
     error: apiError,
     loading: false,
     success: false,
+  };
+}
+
+export function transformRogerthatError(error: RogerthatError): ApiRequestStatus<RogerthatError> {
+  return {
+    error: {
+      status_code: 0,
+      error: error.message,
+      data: error
+    },
+    loading: false,
+    success: false
   };
 }
 

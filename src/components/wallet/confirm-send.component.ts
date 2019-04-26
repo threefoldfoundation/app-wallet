@@ -9,8 +9,8 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { CryptoAddress } from 'rogerthat-plugin';
-import { ApiRequestStatus, CoinOutput1, Transaction1 } from '../../interfaces';
-import { calculateNewTransactionAmount, getMinerFee, getNewTransactionOtherOutputs } from '../../util';
+import { ApiRequestStatus, CoinOutput1, CreateTransactionType, TransactionVersion } from '../../interfaces';
+import { calculateNewTransactionAmount, getFee, getNewTransactionOtherOutputs } from '../../util';
 
 @Component({
   selector: 'confirm-send',
@@ -19,26 +19,27 @@ import { calculateNewTransactionAmount, getMinerFee, getNewTransactionOtherOutpu
   templateUrl: 'confirm-send.component.html',
 })
 export class ConfirmSendComponent implements OnChanges {
-  @Input() transaction: Transaction1;
+  @Input() transaction: CreateTransactionType;
   @Input() pendingStatus: ApiRequestStatus;
   @Input() createStatus: ApiRequestStatus;
   @Input() ownAddress: CryptoAddress;
   @Output() confirmTransaction = new EventEmitter();
-  getMinerFee = getMinerFee;
   visibleOutputs: CoinOutput1[] = [];
+  showAddressRegistrationInfo = false;
+  isConvertTransaction = false;
+  fee = 0;
+  amount = 0;
+  totalAmount = 0;
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.transaction && this.ownAddress) {
+      this.fee = getFee(this.transaction);
+      this.amount = calculateNewTransactionAmount(this.transaction, this.ownAddress.address);
+      this.totalAmount = this.amount + this.fee;
       this.visibleOutputs = getNewTransactionOtherOutputs(this.transaction, this.ownAddress.address);
+      this.showAddressRegistrationInfo = this.transaction.version === TransactionVersion.ERC20AddressRegistration;
+      this.isConvertTransaction = this.transaction.version === TransactionVersion.ERC20Conversion;
     }
-  }
-
-  getAmount(transaction: Transaction1) {
-    return calculateNewTransactionAmount(transaction, this.ownAddress.address);
-  }
-
-  getTotalAmount(transaction: Transaction1): number {
-    return this.getAmount(transaction) + getMinerFee(this.transaction.data.minerfees);
   }
 
   submit() {

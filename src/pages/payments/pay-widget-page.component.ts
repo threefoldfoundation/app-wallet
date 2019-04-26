@@ -5,7 +5,7 @@ import { ModalController, NavParams } from 'ionic-angular';
 import { CreateTransactionBaseResult, PaymentProvider, PayMethod, PayWidgetContextData, RogerthatError } from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
 import { GetAddresssAction } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult } from '../../interfaces';
+import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, TransactionVersion } from '../../interfaces';
 import { getAddress, getAddressStatus, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 import { ConfirmSendPageComponent } from '../wallet';
@@ -17,7 +17,6 @@ import { ConfirmSendPageComponent } from '../wallet';
   templateUrl: 'pay-widget-page.component.html',
 })
 export class PayWidgetPageComponent implements OnInit, OnDestroy {
-  addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;
   selectedMethod: PayMethod;
   private _addressSubscription: Subscription = Subscription.EMPTY;
   private _keyPairSubscription: Subscription;
@@ -34,6 +33,7 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
     this._addressSubscription = this.store.pipe(select(getAddress)).subscribe(address => {
       if (address) {
         const data: CreateSignatureData = {
+          version: TransactionVersion.ONE,
           amount: this.selectedMethod.amount,
           precision: this.selectedMethod.precision,
           to_address: this.selectedMethod.target || payContext.target,  // target is our destination address
@@ -50,7 +50,6 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
         message: this.translate.instant('please_enter_your_pin'),
       })),
     );
-    this.addressStatus$ = this.store.pipe(select(getAddressStatus));
   }
 
   ngOnDestroy() {

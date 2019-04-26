@@ -1,20 +1,52 @@
 <ion-content>
-  <ion-row justify-content-center ngxClipboard [cbContent]="address$ | async" (cbOnSuccess)="showCopiedToast($event)">
-    <p>{{ 'receive_address_info' | translate }}</p>
-  </ion-row>
-  <ion-row justify-content-center>
-    <qr-code [value]="qrContent$ | async" [size]="300" ngxClipboard [cbContent]="address$ | async"
-             (cbOnSuccess)="showCopiedToast($event)"></qr-code>
-  </ion-row>
-  <ion-row justify-content-center>
-    <p class="address-line" ngxClipboard [cbContent]="address$ | async" (cbOnSuccess)="showCopiedToast($event)">
-      {{ address$ | async }}
-    </p>
-  </ion-row>
-  <ion-row>
-    <ion-item>
-      <ion-label color="primary" floating>{{ 'token_amount' | translate }}</ion-label>
-      <ion-input type="number" [formControl]="amountControl"></ion-input>
-    </ion-item>
-  </ion-row>
+  <ion-item>
+    <ion-label color="primary" floating>{{ 'currency' | translate }}</ion-label>
+    <ion-select name="version" required [(ngModel)]="version">
+      <ion-option *ngFor="let version of versions" [value]="version.version">{{ version.name }}</ion-option>
+    </ion-select>
+  </ion-item>
+  <ng-container *ngIf="version !== 1; else tft">
+    <ng-container *ngIf="erc20Info$ | async; let info; else notRegistered">
+      <ion-row>{{ 'address_registered_info' | translate }}</ion-row>
+      <ion-row>{{ 'your_erc20_address' | translate }}:</ion-row>
+      <ion-row justify-content-center ngxClipboard [cbContent]="info.erc20address"
+               (cbOnSuccess)="showCopiedToast($event)">
+        <p class="address-line"><code>{{ info.erc20address }}</code></p>
+      </ion-row>
+      <ion-row justify-content-center>
+        <button ion-button ngxClipboard [cbContent]="info.erc20address" (cbOnSuccess)="showCopiedToast($event)">
+          {{ 'copy_address' | translate }}
+        </button>
+      </ion-row>
+    </ng-container>
+    <ng-template #notRegistered>
+      <ion-row>
+        <p>{{ 'withdraw_explanation' | translate }}</p>
+      </ion-row>
+      <ion-row>
+        <button ion-button color="primary"
+                (click)="registerWithdrawAddress()">{{ 'register_erc20_withdraw_address' | translate }}</button>
+      </ion-row>
+    </ng-template>
+  </ng-container>
+  <ng-template #tft>
+    <ion-row justify-content-center ngxClipboard [cbContent]="address$ | async" (cbOnSuccess)="showCopiedToast($event)">
+      <p>{{ 'receive_address_info' | translate }}</p>
+    </ion-row>
+    <ion-row justify-content-center>
+      <qr-code [value]="qrContent$ | async" [size]="300" ngxClipboard [cbContent]="address$ | async"
+               (cbOnSuccess)="showCopiedToast($event)"></qr-code>
+    </ion-row>
+    <ion-row justify-content-center>
+      <p class="address-line" ngxClipboard [cbContent]="address$ | async" (cbOnSuccess)="showCopiedToast($event)">
+        <code>{{ address$ | async }}</code>
+      </p>
+    </ion-row>
+    <ion-row>
+      <ion-item>
+        <ion-label color="primary" floating>{{ 'token_amount' | translate }}</ion-label>
+        <ion-input type="number" [formControl]="amountControl"></ion-input>
+      </ion-item>
+    </ion-row>
+  </ng-template>
 </ion-content>

@@ -9,7 +9,7 @@ import {
   RogerthatError,
   SupportedAlgorithms,
 } from 'rogerthat-plugin';
-import { ApiRequestStatus, CreateKeyPair, GetAddressPayload, ServiceData, Transaction1, UserData } from '../interfaces';
+import { ApiRequestStatus, CreateKeyPair, CreateTransactionType, GetAddressPayload, ServiceData, UserData } from '../interfaces';
 
 export const enum RogerthatActionTypes {
   SET_USER_DATA = '[rogerthat] Set user data',
@@ -81,7 +81,7 @@ export class GetAddresssAction implements Action {
   }
 }
 
-export class GetAddresssCompleteAction implements Action {
+export class GetAddressCompleteAction implements Action {
   readonly type = RogerthatActionTypes.GET_ADDRESS_COMPLETE;
 
   constructor(public payload: CryptoAddress) {
@@ -91,7 +91,7 @@ export class GetAddresssCompleteAction implements Action {
 export class GetAddresssFailedAction implements Action {
   readonly type = RogerthatActionTypes.GET_ADDRESS_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 
@@ -112,14 +112,14 @@ export class GetPublicKeyCompleteAction implements Action {
 export class GetPublicKeyFailedAction implements Action {
   readonly type = RogerthatActionTypes.GET_PUBLIC_KEY_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 
 export class CreateTransactionDataAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA;
 
-  constructor(public payload: Transaction1, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
+  constructor(public payload: CreateTransactionType, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
               public message: string) {
   }
 }
@@ -127,14 +127,14 @@ export class CreateTransactionDataAction implements Action {
 export class CreateTransactionDataCompleteAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA_COMPLETE;
 
-  constructor(public payload: Transaction1) {
+  constructor(public payload: CreateTransactionType) {
   }
 }
 
 export class CreateTransactionDataFailedAction implements Action {
   readonly type = RogerthatActionTypes.CREATE_TRANSACTION_DATA_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 
@@ -152,7 +152,7 @@ export class ListKeyPairsCompleteAction implements Action {
 export class ListKeyPairsFailedAction implements Action {
   readonly type = RogerthatActionTypes.LIST_KEY_PAIRS_FAILED;
 
-  constructor(public payload: ApiRequestStatus) {
+  constructor(public payload: RogerthatError) {
   }
 }
 
@@ -185,7 +185,7 @@ export type RogerthatActions
   | ScanQrCodeUpdateAction
   | ScanQrCodeFailedAction
   | GetAddresssAction
-  | GetAddresssCompleteAction
+  | GetAddressCompleteAction
   | GetAddresssFailedAction
   | GetPublicKeyAction
   | GetPublicKeyCompleteAction

@@ -7,7 +7,7 @@ import * as actions from '../actions';
 import { GetLatestBlockAction } from '../actions';
 import { WalletService } from '../services';
 import { getAddress, getHashInfo, getHashInfoStatus, getLatestBlock, IAppState } from '../state';
-import { filterNull, handleError, isUnrecognizedHashError } from '../util';
+import { filterNull, handleError, isUnrecognizedHashError, transformRogerthatError } from '../util';
 
 @Injectable()
 export class WalletEffects implements OnDestroy {
@@ -75,7 +75,7 @@ export class WalletEffects implements OnDestroy {
 
   @Effect() createTransactionDataFailed$ = this.actions$.pipe(
     ofType<actions.CreateTransactionDataFailedAction>(actions.RogerthatActionTypes.CREATE_TRANSACTION_DATA_FAILED),
-    switchMap(action => of(new actions.CreateTransactionFailedAction(action.payload))),
+    switchMap(action => of(new actions.CreateTransactionFailedAction(transformRogerthatError(action.payload)))),
   );
 
   @Effect() getLatestBlock$ = this.actions$.pipe(

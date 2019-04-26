@@ -1,5 +1,5 @@
 import { RogerthatActions, RogerthatActionTypes } from '../actions';
-import { apiRequestLoading, apiRequestSuccess, ServiceData, UserData } from '../interfaces';
+import { ServiceData, UserData } from '../interfaces';
 import { initialRogerthatState, IRogerthatState } from '../state';
 
 export function rogerthatReducer(state = initialRogerthatState, action: RogerthatActions): IRogerthatState<UserData, ServiceData> {
@@ -35,13 +35,12 @@ export function rogerthatReducer(state = initialRogerthatState, action: Rogertha
     case RogerthatActionTypes.GET_ADDRESS:
       return {
         ...state,
-        addressStatus: apiRequestLoading,
+        addressStatus: initialRogerthatState.addressStatus,
       };
     case RogerthatActionTypes.GET_ADDRESS_COMPLETE:
       return {
         ...state,
         address: action.payload,
-        addressStatus: apiRequestSuccess,
       };
     case RogerthatActionTypes.GET_ADDRESS_FAILED:
       return {
@@ -52,13 +51,12 @@ export function rogerthatReducer(state = initialRogerthatState, action: Rogertha
       return {
         ...state,
         publicKey: null,
-        getPublicKeyStatus: apiRequestLoading,
+        getPublicKeyStatus: initialRogerthatState.getPublicKeyStatus,
       };
     case RogerthatActionTypes.GET_PUBLIC_KEY_COMPLETE:
       return {
         ...state,
         publicKey: action.payload,
-        getPublicKeyStatus: apiRequestSuccess,
       };
     case RogerthatActionTypes.GET_PUBLIC_KEY_FAILED:
       return {
@@ -79,18 +77,17 @@ export function rogerthatReducer(state = initialRogerthatState, action: Rogertha
       return {
         ...state,
         keyPair: null,
-        createKeyPairStatus: apiRequestLoading,
+        createKeyPairStatus: initialRogerthatState.createKeyPairStatus,
       };
     case RogerthatActionTypes.CREATE_KEYPAIR_COMPLETE:
       return {
         ...state,
         keyPair: action.payload,
-        createKeyPairStatus: apiRequestSuccess,
       };
     case RogerthatActionTypes.CREATE_KEYPAIR_FAILED:
       return {
         ...state,
-        createKeyPairStatus: apiRequestSuccess,
+        createKeyPairStatus: action.payload,
       };
   }
   return state;

@@ -12,15 +12,15 @@
   <h3>{{ (transaction.receiving ? 'received': 'sent') | translate }} {{ getAmount(transaction.amount) }}</h3>
   <h4>{{ 'inputs' | translate }}</h4>
   <ion-list class="input-output-list">
-    <ion-item *ngFor="let input of transaction.data.coininputs">
+    <ion-item *ngFor="let input of transaction.transaction.data.coininputs">
       <coin-input [coinInput]="input"></coin-input>
     </ion-item>
   </ion-list>
   <h4>{{ 'outputs' | translate }}</h4>
   <ion-list class="input-output-list">
-    <ion-item *ngFor="let output of transaction.data.coinoutputs">
+    <ion-item *ngFor="let output of transaction.transaction.data.coinoutputs">
       <coin-output [coinOutput]="output" (copied)="showCopiedToast($event)"></coin-output>
     </ion-item>
   </ion-list>
-  <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount } }}</p>
+  <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.fee | amount } }}</p>
 </ion-content>
