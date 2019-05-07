@@ -142,7 +142,8 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
       return this.errorAlert.dismiss(() => {
         this.errorAlert = null;
         return Promise.resolve();
-      });
+      }).catch(() => Promise.resolve()
+      );
     }
     return Promise.resolve();
   }
