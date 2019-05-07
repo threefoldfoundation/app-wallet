@@ -25,6 +25,7 @@ import {
 } from '../components';
 import { RogerthatEffects, WalletEffects } from '../effects';
 import {
+  AboutPageComponent,
   AddWalletPageComponent,
   ConfirmSendPageComponent,
   CreatePaymentRequestPageComponent,
@@ -65,6 +66,7 @@ export const PAGES = [
   TransactionsListPageComponent,
   WalletChooserPageComponent,
   WalletPageComponent,
+  AboutPageComponent,
 ];
 
 export const COMPONENTS = [

@@ -5,6 +5,7 @@ import { AlertController, NavController, NavParams, Platform } from 'ionic-angul
 import { KeyPair } from 'rogerthat-plugin';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { AboutPageComponent } from '..';
 import { ListKeyPairsAction, SetSelectedKeyPairAction } from '../../actions';
 import { Provider } from '../../configuration';
 import { getKeyPairMapping, IAppState } from '../../state';
@@ -68,5 +69,9 @@ export class WalletChooserPageComponent implements OnInit {
         },
       ],
     }).present();
+  }
+
+  showInfo() {
+    this.navController.push(AboutPageComponent);
   }
 }

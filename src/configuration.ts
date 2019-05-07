@@ -15,6 +15,8 @@ export interface WalletConfiguration {
   providers: Provider[];
   defaultProviderId: PaymentProviderId;
   production: boolean;
+  version: string;
+  buildTime: string;
 }
 
 export const configuration: WalletConfiguration = require('./configuration.json');

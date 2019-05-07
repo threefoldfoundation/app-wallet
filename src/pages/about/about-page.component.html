@@ -1,0 +1,11 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>{{ 'about' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <p>{{ 'wallet_version' | translate : {version: walletVersion} }}</p>
+  <p>{{ 'built_on' | translate : {date: buildTime | date: 'medium'} }}</p>
+  <p>{{ 'app_version' | translate : {version: appVersion} }}</p>
+  <p>{{ 'os_version' | translate : {version: osVersion} }}</p>
+</ion-content>

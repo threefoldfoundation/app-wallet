@@ -1,5 +1,6 @@
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
+const shell = require('shelljs');
 const configPath = 'src/configuration.json';
 if (!argv.configuration_file && !argv.configuration) {
   throw new Error('You must specify the configuration file --configuration_file or configuration --configuration');
@@ -10,4 +11,7 @@ if (argv.configuration_file) {
 } else {
   config = argv.configuration;
 }
-fs.writeFileSync(configPath, JSON.stringify(JSON.parse(config), null, 2));
+const parsedConfig = JSON.parse(config);
+parsedConfig['version'] = shell.exec('git rev-parse --short HEAD').stdout.trim();
+parsedConfig['buildTime'] = new Date().toISOString();
+fs.writeFileSync(configPath, JSON.stringify(parsedConfig, null, 2));
