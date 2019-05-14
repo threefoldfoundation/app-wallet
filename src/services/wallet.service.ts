@@ -116,6 +116,7 @@ export class WalletService {
       }
       const minerfees = (COIN_TO_HASTINGS / 10);
       let inputIds = getInputIds(hashInfo.transactions, data.from_address, latestBlock).available;
+      inputIds = inputIds.sort((first, second) => parseInt(second.amount) - parseInt(first.amount));
       const pendingOutputIds = pendingTransactions
         .map(transaction => <CoinInput[]>(transaction.transaction.data.coininputs || []))
         .reduce((total: string[], inputs) => [ ...total, ...inputs.map(input => input.parentid) ], []);
