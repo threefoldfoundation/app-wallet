@@ -12,7 +12,7 @@ import {
   ParsedTransaction,
   PendingTransaction,
 } from '../interfaces';
-import { combineRequestStatuses, getInputIds, getTransactionAmount } from '../util';
+import { combineRequestStatuses, getInputIds, getTransactionAmount, isUnrecognizedHashError } from '../util';
 import { IAppState } from './app.state';
 import { getAddress } from './rogerthat.state';
 
@@ -85,7 +85,13 @@ export const getTotalAmount = createSelector(getTransactions, getLatestBlock, ge
 
 export const getTotalLockedAmount = createSelector(getTotalAmount, total => total.locked);
 export const getTotalUnlockedAmount = createSelector(getTotalAmount, total => total.unlocked);
-export const getTransactionsStatus = createSelector(getWalletState, s => combineRequestStatuses(s.hashInfoStatus, s.transactionsStatus));
+export const getTransactionsStatus = createSelector(getWalletState, s => {
+  let hashInfoStatus = s.hashInfoStatus;
+  if (!hashInfoStatus.success && hashInfoStatus.error && isUnrecognizedHashError(hashInfoStatus.error.error)) {
+    hashInfoStatus = { success: true, error: null, loading: false };
+  }
+  return combineRequestStatuses(hashInfoStatus, s.transactionsStatus);
+});
 export const getPendingTransaction = createSelector(getWalletState, s => s.pendingTransaction);
 export const getCreatedTransaction = createSelector(getWalletState, s => s.createdTransaction);
 export const getPendingTransactionStatus = createSelector(getWalletState, s => s.pendingTransactionStatus);
