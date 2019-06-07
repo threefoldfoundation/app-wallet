@@ -235,6 +235,7 @@ export class WalletService {
         return attempts.pipe(mergeMap(error => {
           retries++;
           console.warn(`GET ${fullUrl} failed (attempt ${retries})`);
+          this.log(error);
           if (error instanceof HttpErrorResponse && typeof error.error === 'object'
             && isUnrecognizedHashError(error.error.message)) {
             // Don't retry in case the hash wasn't recognized
@@ -270,6 +271,7 @@ export class WalletService {
         return attempts.pipe(mergeMap(error => {
           retries++;
           console.warn(`POST ${fullUrl} failed (attempt ${retries})`);
+          this.log(error);
           const shouldRetry = (error instanceof HttpErrorResponse && error.status >= 500 || error.status === 0)
             || error instanceof TimeoutError;
           if (retries < 5 && shouldRetry) {
@@ -298,5 +300,13 @@ export class WalletService {
       urls = provider.explorerUrls;
     }
     return urls[ Math.floor(Math.random() * urls.length) ];
+  }
+
+  private log(object: any) {
+    console.error(object);
+    try {
+      console.error(JSON.stringify(object));
+    } catch (e) {
+    }
   }
 }
