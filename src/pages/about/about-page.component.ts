@@ -11,4 +11,5 @@ export class AboutPageComponent {
   buildTime = configuration.buildTime;
   appVersion = rogerthat.system.appVersion;
   osVersion = rogerthat.system.version;
+  user = `${rogerthat.user.name} - ${rogerthat.user.account}`;
 }
