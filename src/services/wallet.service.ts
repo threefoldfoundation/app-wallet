@@ -41,6 +41,8 @@ import {
   isUnrecognizedHashError,
 } from '../util';
 
+const REQUEST_TIMEOUT = 10000;
+
 @Injectable()
 export class WalletService {
   unavailableExplorers: string[] = [];
@@ -228,7 +230,7 @@ export class WalletService {
           currentHost = this._getUrl(provider);
           fullUrl = currentHost + path;
           console.log(`GET ${fullUrl}`);
-          return this.http.get<T>(fullUrl, options).pipe(timeout(5000));
+          return this.http.get<T>(fullUrl, options).pipe(timeout(REQUEST_TIMEOUT));
         }
       ),
       retryWhen(attempts => {
@@ -265,7 +267,7 @@ export class WalletService {
         currentHost = this._getUrl(provider);
         fullUrl = currentHost + path;
         console.log(`POST ${fullUrl}`);
-        return this.http.post<T>(fullUrl, body, options).pipe(timeout(5000));
+        return this.http.post<T>(fullUrl, body, options).pipe(timeout(REQUEST_TIMEOUT));
       }),
       retryWhen(attempts => {
         return attempts.pipe(mergeMap(error => {
