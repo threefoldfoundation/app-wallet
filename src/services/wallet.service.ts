@@ -41,7 +41,7 @@ import {
   isUnrecognizedHashError,
 } from '../util';
 
-const REQUEST_TIMEOUT = 10000;
+const REQUEST_TIMEOUT = 15000;
 
 @Injectable()
 export class WalletService {
