@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/
 import { FormControl, NgForm, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { MessageEmbeddedApp, PaymentRequestData } from 'rogerthat-plugin';
-import { CreatePaymentRequestContext, RogerthatContextType } from 'rogerthat-plugin/www/rogerthat-payment';
+import { CreatePaymentRequestContext, MessageEmbeddedApp, PaymentRequestData, RogerthatContextType } from 'rogerthat-plugin';
 import { Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { GetAddresssAction } from '../../actions';
@@ -62,10 +61,6 @@ export class CreatePaymentRequestPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  private exitWithResult(result: any) {
-    rogerthat.app.exitWithResult(JSON.stringify(result));
-  }
-
   submit(form: NgForm) {
     if (form.form.valid) {
       this.store.pipe(select(getAddress), filterNull(), first()).subscribe(address => {
@@ -85,5 +80,9 @@ export class CreatePaymentRequestPageComponent implements OnInit, OnDestroy {
         this.exitWithResult(messageEmbeddedApp);
       });
     }
+  }
+
+  private exitWithResult(result: any) {
+    rogerthat.app.exitWithResult(JSON.stringify(result));
   }
 }

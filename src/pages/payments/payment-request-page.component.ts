@@ -3,13 +3,18 @@ import { Actions } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { ModalController, NavController, NavParams, Platform } from 'ionic-angular';
-import { CreatePaymentRequestContext, CryptoAddress, PaymentRequestContext, RogerthatError } from 'rogerthat-plugin';
-import { MessageEmbeddedApp, PaymentRequestData } from 'rogerthat-plugin/www/rogerthat-payment';
+import {
+  CreatePaymentRequestContext,
+  CryptoAddress,
+  MessageEmbeddedApp,
+  PaymentRequestContext,
+  PaymentRequestData
+} from 'rogerthat-plugin';
 import { Observable, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { GetAddresssAction } from '../../actions';
-import { ApiRequestStatus, CreateSignatureData, CreateTransactionResult, TransactionVersion } from '../../interfaces';
-import { getAddress, getAddressStatus, getSelectedKeyPair, IAppState } from '../../state';
+import { CreateSignatureData, CreateTransactionResult, TransactionVersion } from '../../interfaces';
+import { getAddress, getSelectedKeyPair, IAppState } from '../../state';
 import { filterNull } from '../../util';
 import { ConfirmSendPageComponent } from '../wallet';
 
